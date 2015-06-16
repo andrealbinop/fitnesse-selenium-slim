@@ -1,10 +1,9 @@
 package com.github.andreptb.fitnesse;
 
+import com.github.andreptb.fitnesse.selenium.SeleniumElementFinder;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.utils.URIUtils;
 import org.junit.Assert;
-import org.openqa.selenium.By;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -27,16 +26,6 @@ public class SeleniumFixture {
 	 * HTTP scheme prefix, to detect remote driver
 	 */
 	private static final String HTTP_PREFIX = "http://";
-
-	/**
-	 * Prefix to delegate css selectors to WebDriver
-	 */
-	private static final String CSS_SELECTOR_PREFIX = "css=";
-	/**
-	 * Prefix to delegate id selectors to WebDriver
-	 */
-	private static final String ID_SELECTOR_PREFIX = "id=";
-
 	/**
 	 * Used as value for selectables such as checkboxes and radios.
 	 */
@@ -54,6 +43,10 @@ public class SeleniumFixture {
 	 * Registered databases, the key being database name and value an instance of JdbcTemplate
 	 */
     private WebDriver driver;
+	/**
+	 * Utility to help finding web elements with provided selector
+	 */
+	private SeleniumElementFinder elementFinder = new SeleniumElementFinder();
 
 	/**
 	 * Registers the driver to further execute selenium commands
@@ -77,33 +70,26 @@ public class SeleniumFixture {
 	 * @param browser The browser to be used
 	 * @return result Boolean result indication of assertion/operation
 	 */
-    public boolean startWith(String browser, Object capabilities) throws ReflectiveOperationException, MalformedURLException {
-		WebDriver selectedDriver = startRemoteOrConnectLocal(browser, capabilities);
-		close();
-		this.driver = selectedDriver;
-		return true;
+    public boolean startWith(String browser, Map<String, ?> capabilities) throws ReflectiveOperationException, MalformedURLException {
+		return startWith(browser, new DesiredCapabilities(capabilities));
 	}
 
 
-	private WebDriver startRemoteOrConnectLocal(String browser, Object capabilities) throws MalformedURLException, ReflectiveOperationException {
-		DesiredCapabilities desiredCapabilities = null;
-		if(capabilities instanceof DesiredCapabilities) {
-			desiredCapabilities = (DesiredCapabilities) capabilities;
-		} else if(capabilities instanceof Map) {
-			desiredCapabilities = new DesiredCapabilities((Map<String, ?>) capabilities);
-		}
+	public boolean startWith(String browser, DesiredCapabilities capabilities) throws MalformedURLException, ReflectiveOperationException {
 		if(StringUtils.startsWithIgnoreCase(browser, SeleniumFixture.HTTP_PREFIX)) {
-			return new RemoteWebDriver(new URL(browser), desiredCapabilities);
+			close();
+			this.driver = new RemoteWebDriver(new URL(browser), capabilities);
 		}
 		Reflections reflections = new Reflections(WebDriver.class.getPackage().getName());
 		List<String> availableDrivers = new ArrayList<>();
 		for(Class<? extends WebDriver> availableDriver : reflections.getSubTypesOf(WebDriver.class)) {
 			String name = availableDriver.getSimpleName();
 			availableDrivers.add(StringUtils.lowerCase(StringUtils.removeEnd(name, "Driver")));
-			if(!StringUtils.startsWithIgnoreCase(name, browser)) {
-				continue;
+			if(StringUtils.startsWithIgnoreCase(name, browser)) {
+				close();
+				this.driver = availableDriver.getConstructor(Capabilities.class).newInstance(capabilities);
+				return true;
 			}
-			return availableDriver.getConstructor(Capabilities.class).newInstance(desiredCapabilities);
 		}
 		throw new IllegalArgumentException(String.format("Invalid browser [%s]. Available: [%s]", browser, StringUtils.join(availableDrivers, ", ")));
 	}
@@ -178,7 +164,20 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean type(String locator, String value) {
-		findElement(locator).sendKeys(value);
+		this.elementFinder.find(this.driver, locator).sendKeys(value);
+		return true;
+	}
+
+	/**
+	 * Clicks on a link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
+	 * <p><code>
+	 * | click | locator |
+	 * </code></p>
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean click(String locator) {
+		this.elementFinder.find(this.driver, locator).click();
 		return true;
 	}
 
@@ -193,8 +192,8 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean assertValue(String locator, String pattern) {
-		WebElement element = findElement(locator);
-		String assertMessage = "Unexpected value for: " + element;
+		WebElement element = this.elementFinder.find(this.driver, locator);
+		String assertMessage = "Unexpected value for " + element.getTagName();
 		if(StringUtils.equals(pattern, SeleniumFixture.SELECTABLE_ON_VALUE)) {
 			Assert.assertTrue(assertMessage, element.isSelected());
 		} else if(StringUtils.equals(pattern, SeleniumFixture.SELECTABLE_OFF_VALUE)) {
@@ -206,22 +205,33 @@ public class SeleniumFixture {
 	}
 
 	/**
-	 * Selects element. Tries to emulate selenium IDE searching methods
-	 * <ul>
-	 *     <li>By id: 'id=&lt;id&gt;</li>'
-	 *     <li>By css selector: 'css=#&lt;id&gt;</li>'
-	 *     <li>By xpath selector: 'div[@id=#&lt;id&gt;]</li>'
-	 * </ul>
- 	 * @param locator an element locator
-	 * @return webElementFound
+	 * Gets the text of an element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element, which is the rendered text shown to the user.
+	 *
+	 * <p><code>
+	 * | verify text | locator | value |
+	 * </code></p>
+	 * @param locator an element locator
+	 * @param pattern expected pattern
+	 * @return result Boolean result indication of assertion/operation
 	 */
-	private WebElement findElement(String locator) {
-		if(StringUtils.startsWith(locator, SeleniumFixture.ID_SELECTOR_PREFIX)) {
-			return this.driver.findElement(By.id(StringUtils.removeStart(locator, SeleniumFixture.ID_SELECTOR_PREFIX)));
-		}
-		if(StringUtils.startsWith(locator, SeleniumFixture.CSS_SELECTOR_PREFIX)) {
-			return this.driver.findElement(By.cssSelector(StringUtils.removeStart(locator, SeleniumFixture.CSS_SELECTOR_PREFIX)));
-		}
-		return this.driver.findElement(By.xpath(locator));
+	public boolean verifyText(String locator, String pattern) {
+		WebElement element = elementFinder.find(this.driver, locator);
+		Assert.assertEquals("Unexpected text for " + element.getTagName(), StringUtils.stripToEmpty(pattern), StringUtils.stripToEmpty(element.getText()));
+		return true;
 	}
+
+	/**
+	 * Verifies that the specified element is somewhere on the page.
+	 *
+	 * <p><code>
+	 * | verify element present | locator |
+	 * </code></p>
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean verifyElementPresent(String locator) {
+		return this.elementFinder.contains(this.driver, locator);
+	}
+
+
 }

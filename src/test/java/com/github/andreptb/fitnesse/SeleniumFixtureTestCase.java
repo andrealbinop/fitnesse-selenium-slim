@@ -47,23 +47,44 @@ public class SeleniumFixtureTestCase {
 
     @Test
     public void testTypeElementFoundById() {
-        testSelector("id=lst-ib");
+        testTypeElement("id=lst-ib");
+    }
+
+    @Test
+    public void testTypeElementFoundByName() {
+        testTypeElement("name=q");
     }
 
     @Test
     public void testTypeElementFoundByCss() {
-        testSelector("css=#lst-ib");
+        testTypeElement("css=#lst-ib");
     }
 
     @Test
     public void testTypeElementFoundByXpath() {
-        testSelector("//input[@id='lst-ib']");
+        testTypeElement("//input[@id='lst-ib']");
     }
 
-    private void testSelector(String selector) {
+
+    private void testTypeElement(String selector) {
         this.seleniumFixture.open("http://www.google.com");
-        String expectedValue = "selenium web browser";
+        String expectedValue = "Selenium - Web Browser Automation";
         this.seleniumFixture.type(selector, expectedValue);
         this.seleniumFixture.assertValue(selector, expectedValue);
+        this.seleniumFixture.verifyElementPresent("name=btnG");
+    }
+
+    @Test
+    public void testClickElementFoundByName() {
+        this.seleniumFixture.open("http://www.google.com");
+        this.seleniumFixture.click("name=btnI");
+        this.seleniumFixture.assertTitle("Google Doodles");
+    }
+
+    @Test
+    public void testClickElementFoundByLinkText() {
+        this.seleniumFixture.open("http://www.google.com/doodles");
+        this.seleniumFixture.click("link=About");
+        this.seleniumFixture.verifyText("css=#popular-doodles h3", "More Doodles");
     }
 }
