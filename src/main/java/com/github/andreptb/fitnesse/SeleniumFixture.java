@@ -79,6 +79,7 @@ public class SeleniumFixture {
 		if(StringUtils.startsWithIgnoreCase(browser, SeleniumFixture.HTTP_PREFIX)) {
 			close();
 			this.driver = new RemoteWebDriver(new URL(browser), capabilities);
+			return true;
 		}
 		Reflections reflections = new Reflections(WebDriver.class.getPackage().getName());
 		List<String> availableDrivers = new ArrayList<>();
