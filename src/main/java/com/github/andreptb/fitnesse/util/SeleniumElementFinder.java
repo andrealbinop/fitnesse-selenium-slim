@@ -1,4 +1,4 @@
-package com.github.andreptb.fitnesse.selenium;
+package com.github.andreptb.fitnesse.util;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,9 +15,13 @@ import org.openqa.selenium.WebElement;
 public class SeleniumElementFinder {
 
     /**
-     * Locator selector type separator constant
+     * Locator selector typeIn separator constant
      */
     private static final String SELECTOR_TYPE_SEPARATOR = "=";
+    /**
+     * Utility to process FitNesse markup so can be used by Selenium WebDriver
+     */
+    private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 
     enum SelectorType {
         id(By.ById.class),
@@ -33,7 +37,7 @@ public class SeleniumElementFinder {
     }
 
     /**
-     * Selects element. Tries to emulate selenium IDE searching methods
+     * Selects element. Tries to emulate util IDE searching methods
      * <ul>
      *     <li>By id: 'id=&lt;id&gt;</li>'
      *     <li>By name: 'name=&lt;name&gt;</li>'
@@ -46,13 +50,14 @@ public class SeleniumElementFinder {
      * @throws NoSuchElementException if element don't exist or cannot be found
      */
     public WebElement find(WebDriver driver, String locator) {
-        String selectorPrefix = StringUtils.substringBefore(locator, SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
+        String cleanedLocator = fitnesseMarkup.clean(locator);
+        String selectorPrefix = StringUtils.substringBefore(cleanedLocator, SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
         SelectorType selectorType = EnumUtils.getEnum(SelectorType.class, selectorPrefix);
         if(selectorType == null) {
             return driver.findElement(By.xpath(locator));
         }
         try {
-            String parsedLocator = StringUtils.removeStart(locator, selectorPrefix + SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
+            String parsedLocator = StringUtils.removeStart(cleanedLocator, selectorPrefix + SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
             return driver.findElement(selectorType.byClass.getConstructor(String.class).newInstance(parsedLocator));
         } catch(ReflectiveOperationException e) {
             throw new IllegalStateException("Unexpected failure instantiating selector: " + selectorPrefix, e);

@@ -1,9 +1,9 @@
 package com.github.andreptb.fitnesse;
 
-import com.github.andreptb.fitnesse.selenium.SeleniumElementFinder;
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -47,35 +47,39 @@ public class SeleniumFixture {
 	 * Utility to help finding web elements with provided selector
 	 */
 	private SeleniumElementFinder elementFinder = new SeleniumElementFinder();
+	/**
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
+	 */
+	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 
 	/**
-	 * Registers the driver to further execute selenium commands
+	 * Registers the driver to further execute util commands
 	 *
 	 * <p><code>
-	 * | start | <i>browser</i> |
+	 * | start browser | <i>browser</i> |
 	 * </code></p>
 	 * @param browser The browser to be used
 	 * @return result Boolean result indication of assertion/operation
 	 */
-	public boolean start(String browser) throws ReflectiveOperationException, MalformedURLException {
-		return startWith(browser, MapUtils.EMPTY_MAP);
+	public boolean startBrowser(String browser) throws ReflectiveOperationException, MalformedURLException {
+		return startBrowserWith(browser, MapUtils.EMPTY_MAP);
 	}
 
 	/**
-	 * Registers the driver to further execute selenium commands
+	 * Registers the driver to further execute util commands
 	 *
 	 * <p><code>
-	 * | start | <i>browser</i> | with | <i>capabilities</i> |
+	 * | start browser | <i>browser</i> | with | <i>capabilities</i> |
 	 * </code></p>
 	 * @param browser The browser to be used
 	 * @return result Boolean result indication of assertion/operation
 	 */
-    public boolean startWith(String browser, Map<String, ?> capabilities) throws ReflectiveOperationException, MalformedURLException {
-		return startWith(browser, new DesiredCapabilities(capabilities));
+    public boolean startBrowserWith(String browser, Map<String, ?> capabilities) throws ReflectiveOperationException, MalformedURLException {
+		return startBrowserWith(browser, new DesiredCapabilities(capabilities));
 	}
 
 
-	public boolean startWith(String browser, DesiredCapabilities capabilities) throws MalformedURLException, ReflectiveOperationException {
+	public boolean startBrowserWith(String browser, DesiredCapabilities capabilities) throws MalformedURLException, ReflectiveOperationException {
 		if(StringUtils.startsWithIgnoreCase(browser, SeleniumFixture.HTTP_PREFIX)) {
 			close();
 			this.driver = new RemoteWebDriver(new URL(browser), capabilities);
@@ -105,7 +109,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-		this.driver.get(url);
+		this.driver.get(this.fitnesseMarkup.clean(url));
 		return true;
 	}
 
@@ -113,14 +117,12 @@ public class SeleniumFixture {
 	 * Asserts current page title
 	 *
 	 * <p><code>
-	 * | assert title | <i>title</i> |
+	 * | ensure title | <i>title</i> |
 	 * </code></p>
-	 * @param title Expected title
 	 * @return result Boolean result indication of assertion/operation
 	 */
-	public boolean assertTitle(String title) {
-		Assert.assertEquals("Page Title", title, this.driver.getTitle());
-		return true;
+	public String title() {
+		return this.driver.getTitle();
 	}
 
 	/**
@@ -158,13 +160,13 @@ public class SeleniumFixture {
 	 * Can also be used to set the value of combo boxes, check boxes, etc. In these cases, value should be the value of the option selected, not the visible text.
 	 *
 	 * <p><code>
-	 * | type | locator | value |
+	 * | type | value | in | locator |
 	 * </code></p>
+	 * @param value the value to typeIn
 	 * @param locator an element locator
-	 * @param value the value to type
 	 * @return result Boolean result indication of assertion/operation
 	 */
-	public boolean type(String locator, String value) {
+	public boolean typeIn(String value, String locator) {
 		this.elementFinder.find(this.driver, locator).sendKeys(value);
 		return true;
 	}
@@ -186,53 +188,40 @@ public class SeleniumFixture {
 	 * Gets the (whitespace-trimmed) value of an input field (or anything else with a value parameter). For checkbox/radio elements, the value will be "on" or "off" depending on whether the element is checked or not.
 	 *
 	 * <p><code>
-	 * | assert value | locator | value |
+	 * | check | value | locator | expectedValue |
 	 * </code></p>
 	 * @param locator an element locator
-	 * @param pattern expected pattern
-	 * @return result Boolean result indication of assertion/operation
+	 * @return value associated with the locator
 	 */
-	public boolean assertValue(String locator, String pattern) {
+	public String value(String locator) {
 		WebElement element = this.elementFinder.find(this.driver, locator);
-		String assertMessage = "Unexpected value for " + element.getTagName();
-		if(StringUtils.equals(pattern, SeleniumFixture.SELECTABLE_ON_VALUE)) {
-			Assert.assertTrue(assertMessage, element.isSelected());
-		} else if(StringUtils.equals(pattern, SeleniumFixture.SELECTABLE_OFF_VALUE)) {
-			Assert.assertFalse(assertMessage, element.isSelected());
-		} else {
-			Assert.assertEquals(assertMessage, StringUtils.stripToEmpty(pattern), StringUtils.stripToEmpty(element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE)));
-		}
-		return true;
+		return this.fitnesseMarkup.clean(element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE));
 	}
 
 	/**
 	 * Gets the text of an element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element, which is the rendered text shown to the user.
 	 *
 	 * <p><code>
-	 * | verify text | locator | value |
+	 * | check | text | locator | expectedValue |
 	 * </code></p>
 	 * @param locator an element locator
-	 * @param pattern expected pattern
-	 * @return result Boolean result indication of assertion/operation
+	 * @return text associated with the locator
 	 */
-	public boolean verifyText(String locator, String pattern) {
+	public String text(String locator) {
 		WebElement element = elementFinder.find(this.driver, locator);
-		Assert.assertEquals("Unexpected text for " + element.getTagName(), StringUtils.stripToEmpty(pattern), StringUtils.stripToEmpty(element.getText()));
-		return true;
+		return this.fitnesseMarkup.clean(element.getText());
 	}
 
 	/**
 	 * Verifies that the specified element is somewhere on the page.
 	 *
 	 * <p><code>
-	 * | verify element present | locator |
+	 * | ensure | present | locator |
 	 * </code></p>
 	 * @param locator an element locator
 	 * @return result Boolean result indication of assertion/operation
 	 */
-	public boolean verifyElementPresent(String locator) {
+	public boolean present(String locator) {
 		return this.elementFinder.contains(this.driver, locator);
 	}
-
-
 }

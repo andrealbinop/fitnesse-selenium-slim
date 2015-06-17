@@ -18,7 +18,22 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 </dependency>
 ```
 
+#### Testing
+
+* To run JUnit tests:
+
+```
+mvn test
+```
+
+* To start FitNesse server and navigate through samples:
+
+```
+mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain
+```
+
 ####  Sample:
+
 ```
 | import |
 | com.github.andreptb.fitnesse |
@@ -27,8 +42,11 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 | selenium fixture |
 
 | script |
-| start | firefox | # Starts firefox browser
-| open | http://www.google.com.br | # opens google website
-| type | id=lst-ib | selenium web browser | # types "selenium web browser" on google's search input
-| assert value | id=lst-ib | selenium web browser | # asserts that google's search input has "selenium web browser" value
+| start browser | firefox |
+| open | http://www.google.com.br |
+| note | types something on google search box
+| type | selenium web browser | in | id=lst-ib |
+| note | checks if the input has the desired value
+| check | value | id=lst-ib | selenium web browser |
+| close |
 ```

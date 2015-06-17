@@ -1,0 +1,8 @@
+!1 fitnesse-selenium-slim [[!img https://travis-ci.org/andreptb/fitnesse-selenium-slim.svg][https://travis-ci.org/andreptb/fitnesse-selenium-slim]] [[!img https://coveralls.io/repos/andreptb/fitnesse-selenium-slim/badge.svg?branch=master][https://coveralls.io/r/andreptb/fitnesse-selenium-slim?branch=master]] [[!img https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/badge.svg][https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/]]
+==============
+
+'''Important''': This is a work in progress, come back later if you want something usable. Or contact me if you want to contribute.
+
+  [[FitNesse][https://github.com/unclebob/fitnesse]] Selenium fixture in [[slim format][http://www.fitnesse.org/FitNesse.UserGuide.WritingAcceptanceTests.SliM]]. Resembles [[Xebium][http://xebia.github.io/Xebium/]], but it's even more similar to [[Selenium IDE Firefox Plugin][http://www.seleniumhq.org/projects/ide/]]. Also gets inspiration from  [[hsac-fitnesse-fixtures][https://github.com/fhoeben/hsac-fitnesse-fixtures]] but doesn't try to "simplify" Selenium IDE development flow. This project is licensed under [[MIT][http://opensource.org/licenses/MIT]].
+
+!contents -R2 -g -p -f -h

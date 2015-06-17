@@ -22,7 +22,9 @@ public class SeleniumFixtureTestCase {
     @BeforeClass
     public static void createSeleniumFixture() throws ReflectiveOperationException, MalformedURLException {
         SeleniumFixtureTestCase.seleniumFixture = new SeleniumFixture();
-        SeleniumFixtureTestCase.seleniumFixture.startWith(SeleniumFixtureTestCase.BROWSER, DesiredCapabilities.firefox());
+        DesiredCapabilities capabilities = DesiredCapabilities.firefox();
+        capabilities.setCapability("name", SeleniumFixtureTestCase.class.getName());
+        SeleniumFixtureTestCase.seleniumFixture.startBrowserWith(SeleniumFixtureTestCase.BROWSER, capabilities);
     }
 
     @AfterClass
@@ -31,15 +33,15 @@ public class SeleniumFixtureTestCase {
     }
 
     @Test
-    public void testAssertTitle() {
-        SeleniumFixtureTestCase.seleniumFixture.open("http://www.google.com");
-        SeleniumFixtureTestCase.seleniumFixture.assertTitle("Google");
+    public void testTitle() {
+        SeleniumFixtureTestCase.seleniumFixture.open("http://saucelabs.com/");
+        Assert.assertEquals("Sauce Labs: Selenium Testing, Mobile Testing, JS Unit Testing and More", SeleniumFixtureTestCase.seleniumFixture.title());
     }
 
     @Test
     public void testConnectInvalidBrowser() throws ReflectiveOperationException, MalformedURLException {
         try {
-            this.seleniumFixture.start("invalidBrowser");
+            this.seleniumFixture.startBrowser("invalidBrowser");
         } catch (IllegalArgumentException e) {
             Assert.assertEquals("Wrong exception message", "Invalid browser [invalidBrowser]", StringUtils.substringBefore(e.getMessage(), "."));
         }
@@ -47,44 +49,48 @@ public class SeleniumFixtureTestCase {
 
     @Test
     public void testTypeElementFoundById() {
-        testTypeElement("id=lst-ib");
+        testTypeElement("id=username");
     }
 
     @Test
     public void testTypeElementFoundByName() {
-        testTypeElement("name=q");
+        testTypeElement("name=username");
     }
 
     @Test
     public void testTypeElementFoundByCss() {
-        testTypeElement("css=#lst-ib");
+        testTypeElement("css=#username");
     }
 
     @Test
     public void testTypeElementFoundByXpath() {
-        testTypeElement("//input[@id='lst-ib']");
+        testTypeElement("//input[@id='username']");
     }
 
 
     private void testTypeElement(String selector) {
-        this.seleniumFixture.open("http://www.google.com");
-        String expectedValue = "Selenium - Web Browser Automation";
-        this.seleniumFixture.type(selector, expectedValue);
-        this.seleniumFixture.assertValue(selector, expectedValue);
-        this.seleniumFixture.verifyElementPresent("name=btnG");
-    }
-
-    @Test
-    public void testClickElementFoundByName() {
-        this.seleniumFixture.open("http://www.google.com");
-        this.seleniumFixture.click("name=btnI");
-        this.seleniumFixture.assertTitle("Google Doodles");
+        this.seleniumFixture.open("http://saucelabs.com/login");
+        String expectedValue = "test";
+        this.seleniumFixture.typeIn(expectedValue, selector);
+        Assert.assertEquals(selector, expectedValue, this.seleniumFixture.value(selector));
     }
 
     @Test
     public void testClickElementFoundByLinkText() {
-        this.seleniumFixture.open("http://www.google.com/doodles");
-        this.seleniumFixture.click("link=About");
-        this.seleniumFixture.verifyText("css=#popular-doodles h3", "More Doodles");
+        this.seleniumFixture.open("http://saucelabs.com/login");
+        this.seleniumFixture.click("link=Login with GitHub");
+        Assert.assertEquals("Unexpected Title", "Sign in · GitHub", SeleniumFixtureTestCase.seleniumFixture.title());
+    }
+
+    @Test
+    public void testVerifyText() {
+        this.seleniumFixture.open("http://saucelabs.com/login");
+        Assert.assertEquals("Wrong text", "Welcome back.", this.seleniumFixture.text("css=#login-section h1"));
+    }
+
+    @Test
+    public void testVerifyElementPresent() {
+        this.seleniumFixture.open("http://saucelabs.com/login");
+        Assert.assertTrue(this.seleniumFixture.present("id=username"));
     }
 }
