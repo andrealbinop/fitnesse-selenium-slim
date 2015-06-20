@@ -7,10 +7,7 @@
 | import |
 | com.github.andreptb.fitnesse |
 
-| library |
-| selenium fixture |
-
-| script |
+| selenium |
 | start browser | firefox |
 | open | http://www.google.com.br |
 | type | selenium web browser | in | id=lst-ib |

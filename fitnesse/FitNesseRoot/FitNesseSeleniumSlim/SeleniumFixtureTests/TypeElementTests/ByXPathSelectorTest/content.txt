@@ -1,0 +1,3 @@
+| selenium |
+| type | foobarbar | in | //input[@id='username'] |
+| check | value | //input[@id='username'] | foobarbar |

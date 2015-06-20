@@ -1,0 +1,3 @@
+| selenium |
+| open | http://saucelabs.com |
+| check | title | Sauce Labs: Selenium Testing, Mobile Testing, JS Unit Testing and More |

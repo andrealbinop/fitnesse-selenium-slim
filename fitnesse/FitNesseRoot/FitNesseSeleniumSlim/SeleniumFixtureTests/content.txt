@@ -1,0 +1,7 @@
+!define TEST_SYSTEM {slim}
+
+!***> classpath config
+!pomFile pom.xml@runtime
+***!
+
+!contents -R2 -g -p -f -h

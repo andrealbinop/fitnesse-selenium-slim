@@ -1,21 +1,16 @@
 package com.github.andreptb.fitnesse;
 
-import com.github.andreptb.fitnesse.util.FitnesseMarkup;
-import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.lang.StringUtils;
-import org.openqa.selenium.Capabilities;
+import java.io.IOException;
+import java.net.MalformedURLException;
+
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.DesiredCapabilities;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.reflections.Reflections;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
+import com.github.andreptb.fitnesse.util.FixtureWebDriverProvider;
 
 /**
  * Slim fixture to execute Selenium commands, see README.md for more information.
@@ -23,26 +18,36 @@ import java.util.Map;
 public class SeleniumFixture {
 
 	/**
-	 * HTTP scheme prefix, to detect remote driver
+	 * Browser states, since some actions depends the browser to be in a certain state
+	 */
+	private enum BrowserState {
+		UNITIALIZED,
+		STARTED,
+		NAVIGATING,
+		CLOSED;
+	}
+
+	/**
+	 * HTTP scheme prefix, to detect remote DRIVER
 	 */
 	private static final String HTTP_PREFIX = "http://";
-	/**
-	 * Used as value for selectables such as checkboxes and radios.
-	 */
-	private static final String SELECTABLE_ON_VALUE = "on";
-	/**
-	 * Used as value for selectables such as checkboxes and radios.
-	 */
-	private static final String SELECTABLE_OFF_VALUE = "off";
 	/**
 	 * HTML Value attribute, usually used on inputs
 	 */
 	private static final String INPUT_VALUE_ATTRIBUTE = "value";
 
 	/**
-	 * Registered databases, the key being database name and value an instance of JdbcTemplate
+	 * Browser current state
 	 */
-    private WebDriver driver;
+	private static BrowserState BROWSER_STATE = BrowserState.UNITIALIZED;
+	/**
+	 * Selenium Web Driver, static so the same DRIVER instance can be used through multiple tables
+	 */
+	private static WebDriver DRIVER;
+	/**
+	 * Utility to help creating WebDriver instances
+	 */
+	private FixtureWebDriverProvider driverProvider = new FixtureWebDriverProvider();
 	/**
 	 * Utility to help finding web elements with provided selector
 	 */
@@ -53,7 +58,7 @@ public class SeleniumFixture {
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 
 	/**
-	 * Registers the driver to further execute util commands
+	 * Registers the DRIVER to further execute selenium commands
 	 *
 	 * <p><code>
 	 * | start browser | <i>browser</i> |
@@ -62,43 +67,44 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean startBrowser(String browser) throws ReflectiveOperationException, MalformedURLException {
-		return startBrowserWith(browser, MapUtils.EMPTY_MAP);
+		return startBrowserWith(browser, null);
 	}
 
 	/**
-	 * Registers the driver to further execute util commands
-	 *
-	 * <p><code>
+	 * Registers the DRIVER to further execute selenium commands. Capabilities should be informed in the following format:
+	 * <p>
+	 * name='some test' platform='LINUX' version='xx'
+	 * </p>
+	 * This format was used instead of regular json format since FitNesse uses brackets for variables. Quotes between values must be used when values contains spaces
+	 * <p>
+	 * <code>
 	 * | start browser | <i>browser</i> | with | <i>capabilities</i> |
-	 * </code></p>
+	 * </code>
+	 * </p>
+	 *
 	 * @param browser The browser to be used
 	 * @return result Boolean result indication of assertion/operation
 	 */
-    public boolean startBrowserWith(String browser, Map<String, ?> capabilities) throws ReflectiveOperationException, MalformedURLException {
-		return startBrowserWith(browser, new DesiredCapabilities(capabilities));
+	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, MalformedURLException {
+		WebDriver driver = this.driverProvider.createDriver(browser, capabilities);
+		if (driver == null) {
+			return false;
+		}
+		close();
+		SeleniumFixture.DRIVER = driver;
+		SeleniumFixture.BROWSER_STATE = BrowserState.STARTED;
+		return true;
 	}
 
-
-	public boolean startBrowserWith(String browser, DesiredCapabilities capabilities) throws MalformedURLException, ReflectiveOperationException {
-		if(StringUtils.startsWithIgnoreCase(browser, SeleniumFixture.HTTP_PREFIX)) {
-			close();
-			this.driver = new RemoteWebDriver(new URL(browser), capabilities);
-			return true;
-		}
-		Reflections reflections = new Reflections(WebDriver.class.getPackage().getName());
-		List<String> availableDrivers = new ArrayList<>();
-		for(Class<? extends WebDriver> availableDriver : reflections.getSubTypesOf(WebDriver.class)) {
-			String name = availableDriver.getSimpleName();
-			availableDrivers.add(StringUtils.lowerCase(StringUtils.removeEnd(name, "Driver")));
-			if(StringUtils.startsWithIgnoreCase(name, browser)) {
-				close();
-				this.driver = availableDriver.getConstructor(Capabilities.class).newInstance(capabilities);
-				return true;
-			}
-		}
-		throw new IllegalArgumentException(String.format("Invalid browser [%s]. Available: [%s]", browser, StringUtils.join(availableDrivers, ", ")));
+	/**
+	 * Returns if browser is available and can be used
+	 *
+	 * | ensure | available |
+	 * @return browserStarted
+	 */
+	public boolean available() {
+		return SeleniumFixture.BROWSER_STATE != BrowserState.UNITIALIZED;
 	}
-
 	/**
 	 * Navigates to the the desired url
 	 *
@@ -109,12 +115,16 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-		this.driver.get(this.fitnesseMarkup.clean(url));
-		return true;
+		if(available()) {
+			SeleniumFixture.DRIVER.get(this.fitnesseMarkup.clean(url));
+			SeleniumFixture.BROWSER_STATE = BrowserState.NAVIGATING;
+			return true;
+		}
+		return false;
 	}
 
 	/**
-	 * Asserts current page title
+	 * Current page title
 	 *
 	 * <p><code>
 	 * | ensure title | <i>title</i> |
@@ -122,7 +132,10 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public String title() {
-		return this.driver.getTitle();
+		if(available()) {
+			return SeleniumFixture.DRIVER.getTitle();
+		}
+		return null;
 	}
 
 	/**
@@ -134,25 +147,12 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean close() {
-		if(this.driver != null) {
-			this.driver.close();
+		if(available() && SeleniumFixture.BROWSER_STATE != BrowserState.CLOSED) {
+			SeleniumFixture.DRIVER.close();
+			SeleniumFixture.BROWSER_STATE = BrowserState.CLOSED;
+			return true;
 		}
-		return true;
-	}
-
-	/**
-	 * Quits the browser
-	 *
-	 * <p><code>
-	 * | quit |
-	 * </code></p>
-	 * @return result Boolean result indication of assertion/operation
-	 */
-	public boolean quit() {
-		if(this.driver != null) {
-			this.driver.quit();
-		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -167,8 +167,13 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean typeIn(String value, String locator) {
-		this.elementFinder.find(this.driver, locator).sendKeys(value);
-		return true;
+		if(available()) {
+			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
+			element.clear();
+			element.sendKeys(value);
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -180,8 +185,11 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-		this.elementFinder.find(this.driver, locator).click();
-		return true;
+		if(available()) {
+			this.elementFinder.find(SeleniumFixture.DRIVER, locator).click();
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -194,8 +202,11 @@ public class SeleniumFixture {
 	 * @return value associated with the locator
 	 */
 	public String value(String locator) {
-		WebElement element = this.elementFinder.find(this.driver, locator);
-		return this.fitnesseMarkup.clean(element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE));
+		if(available()) {
+			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
+			return this.fitnesseMarkup.clean(element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE));
+		}
+		return null;
 	}
 
 	/**
@@ -208,8 +219,29 @@ public class SeleniumFixture {
 	 * @return text associated with the locator
 	 */
 	public String text(String locator) {
-		WebElement element = elementFinder.find(this.driver, locator);
-		return this.fitnesseMarkup.clean(element.getText());
+		if(available()) {
+			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
+			return this.fitnesseMarkup.clean(element.getText());
+		}
+		return null;
+	}
+
+	/**
+	 * Takes screenshot from current browser state and returns to be previewed in test result page.
+	 *
+	 * <p><code>
+	 * | show | screenshot |
+	 * </code></p>
+	 * @return screenshot preview and download url
+	 */
+	public String screenshot() throws IOException {
+		if(!available() || BrowserState.NAVIGATING != SeleniumFixture.BROWSER_STATE) {
+			return null;
+		}
+		if(SeleniumFixture.DRIVER instanceof TakesScreenshot) {
+			return ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE).getAbsolutePath();
+		}
+		return null;
 	}
 
 	/**
@@ -222,6 +254,9 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean present(String locator) {
-		return this.elementFinder.contains(this.driver, locator);
+		if(available()) {
+			return this.elementFinder.contains(SeleniumFixture.DRIVER, locator);
+		}
+		return false;
 	}
 }

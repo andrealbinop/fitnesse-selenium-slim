@@ -1,0 +1,4 @@
+| selenium |
+| open | http://saucelabs.com/login |
+| click | link=Login with GitHub |
+| check | title | !-Sign in · GitHub-! |

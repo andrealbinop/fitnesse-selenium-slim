@@ -1,0 +1,5 @@
+| import |
+| com.github.andreptb.fitnesse |
+
+| selenium |
+| start browser | ${BROWSER} | with | ${WEBDRIVER_CAPABILITIES} |

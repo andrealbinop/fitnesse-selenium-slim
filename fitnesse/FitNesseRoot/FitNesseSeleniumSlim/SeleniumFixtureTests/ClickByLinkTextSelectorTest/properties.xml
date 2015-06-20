@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <properties>
-<AddChild/>
 <Edit/>
 <Files/>
+<Help/>
 <Properties/>
-<Prune/>
-<RecentChanges/>
+<Refactor/>
 <Search/>
-<Suite/>
+<Suites/>
+<Test/>
 <Versions/>
 <WhereUsed/>
 </properties>

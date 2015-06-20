@@ -1,0 +1,4 @@
+!include <SeleniumFixtureTests.SuiteSetUp
+
+| selenium |
+| open | http://saucelabs.com/login |

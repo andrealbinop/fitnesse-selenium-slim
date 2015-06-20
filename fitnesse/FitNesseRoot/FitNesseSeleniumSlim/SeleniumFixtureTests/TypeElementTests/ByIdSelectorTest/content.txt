@@ -1,0 +1,3 @@
+| selenium |
+| type | foo | in | name=username |
+| check | value | name=username | foo |

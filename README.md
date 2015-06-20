@@ -20,16 +20,16 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 
 #### Testing
 
-* To run JUnit tests:
+* To run JUnit tests using firefox browser:
 
 ```
-mvn test
+export BROWSER=firefox mvn test
 ```
 
 * To start FitNesse server and navigate through samples:
 
 ```
-mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain
+mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain -Dexec.args="-d fitnesse"
 ```
 
 ####  Sample:
@@ -38,15 +38,13 @@ mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain
 | import |
 | com.github.andreptb.fitnesse |
 
-| library |
-| selenium fixture |
-
-| script |
+| selenium |
 | start browser | firefox |
 | open | http://www.google.com.br |
-| note | types something on google search box
+| note | types something on google search box |
 | type | selenium web browser | in | id=lst-ib |
-| note | checks if the input has the desired value
+| note | checks if the input has the desired value |
 | check | value | id=lst-ib | selenium web browser |
 | close |
 ```
+

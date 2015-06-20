@@ -1,0 +1,3 @@
+| selenium |
+| type | foobar | in | css=#username |
+| check | value | css=#username | foobar |

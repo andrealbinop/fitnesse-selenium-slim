@@ -1,0 +1,3 @@
+| selenium |
+| open | http://saucelabs.com/login |
+| ensure | present | id=username |
