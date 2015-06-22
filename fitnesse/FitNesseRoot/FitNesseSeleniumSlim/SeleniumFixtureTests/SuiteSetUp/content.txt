@@ -2,4 +2,4 @@
 | com.github.andreptb.fitnesse |
 
 | selenium |
-| start browser | ${BROWSER} | with | ${WEBDRIVER_CAPABILITIES} |
+| start browser | ${BROWSER} | with | name='fitnesse-selenium-slim-tests' browserName='firefox' |
