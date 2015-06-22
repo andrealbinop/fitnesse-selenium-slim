@@ -2,7 +2,7 @@ language: java
 env:
   matrix:
     - secure: ZjOCCh0UAs3UgerOWwBebW1rqfuYWOiKGVAA97CkavL8jSKJeVLEDZ1ScukYna2NlAGgsZwTSzLApHDrZ25O0cRosqrIt0ym5867HhK1Nf9tji/4bom+i5eOoUVlJfm5s570bmH+DQYi7837UhRA8pIlVXeKH6CgVrdHiLxD6j9h/gS5f0kfmWXhVkseWDG4QFxuOgGBVAa/rHoaVQvDIENKMJ5kiZLN0Vv6NhnpocfN6q3SQK7S6Fdht+nR3TDD++6g6+kD6+jQbt82JyMO7uQLRYUg/GHiwS3NrjNtRPJuX5LRLkZAi4sTaCQSI7Gtp1jEtoCM5tJ7rrdNp5y/Ug3hhxUtUBY460fEi02GPI73rqDwaRhoU5FqcV6x+rVBjCOaF9eIEnBTD9yaddn5tCjIq/kZ0NNRaQxDfEHuvbngy/X/YRQepPVomKSRMekGTlT7RXPK67Z4H6DJnuTMk5JxHcUGEW/m5mNt4BCMKHyI9xSCPp4Jba/DMNzsH7DjEvT1lUbW0PhzyDZQ0P55Y/3550PhjZzllfftPfqXfUCbaMI8nm85DMavtqFXTDYmdI/0aT4Ec74wrdvW/7AOyj/B5ez6Q301r6LHtw2CzPsgrZP4sPBMA4TyyODZoiQ2ReOvEhG1wGpBaJuJdo01coJQbWZhbMk85+2HTrLig1s=
-    - WEBDRIVER_CAPABILITIES=name='fitnesse-selenium-slim-tests' browserName='firefox'
+    - WEBDRIVER_CAPABILITIES="name='fitnesse-selenium-slim-tests' browserName='firefox'"
 install:
     - mvn -f fitnesse/fitnesse.pom install:install-file -Dfile=fitnesse.jar -DpomFile=fitnesse.pom
 script:
