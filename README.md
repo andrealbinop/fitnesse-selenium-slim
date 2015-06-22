@@ -20,10 +20,17 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 
 #### Testing
 
+* Currently this branch uses a modified version of FitNesse while this [pull request](https://github.com/unclebob/fitnesse/pull/755) is not accepted. Before you can start FitNesse run:
+
+```
+mvn -f fitnesse/fitnesse.pom install:install-file -Dfile=fitnesse.jar -DpomFile=fitnesse.pom
+```
+
+
 * To run JUnit tests using firefox browser:
 
 ```
-export BROWSER=firefox mvn test
+BROWSER=firefox mvn test
 ```
 
 * To start FitNesse server and navigate through samples:
@@ -47,4 +54,3 @@ mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain -Dexec.args="-d fitness
 | check | value | id=lst-ib | selenium web browser |
 | close |
 ```
-
