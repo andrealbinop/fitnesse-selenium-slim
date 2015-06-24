@@ -4,9 +4,9 @@ package com.github.andreptb.fitnesse;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Iterator;
-import java.util.Objects;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.openqa.selenium.JavascriptExecutor;
@@ -104,8 +104,8 @@ public class SeleniumFixture {
 	 */
 	public boolean browserAvailable() {
 		// http://stackoverflow.com/questions/27616470/webdriver-how-to-check-if-browser-still-exists-or-still-open
-		String driverString = Objects.toString(SeleniumFixture.DRIVER);
-		return Objects.nonNull(driverString) && !StringUtils.containsIgnoreCase(driverString, "null");
+		String driverString = ObjectUtils.toString(SeleniumFixture.DRIVER);
+		return driverString != null && !StringUtils.containsIgnoreCase(driverString, "null");
 	}
 
 	/**
@@ -194,7 +194,7 @@ public class SeleniumFixture {
 			}
 		}
 		// if title didn't match anything go back to current window
-		if (Objects.nonNull(currentWindow)) {
+		if (currentWindow != null) {
 			SeleniumFixture.DRIVER.switchTo().window(currentWindow);
 		}
 		return false;

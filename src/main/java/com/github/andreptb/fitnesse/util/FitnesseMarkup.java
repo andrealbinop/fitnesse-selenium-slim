@@ -3,12 +3,12 @@ package com.github.andreptb.fitnesse.util;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 
 import fitnesse.testsystems.TestPage;
@@ -81,7 +81,7 @@ public class FitnesseMarkup {
 	 */
 	public String clean(Object symbol) {
 		// strips whitespace and accidental "null" string representation of null value
-		String strippedSymbol = StringUtils.remove(StringUtils.strip(Objects.toString(symbol)), "null");
+		String strippedSymbol = StringUtils.remove(StringUtils.strip(ObjectUtils.toString(symbol)), "null");
 		if (StringUtils.isBlank(strippedSymbol)) {
 			return strippedSymbol;
 		}
