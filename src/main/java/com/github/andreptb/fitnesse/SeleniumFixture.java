@@ -1,10 +1,15 @@
+
 package com.github.andreptb.fitnesse;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Iterator;
+import java.util.Objects;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -21,32 +26,23 @@ import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
 public class SeleniumFixture {
 
 	/**
-	 * Browser states, since some actions depends the browser to be in a certain state
-	 */
-	private enum BrowserState {
-		UNITIALIZED,
-		STARTED,
-		NAVIGATING,
-		CLOSED;
-	}
-
-	/**
 	 * HTML Value attribute, usually used on inputs
 	 */
 	private static final String INPUT_VALUE_ATTRIBUTE = "value";
 
 	/**
-	 * Browser current state
+	 * Constant representing the selector of the current element focused
 	 */
-	private static BrowserState BROWSER_STATE = BrowserState.UNITIALIZED;
+	private static final String CURRENT_ELEMENT_FOCUSED = StringUtils.EMPTY;
+
 	/**
 	 * Selenium Web Driver, static so the same DRIVER instance can be used through multiple tables
 	 */
 	private static WebDriver DRIVER;
 	/**
-	 * Timeout time to wait for elements to be present. Default is 60 seconds
+	 * Timeout time to wait for elements to be present. Default is 20 seconds
 	 */
-	private static int WAIT_TIMEOUT = 60;
+	private static int WAIT_TIMEOUT = 20;
 	/**
 	 * Utility to help creating WebDriver instances
 	 */
@@ -62,10 +58,13 @@ public class SeleniumFixture {
 
 	/**
 	 * Registers the DRIVER to further execute selenium commands
-	 *
-	 * <p><code>
+	 * <p>
+	 * <code>
 	 * | start browser | <i>browser</i> |
-	 * </code></p>
+	 * </code>
+	 * </p>
+	 *
+	 * @see #startBrowserWith(String, String)
 	 * @param browser The browser to be used
 	 * @return result Boolean result indication of assertion/operation
 	 */
@@ -93,10 +92,20 @@ public class SeleniumFixture {
 		if (driver == null) {
 			return false;
 		}
-		close();
 		SeleniumFixture.DRIVER = driver;
-		SeleniumFixture.BROWSER_STATE = BrowserState.STARTED;
 		return true;
+	}
+
+	/**
+	 * Returns if browser is available and can be used
+	 * | ensure | browser available |
+	 *
+	 * @return browserStarted
+	 */
+	public boolean browserAvailable() {
+		// http://stackoverflow.com/questions/27616470/webdriver-how-to-check-if-browser-still-exists-or-still-open
+		String driverString = Objects.toString(SeleniumFixture.DRIVER);
+		return Objects.nonNull(driverString) && !StringUtils.containsIgnoreCase(driverString, "null");
 	}
 
 	/**
@@ -106,51 +115,102 @@ public class SeleniumFixture {
 	 * <li>{@link #present(String)}</li>
 	 * </ul>
 	 * <code>
-	 * | set wait timeout | <i>timeout in seconds</i> |
+	 * | $previousTimeout= | set wait timeout | <i>timeout in seconds</i> |
 	 * </code>
+	 *
+	 * @return previous timeout value
 	 */
-	public boolean setWaitTimeout(int timeoutInSeconds) {
+	public int setWaitTimeout(int timeoutInSeconds) {
+		int previousTimeout = SeleniumFixture.WAIT_TIMEOUT;
 		SeleniumFixture.WAIT_TIMEOUT = timeoutInSeconds;
-		return true;
+		return previousTimeout;
 	}
 
 	/**
-	 * Returns if browser is available and can be used
-	 *
-	 * | ensure | browser available |
-	 * @return browserStarted
-	 */
-	public boolean browserAvailable() {
-		return SeleniumFixture.BROWSER_STATE != BrowserState.UNITIALIZED;
-	}
-	/**
 	 * Navigates to the the desired url
-	 *
-	 * <p><code>
+	 * <p>
+	 * <code>
 	 * | open | <i>url</i> |
-	 * </code></p>
+	 * </code>
+	 * </p>
+	 *
 	 * @param url to navigate
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-		if(browserAvailable()) {
+		if (browserAvailable()) {
 			SeleniumFixture.DRIVER.get(this.fitnesseMarkup.clean(url));
-			SeleniumFixture.BROWSER_STATE = BrowserState.NAVIGATING;
 			return true;
 		}
 		return false;
 	}
 
 	/**
-	 * Current page title
+	 * Opens a popup window with desired <i>url</i>. After opening the window, you'll need to select it using the selectWindow command.
+	 * <p>
+	 * <code>
+	 * | open window | <i>url</i> |
+	 * </code>
+	 * </p>
 	 *
-	 * <p><code>
+	 * @see #selectWindow(String)
+	 * @param url to navigate
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean openWindow(String url) {
+		if (!browserAvailable()) {
+			return false;
+		}
+		if (CollectionUtils.isEmpty(SeleniumFixture.DRIVER.getWindowHandles())) {
+			return open(url);
+		}
+		if (SeleniumFixture.DRIVER instanceof JavascriptExecutor) {
+			((JavascriptExecutor) SeleniumFixture.DRIVER).executeScript("window.open(arguments[0])", this.fitnesseMarkup.clean(url));
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Selects a popup window using a window locator; once a popup window has been selected, all commands go to that window.
+	 * Currently only window search by title property is supported
+	 * <p>
+	 * <code>
+	 * | select window | <i>locator</i> |
+	 * </code>
+	 * </p>
+	 *
+	 * @param locator
+	 * @return
+	 */
+	public boolean selectWindow(String locator) {
+		if (!browserAvailable()) {
+			return false;
+		}
+		String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();
+		for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {
+			if (this.fitnesseMarkup.compare(locator, SeleniumFixture.DRIVER.switchTo().window(windowId).getTitle())) {
+				return true;
+			}
+		}
+		// if title didn't match anything go back to current window
+		if (Objects.nonNull(currentWindow)) {
+			SeleniumFixture.DRIVER.switchTo().window(currentWindow);
+		}
+		return false;
+	}
+
+	/**
+	 * Current page title
+	 * <p>
 	 * | ensure title | <i>title</i> |
-	 * </code></p>
+	 * </code>
+	 * </p>
+	 *
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public String title() {
-		if(browserAvailable()) {
+		if (browserAvailable()) {
 			return SeleniumFixture.DRIVER.getTitle();
 		}
 		return null;
@@ -158,19 +218,43 @@ public class SeleniumFixture {
 
 	/**
 	 * Closes the last tab
-	 *
-	 * <p><code>
+	 * <p>
+	 * <code>
 	 * | close |
-	 * </code></p>
+	 * </code>
+	 * </p>
+	 *
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean close() {
-		if(browserAvailable() && SeleniumFixture.BROWSER_STATE != BrowserState.CLOSED) {
-			SeleniumFixture.DRIVER.close();
-			SeleniumFixture.BROWSER_STATE = BrowserState.CLOSED;
-			return true;
+		if (!browserAvailable()) {
+			return false;
 		}
-		return false;
+		SeleniumFixture.DRIVER.close();
+		// auto-focus other window if exists
+		Iterator<String> currentWindows = SeleniumFixture.DRIVER.getWindowHandles().iterator();
+		if (currentWindows.hasNext()) {
+			SeleniumFixture.DRIVER.switchTo().window(currentWindows.next());
+		}
+		return true;
+	}
+
+	/**
+	 * Sets the value of the current focused input field, as though you typed it in.
+	 * Can also be used to set the value of combo boxes, check boxes, etc. In these cases, value should be the value of the option selected, not the visible text.
+	 * Last but no least, if the value matches any special key from {@link Keys}, the special key will be typed without clearing the element. Useful when you need
+	 * to type something and then press enter or tab.
+	 * <p>
+	 * <code>
+	 * | type | <i>value</i> |
+	 * </code>
+	 * </p>
+	 *
+	 * @param value the value to typeIn
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean type(String value) {
+		return typeIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);
 	}
 
 	/**
@@ -205,6 +289,21 @@ public class SeleniumFixture {
 	}
 
 	/**
+	 * Clicks on the current focused link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
+	 * <p>
+	 * <code>
+	 * | click |
+	 * </code>
+	 * </p>
+	 *
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean click() {
+		return click(SeleniumFixture.CURRENT_ELEMENT_FOCUSED);
+	}
+
+	/**
 	 * Clicks on a link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
 	 * <p>
 	 * <code>
@@ -216,7 +315,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-		if(browserAvailable()) {
+		if (browserAvailable()) {
 			this.elementFinder.find(SeleniumFixture.DRIVER, locator).click();
 			return true;
 		}
@@ -228,7 +327,7 @@ public class SeleniumFixture {
 	 * checked or not.
 	 * <p>
 	 * <code>
-	 * | check | <i>value</i> | <i>locator</i> | expectedValue |
+	 * | check | <i>value</i> | <i>locator</i> | <i>expectedValue</i> |
 	 * </code>
 	 * </p>
 	 *
@@ -236,7 +335,7 @@ public class SeleniumFixture {
 	 * @return value associated with the locator
 	 */
 	public String value(String locator) {
-		if(browserAvailable()) {
+		if (browserAvailable()) {
 			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
 			return this.fitnesseMarkup.clean(element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE));
 		}
@@ -248,7 +347,7 @@ public class SeleniumFixture {
 	 * which is the rendered text shown to the user.
 	 * <p>
 	 * <code>
-	 * | check | text | <i>locator</i> | expectedValue |
+	 * | check | text | <i>locator</i> | <i>expectedValue</i> |
 	 * </code>
 	 * </p>
 	 *
@@ -256,7 +355,7 @@ public class SeleniumFixture {
 	 * @return text associated with the locator
 	 */
 	public String text(String locator) {
-		if(browserAvailable()) {
+		if (browserAvailable()) {
 			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
 			return this.fitnesseMarkup.clean(element.getText());
 		}
@@ -274,10 +373,14 @@ public class SeleniumFixture {
 	 * @return screenshot saved file absolute path
 	 */
 	public String screenshot() throws IOException {
-		if(!browserAvailable() || BrowserState.NAVIGATING != SeleniumFixture.BROWSER_STATE) {
+		if (!browserAvailable()) {
 			return null;
 		}
-		if(SeleniumFixture.DRIVER instanceof TakesScreenshot) {
+		// takes screenshot only if current browser is displaying html content
+		if (!this.elementFinder.contains(SeleniumFixture.DRIVER, "html")) {
+			return null;
+		}
+		if (SeleniumFixture.DRIVER instanceof TakesScreenshot) {
 			return ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE).getAbsolutePath();
 		}
 		return null;
@@ -295,7 +398,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean present(String locator) {
-		if(browserAvailable()) {
+		if (browserAvailable()) {
 			return this.elementFinder.contains(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 		}
 		return false;

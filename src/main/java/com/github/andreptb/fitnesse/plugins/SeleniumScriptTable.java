@@ -3,14 +3,16 @@ package com.github.andreptb.fitnesse.plugins;
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 import com.github.andreptb.fitnesse.SeleniumFixture;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
+import fitnesse.testsystems.TestResult;
 import fitnesse.testsystems.slim.SlimTestContext;
 import fitnesse.testsystems.slim.Table;
+import fitnesse.testsystems.slim.results.SlimExceptionResult;
 import fitnesse.testsystems.slim.results.SlimTestResult;
 import fitnesse.testsystems.slim.tables.ScriptTable;
 import fitnesse.testsystems.slim.tables.SlimAssertion;
@@ -33,6 +35,7 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * SeleniumFixture screenshot action
 	 */
 	private static final String SCREENSHOT_FIXTURE_ACTION = "screenshot";
+
 	/**
 	 * Utility to process FitNesse markup
 	 */
@@ -57,26 +60,62 @@ public class SeleniumScriptTable extends ScriptTable {
 	 */
 	@Override
 	protected List<SlimAssertion> startActor() {
-		return startActor(0, SeleniumFixture.class.getName(), 0);
+		return startActor(NumberUtils.INTEGER_ZERO, SeleniumFixture.class.getName(), NumberUtils.INTEGER_ZERO);
 	}
 
 	/**
-	 * Extends ScriptTable assertion to invoke SeleniumFixture screenshot action of browser current state.
+	 * Overrides ensure action to add screenshot assertion
 	 */
 	@Override
-	protected List<SlimAssertion> invokeAction(int startingCol, int endingCol, int row, SlimExpectation expectation) {
-		List<SlimAssertion> action = super.invokeAction(startingCol, endingCol, row, expectation);
-		action.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION, ArrayUtils.EMPTY_OBJECT_ARRAY), new ShowScreenshotExpectation(startingCol, row)));
-		return action;
+	protected List<SlimAssertion> ensure(int row) {
+		return configureScreenshot(super.ensure(row), row);
+	}
+
+	/**
+	 * Overrides reject action to add screenshot assertion
+	 */
+	@Override
+	protected List<SlimAssertion> reject(int row) {
+		return configureScreenshot(super.reject(row), row);
+	}
+
+	/**
+	 * Overrides check action to add screenshot assertion
+	 */
+	@Override
+	protected List<SlimAssertion> checkAction(int row) {
+		return configureScreenshot(super.checkAction(row), row);
+	}
+
+	/**
+	 * Overrides check not action to add screenshot assertion
+	 */
+	@Override
+	protected List<SlimAssertion> checkNotAction(int row) {
+		return configureScreenshot(super.checkNotAction(row), row);
+	}
+
+	/**
+	 * Adds screenshot action to current stack
+	 *
+	 * @param assertions Current collection of assertions
+	 * @param row current table row the action occured
+	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
+	 */
+	protected List<SlimAssertion> configureScreenshot(List<SlimAssertion> assertions, int row) {
+		assertions.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION), new ShowScreenshotExpectation(row)));
+		return assertions;
 	}
 
 	/**
 	 * Expectation implementation to process screenshot of browser current state
 	 */
-	class ShowScreenshotExpectation extends RowExpectation {
+	class ShowScreenshotExpectation implements SlimExpectation {
 
-		public ShowScreenshotExpectation(int col, int row) {
-			super(col, row);
+		private int row;
+
+		public ShowScreenshotExpectation(int row) {
+			this.row = row;
 		}
 
 		/**
@@ -87,18 +126,21 @@ public class SeleniumScriptTable extends ScriptTable {
 		 * @return testResult Always SlimTestResult#plain()
 		 */
 		@Override
-		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
-			// when fixtures returns null fitnesse converts to a string with "null" content
-			String cleanedActual = StringUtils.remove(actual, "null");
-			if(StringUtils.isBlank(cleanedActual)) {
-				return SlimTestResult.plain();
-			}
-			try {
-				SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.img(cleanedActual, SeleniumScriptTable.this.getTestContext().getPageToTest()));
-			} catch (IOException e) {
-				throw new IllegalStateException("Unexpected IO error providing screenshot for test result", e);
+		public TestResult evaluateExpectation(Object returnValues) {
+			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(returnValues);
+			if (StringUtils.isNotBlank(cleanedActual)) {
+				try {
+					SeleniumScriptTable.this.table.addColumnToRow(this.row, SeleniumScriptTable.this.fitnesseMarkup.img(cleanedActual, SeleniumScriptTable.this.getTestContext().getPageToTest()));
+				} catch (IOException e) {
+					throw new IllegalStateException("Unexpected IO error providing screenshot for test result", e);
+				}
 			}
 			return SlimTestResult.plain();
+		}
+
+		@Override
+		public SlimExceptionResult evaluateException(SlimExceptionResult exceptionResult) {
+			return SlimExpectation.NOOP_EXPECTATION.evaluateException(exceptionResult);
 		}
 	}
 }

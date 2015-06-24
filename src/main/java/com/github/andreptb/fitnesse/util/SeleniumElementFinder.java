@@ -26,6 +26,9 @@ public class SeleniumElementFinder {
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 
+	/**
+	 * enum mapping selector identifier with selector implementation ({@link By} implementations).
+	 */
 	enum SelectorType {
 		id(By.ById.class),
 		name(By.ByName.class),
@@ -57,16 +60,30 @@ public class SeleniumElementFinder {
 	}
 
 	/**
-	 * Selects element.
+	 * Selects element. If <code>locator></code> is <code>null</code> or an empty {@link String}, delegates call to {@link #current(WebDriver)}
 	 *
-	 * @see #parse(String)
+	 * @see #parseElementLocator(String)
+	 * @see #current(WebDriver)
 	 * @param driver instance of {@link WebDriver}
 	 * @param locator an element locator
 	 * @return webElementFound
 	 * @throws NoSuchElementException if element don't exist or cannot be found
 	 */
 	public WebElement find(WebDriver driver, String locator) {
-		return driver.findElement(parse(locator));
+		if (StringUtils.isEmpty(locator)) {
+			return current(driver);
+		}
+		return driver.findElement(parseElementLocator(locator));
+	}
+
+	/**
+	 * Gets the current active (focused) element if there is one
+	 *
+	 * @param driver instance of {@link WebDriver}
+	 * @return currentElement instance of element found, null if there is none
+	 */
+	public WebElement current(WebDriver driver) {
+		return driver.switchTo().activeElement();
 	}
 
 	/**
@@ -90,7 +107,7 @@ public class SeleniumElementFinder {
 	/**
 	 * Tries to selects element, waiting until is available.
 	 *
-	 * @see #parse(String)
+	 * @see #parseElementLocator(String)
 	 * @param driver instance of {@link WebDriver}
 	 * @param locator an element locator
 	 * @param timeoutInSeconds time to wait for element
@@ -100,11 +117,11 @@ public class SeleniumElementFinder {
 	 */
 	public WebElement find(WebDriver driver, String locator, int timeoutInSeconds) {
 		WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);
-		return wait.until(ExpectedConditions.presenceOfElementLocated(parse(locator)));
+		return wait.until(ExpectedConditions.presenceOfElementLocated(parseElementLocator(locator)));
 	}
 
 	/**
-	 * Parses locator to an instance of {@link By}. Tries to emulate util IDE searching methods
+	 * Parses locator to an instance of {@link By}. Tries to emulate Selenium IDE searching methods
 	 * <ul>
 	 * <li>By id: 'id=&lt;id&gt;</li>'
 	 * <li>By name: 'name=&lt;name&gt;</li>'
@@ -113,10 +130,10 @@ public class SeleniumElementFinder {
 	 * <li>By xpath selector: 'div[@id=&lt;id&gt;]</li>'
 	 * </ul>
 	 *
-	 * @param locator to be parse to {@link By} instance
+	 * @param locator tja po be parse to {@link By} instance
 	 * @return selector {@link By} instance selector
 	 */
-	private By parse(String locator) {
+	private By parseElementLocator(String locator) {
 		String cleanedLocator = this.fitnesseMarkup.clean(locator);
 		String selectorPrefix = StringUtils.substringBefore(cleanedLocator, SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
 		SelectorType selectorType = EnumUtils.getEnum(SelectorType.class, selectorPrefix);

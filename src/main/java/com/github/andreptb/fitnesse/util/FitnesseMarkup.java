@@ -3,6 +3,9 @@ package com.github.andreptb.fitnesse.util;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -23,7 +26,10 @@ public class FitnesseMarkup {
 	 * Markup which presents image preview and download link
 	 */
 	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}{1}\" target='_blank'><img src=\"{0}{1}\" width=\"20%\" height=\"20%\"></img</a>";
-
+	/**
+	 * @see #compare(Object, Object)
+	 */
+	private static final Pattern FITNESSE_REGEX_MARKUP = Pattern.compile("^=~/([^/]+)/$");
 	/**
 	 * Rootpath variable key
 	 */
@@ -42,6 +48,27 @@ public class FitnesseMarkup {
 	private static final String FITNESSE_CONTEXTROOT = "ContextRoot";
 
 	/**
+	 * Compares two values emulating FitNesse comparisons:
+	 * <p>
+	 * http://fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.ValueComparisons
+	 * </p>
+	 * For now supports only exact equal and regular expression comparisons
+	 *
+	 * @param expected value
+	 * @param obtained value
+	 * @return comparisonResult
+	 */
+	public boolean compare(Object expected, Object obtained) {
+		String cleanedExpected = clean(expected);
+		String cleanedObtained = clean(obtained);
+		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP.matcher(cleanedExpected);
+		if (matcher.matches()) {
+			return cleanedObtained.matches(cleanedExpected);
+		}
+		return StringUtils.equals(cleanedExpected, cleanedObtained);
+	}
+
+	/**
 	 * Cleans FitNesse markup from symbols such as:
 	 * <ul>
 	 * <li>Extracts URL only from HTML generated links</li>
@@ -52,12 +79,15 @@ public class FitnesseMarkup {
 	 * @param symbol to be cleaned
 	 * @return cleanedSymbol
 	 */
-	public String clean(String symbol) {
-		String strippedSymbol = StringUtils.strip(symbol);
+	public String clean(Object symbol) {
+		// strips whitespace and accidental "null" string representation of null value
+		String strippedSymbol = StringUtils.remove(StringUtils.strip(Objects.toString(symbol)), "null");
 		if (StringUtils.isBlank(strippedSymbol)) {
 			return strippedSymbol;
 		}
-		// removes create page link
+		// removes regex markup
+		strippedSymbol = strippedSymbol.replaceAll("^=~/([^/]+)/$", "$1");
+		// removes create wikipage markup
 		strippedSymbol = strippedSymbol.replaceAll("<a[^>]+>\\[\\?\\]</a>", StringUtils.EMPTY);
 		// removes undefined variable references
 		strippedSymbol = strippedSymbol.replaceAll("<span[^>]+>undefined variable:[^<]+</span>", StringUtils.EMPTY);
