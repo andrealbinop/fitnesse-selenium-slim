@@ -8,7 +8,7 @@ import fitnesse.junit.FitNesseRunner;
  * Slim Fixture unit testing
  */
 @RunWith(FitNesseRunner.class)
-@FitNesseRunner.Suite("FitNesseSeleniumSlim.SeleniumFixtureTests")
+@FitNesseRunner.Suite("FitNesseSeleniumSlim.SeleniumFixtureTests.WindowSelectTests")
 @FitNesseRunner.FitnesseDir("fitnesse")
 @FitNesseRunner.OutputDir("target/fitnesse")
 public class SeleniumFixtureTest {

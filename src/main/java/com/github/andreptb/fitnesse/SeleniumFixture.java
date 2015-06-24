@@ -189,7 +189,8 @@ public class SeleniumFixture {
 		}
 		String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();
 		for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {
-			if (this.fitnesseMarkup.compare(locator, SeleniumFixture.DRIVER.switchTo().window(windowId).getTitle())) {
+			WebDriver window = SeleniumFixture.DRIVER.switchTo().window(windowId);
+			if (this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {
 				return true;
 			}
 		}
@@ -374,10 +375,6 @@ public class SeleniumFixture {
 	 */
 	public String screenshot() throws IOException {
 		if (!browserAvailable()) {
-			return null;
-		}
-		// takes screenshot only if current browser is displaying html content
-		if (!this.elementFinder.contains(SeleniumFixture.DRIVER, "html")) {
 			return null;
 		}
 		if (SeleniumFixture.DRIVER instanceof TakesScreenshot) {

@@ -1,10 +1,9 @@
 | selenium |
-| open | http://google.com |
-| ensure | open window | http://saucelabs.com/login |
+| ensure | open window | https://saucelabs.com/login |
 | note | should still be in Google Window |
 | check | title | Google |
-| ensure | select window | Sauce Labs: Login |
+| ensure | select window | https://saucelabs.com/login |
 | check | text | css=#login-section h1 | Welcome back. |
 | ensure | close |
-| select window | Google |
+| select window | =~/https://www.google.com.+/ |
 | ensure | present | id=lst-ib |

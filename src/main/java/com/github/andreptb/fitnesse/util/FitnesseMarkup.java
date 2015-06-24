@@ -10,6 +10,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
 
 import fitnesse.testsystems.TestPage;
 
@@ -29,7 +30,7 @@ public class FitnesseMarkup {
 	/**
 	 * @see #compare(Object, Object)
 	 */
-	private static final Pattern FITNESSE_REGEX_MARKUP = Pattern.compile("^=~/([^/]+)/$");
+	private static final Pattern FITNESSE_REGEX_MARKUP = Pattern.compile("^=~/(.+)/$");
 	/**
 	 * Rootpath variable key
 	 */
@@ -63,7 +64,7 @@ public class FitnesseMarkup {
 		String cleanedObtained = clean(obtained);
 		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP.matcher(cleanedExpected);
 		if (matcher.matches()) {
-			return cleanedObtained.matches(cleanedExpected);
+			return cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));
 		}
 		return StringUtils.equals(cleanedExpected, cleanedObtained);
 	}
@@ -85,8 +86,6 @@ public class FitnesseMarkup {
 		if (StringUtils.isBlank(strippedSymbol)) {
 			return strippedSymbol;
 		}
-		// removes regex markup
-		strippedSymbol = strippedSymbol.replaceAll("^=~/([^/]+)/$", "$1");
 		// removes create wikipage markup
 		strippedSymbol = strippedSymbol.replaceAll("<a[^>]+>\\[\\?\\]</a>", StringUtils.EMPTY);
 		// removes undefined variable references
