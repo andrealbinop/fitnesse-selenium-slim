@@ -105,6 +105,11 @@ public class SeleniumScriptTable extends ScriptTable {
 		return assertions;
 	}
 
+	/**
+	 * Adds an empty column for previous columns that didn't have screenshot
+	 * 
+	 * @param row
+	 */
 	private void fillPreviousRowsWithoutScreenshot(int row) {
 		while (--row >= NumberUtils.INTEGER_ZERO) {
 			if (this.table.getColumnCountInRow(row) > NumberUtils.INTEGER_ONE) {
