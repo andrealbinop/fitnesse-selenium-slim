@@ -82,7 +82,7 @@ public class FixtureWebDriverProvider {
 		while (matcher.find()) {
 			String value = matcher.group(2);
 			if (StringUtils.isNotBlank(value)) {
-				desiredCapabilities.setCapability(matcher.group(1), matcher.group(2));
+				desiredCapabilities.setCapability(matcher.group(1), value);
 			}
 		}
 		return desiredCapabilities;

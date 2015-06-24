@@ -9,7 +9,6 @@ import org.apache.commons.lang.math.NumberUtils;
 import com.github.andreptb.fitnesse.SeleniumFixture;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
-import fitnesse.testsystems.TestResult;
 import fitnesse.testsystems.slim.SlimTestContext;
 import fitnesse.testsystems.slim.Table;
 import fitnesse.testsystems.slim.results.SlimExceptionResult;
@@ -103,19 +102,17 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
 	 */
 	protected List<SlimAssertion> configureScreenshot(List<SlimAssertion> assertions, int row) {
-		assertions.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION), new ShowScreenshotExpectation(row)));
+		assertions.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION), new ShowScreenshotExpectation(row, this.table.getColumnCountInRow(row) - 1)));
 		return assertions;
 	}
 
 	/**
 	 * Expectation implementation to process screenshot of browser current state
 	 */
-	class ShowScreenshotExpectation implements SlimExpectation {
+	class ShowScreenshotExpectation extends RowExpectation {
 
-		private int row;
-
-		public ShowScreenshotExpectation(int row) {
-			this.row = row;
+		public ShowScreenshotExpectation(int row, int column) {
+			super(column, row);
 		}
 
 		/**
@@ -126,11 +123,11 @@ public class SeleniumScriptTable extends ScriptTable {
 		 * @return testResult Always SlimTestResult#plain()
 		 */
 		@Override
-		public TestResult evaluateExpectation(Object returnValues) {
-			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(returnValues);
+		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
+			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(actual);
 			if (StringUtils.isNotBlank(cleanedActual)) {
 				try {
-					SeleniumScriptTable.this.table.addColumnToRow(this.row, SeleniumScriptTable.this.fitnesseMarkup.img(cleanedActual, SeleniumScriptTable.this.getTestContext().getPageToTest()));
+					SeleniumScriptTable.this.table.substitute(getCol(), getRow(), SeleniumScriptTable.this.fitnesseMarkup.img(cleanedActual, SeleniumScriptTable.this.getTestContext().getPageToTest()));
 				} catch (IOException e) {
 					throw new IllegalStateException("Unexpected IO error providing screenshot for test result", e);
 				}

@@ -53,13 +53,31 @@
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
-				<version>0.7.2.201409121644</version>
+				<version>0.7.5.201505241946</version>
 				<executions>
 					<execution>
 						<id>prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.4.0</version>
+				<executions>
+					<execution>
+						<id>fitnesse-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>java</goal>
+						</goals>
+						<configuration>
+							<mainClass>fitnesseMain.FitNesseMain</mainClass>
+							<commandlineArgs><![CDATA[-d fitnesse -c FitNesseSeleniumSlim.SeleniumFixtureTests?suite&format=text]]></commandlineArgs>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -95,16 +113,6 @@
 								<goals>
 									<goal>jar</goal>
 								</goals>
-							</execution>
-							<execution>
-								<id>command-list</id>
-								<phase>compile</phase>
-								<goals>
-									<goal>javadoc</goal>
-								</goals>
-								<configuration>
-									<doclet>com.github.andreptb.fitnesse.util.CommandListDoclet</doclet>
-								</configuration>
 							</execution>
 						</executions>
 					</plugin>

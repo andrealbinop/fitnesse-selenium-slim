@@ -26,7 +26,7 @@ public class FitnesseMarkup {
 	/**
 	 * Markup which presents image preview and download link
 	 */
-	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}{1}\" target='_blank'><img src=\"{0}{1}\" width=\"20%\" height=\"20%\"></img</a>";
+	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}{1}\" target='_blank'><img src=\"{0}{1}\" height=\"200\"></img</a>";
 	/**
 	 * @see #compare(Object, Object)
 	 */
