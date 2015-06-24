@@ -11,11 +11,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
 import fitnesse.testsystems.slim.SlimTestContext;
 import fitnesse.testsystems.slim.Table;
-import fitnesse.testsystems.slim.results.SlimExceptionResult;
 import fitnesse.testsystems.slim.results.SlimTestResult;
 import fitnesse.testsystems.slim.tables.ScriptTable;
 import fitnesse.testsystems.slim.tables.SlimAssertion;
-import fitnesse.testsystems.slim.tables.SlimExpectation;
 
 /**
  * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and such
@@ -102,8 +100,22 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
 	 */
 	protected List<SlimAssertion> configureScreenshot(List<SlimAssertion> assertions, int row) {
-		assertions.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION), new ShowScreenshotExpectation(row, this.table.getColumnCountInRow(row) - 1)));
+		fillPreviousRowsWithoutScreenshot(row);
+		assertions.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION), new ShowScreenshotExpectation(row)));
 		return assertions;
+	}
+
+	private void fillPreviousRowsWithoutScreenshot(int row) {
+		while (--row >= NumberUtils.INTEGER_ZERO) {
+			if (this.table.getColumnCountInRow(row) > NumberUtils.INTEGER_ONE) {
+				continue;
+			}
+			String content = StringUtils.EMPTY;
+			if (row == NumberUtils.INTEGER_ZERO) {
+				content = SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION;
+			}
+			this.table.addColumnToRow(row, content);
+		}
 	}
 
 	/**
@@ -111,8 +123,8 @@ public class SeleniumScriptTable extends ScriptTable {
 	 */
 	class ShowScreenshotExpectation extends RowExpectation {
 
-		public ShowScreenshotExpectation(int row, int column) {
-			super(column, row);
+		public ShowScreenshotExpectation(int row) {
+			super(NumberUtils.INTEGER_ZERO, row);
 		}
 
 		/**
@@ -122,22 +134,18 @@ public class SeleniumScriptTable extends ScriptTable {
 		 * @param expected Not used
 		 * @return testResult Always SlimTestResult#plain()
 		 */
+
 		@Override
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
 			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(actual);
 			if (StringUtils.isNotBlank(cleanedActual)) {
 				try {
-					SeleniumScriptTable.this.table.substitute(getCol(), getRow(), SeleniumScriptTable.this.fitnesseMarkup.img(cleanedActual, SeleniumScriptTable.this.getTestContext().getPageToTest()));
+					SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.img(cleanedActual, SeleniumScriptTable.this.getTestContext().getPageToTest()));
 				} catch (IOException e) {
 					throw new IllegalStateException("Unexpected IO error providing screenshot for test result", e);
 				}
 			}
 			return SlimTestResult.plain();
-		}
-
-		@Override
-		public SlimExceptionResult evaluateException(SlimExceptionResult exceptionResult) {
-			return SlimExpectation.NOOP_EXPECTATION.evaluateException(exceptionResult);
 		}
 	}
 }

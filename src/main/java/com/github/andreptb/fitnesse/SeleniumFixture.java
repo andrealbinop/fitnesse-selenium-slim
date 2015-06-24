@@ -4,8 +4,6 @@ package com.github.andreptb.fitnesse;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Iterator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.ObjectUtils;
@@ -26,11 +24,6 @@ import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
  * Slim fixture to execute Selenium commands, see README.md for more information.
  */
 public class SeleniumFixture {
-
-	/**
-	 * Logger instance
-	 */
-	private static final Logger LOGGER = Logger.getLogger(SeleniumFixture.class.getName());
 
 	/**
 	 * HTML Value attribute, usually used on inputs
@@ -62,6 +55,19 @@ public class SeleniumFixture {
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
+
+	/**
+	 * Register runtime to ensure that WebDriver quits before fixture ends
+	 */
+	static {
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+
+			@Override
+			public void run() {
+				SeleniumFixture.DRIVER.quit();
+			}
+		});
+	}
 
 	/**
 	 * Registers the DRIVER to further execute selenium commands
@@ -211,8 +217,7 @@ public class SeleniumFixture {
 	/**
 	 * Current page title
 	 * <p>
-	 * | ensure title | <i>title</i> |
-	 * </code>
+	 * | ensure title | <i>title</i> | </code>
 	 * </p>
 	 *
 	 * @return result Boolean result indication of assertion/operation
@@ -235,22 +240,16 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean close() {
-		try {
+		if (browserAvailable()) {
 			SeleniumFixture.DRIVER.close();
 			Iterator<String> currentWindows = SeleniumFixture.DRIVER.getWindowHandles().iterator();
 			if (currentWindows.hasNext()) {
-				// if there's still windows opened focus the first one found
+				// if there's still windows opened focus anyone that's still opened
 				SeleniumFixture.DRIVER.switchTo().window(currentWindows.next());
-			} else {
-				// quits driver if all windows supposedly were closed
-				SeleniumFixture.DRIVER.quit();
 			}
 			return true;
-		} catch (Exception e) {
-			LOGGER.log(Level.FINE, "Closing/quiting browser generated exception", e);
 		}
 		return false;
-
 	}
 
 	/**
