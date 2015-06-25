@@ -5,11 +5,9 @@
 
 	<groupId>com.github.andreptb</groupId>
 	<artifactId>fitnesse-selenium-slim</artifactId>
-	<version>0.0.2</version>
+	<version>0.0.2-SNAPSHOT</version>
 	<name>fitnesse-selenium-slim</name>
-	<description>FitNesse Selenium fixture in slim format. Allows running selenium commands similar to firefox IDE
-        plugin.
-    </description>
+	<description>FitNesse Selenium fixture in slim format. Allows running selenium commands similar to firefox IDE plugin.</description>
 	<url>https://github.com/andreptb/fitnesse-selenium-slim</url>
 
 	<developers>
@@ -60,24 +58,6 @@
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.4.0</version>
-				<executions>
-					<execution>
-						<id>fitnesse-test</id>
-						<phase>test</phase>
-						<goals>
-							<goal>java</goal>
-						</goals>
-						<configuration>
-							<mainClass>fitnesseMain.FitNesseMain</mainClass>
-							<commandlineArgs><![CDATA[-d fitnesse -c FitNesseSeleniumSlim.SeleniumFixtureTests?suite&format=text]]></commandlineArgs>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>

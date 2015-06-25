@@ -1,0 +1,6 @@
+| selenium |
+| open | http://saucelabs.com/login |
+| send keys | foo | in | name=username |
+| check | value | name=username | foo |
+| send keys | bar |
+| check | value | name=username | foobar |

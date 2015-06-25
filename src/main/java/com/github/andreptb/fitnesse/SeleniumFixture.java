@@ -291,13 +291,59 @@ public class SeleniumFixture {
 		}
 		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
 		String cleanedValue = this.fitnesseMarkup.clean(value);
-		Keys specialKey = EnumUtils.getEnum(Keys.class, StringUtils.upperCase(cleanedValue));
-		if (specialKey != null) {
-			element.sendKeys(specialKey);
-			return true;
-		}
 		element.clear();
-		element.sendKeys(cleanedValue);
+		if (StringUtils.isNotBlank(cleanedValue)) {
+			element.sendKeys(cleanedValue);;
+		}
+		return true;
+	}
+
+	/**
+	 * Simulates keystroke events on the current focused element, as though you typed the value key-by-key.
+	 * This simulates a real user typing every character in the specified string; it is also bound by the limitations of a real user, like not being able to type into a invisible or read only
+	 * elements. This is useful for dynamic UI widgets (like auto-completing combo boxes) that require explicit key events.
+	 * Unlike the simple "type" command, which forces the specified value into the page directly, this command will not replace the existing content. If you want to replace the existing contents, you
+	 * need to use the simple "type" command to set the value of the field to empty string to clear the field and then the "sendKeys" command to send the keystroke for what you want to type.
+	 * <p>
+	 * <code>
+	 * | send keys | <i>value</i> |
+	 * </code>
+	 * </p>
+	 *
+	 * @param value the value to typeIn
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean sendKeys(String value) {
+		return sendKeysIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);
+	}
+
+	/**
+	 * Simulates keystroke events on the specified element, as though you typed the value key-by-key.
+	 * This simulates a real user typing every character in the specified string; it is also bound by the limitations of a real user, like not being able to type into a invisible or read only
+	 * elements. This is useful for dynamic UI widgets (like auto-completing combo boxes) that require explicit key events.
+	 * Unlike the simple "type" command, which forces the specified value into the page directly, this command will not replace the existing content. If you want to replace the existing contents, you
+	 * need to use the simple "type" command to set the value of the field to empty string to clear the field and then the "sendKeys" command to send the keystroke for what you want to type.
+	 * <p>
+	 * <code>
+	 * | send keys | <i>value</i> | in | <i>locator</i> |
+	 * </code>
+	 * </p>
+	 *
+	 * @param value the value to typeIn
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean sendKeysIn(String value, String locator) {
+		if (!browserAvailable()) {
+			return false;
+		}
+		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
+		String cleanedValue = this.fitnesseMarkup.clean(value);
+		CharSequence keys = EnumUtils.getEnum(Keys.class, StringUtils.upperCase(cleanedValue));
+		if (keys == null) {
+			keys = cleanedValue;
+		}
+		element.sendKeys(keys);
 		return true;
 	}
 
