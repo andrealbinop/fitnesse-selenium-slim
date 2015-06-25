@@ -1,6 +1,0 @@
-| selenium |
-| ensure | type | some user | in | name=username |
-| ensure | send keys | tab |
-| ensure | type | some password |
-| ensure | send keys | enter |
-| check | text | css=div.alert-error | Incorrect username or password. |
