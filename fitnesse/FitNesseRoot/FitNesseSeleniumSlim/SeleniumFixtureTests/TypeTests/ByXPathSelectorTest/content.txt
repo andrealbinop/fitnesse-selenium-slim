@@ -1,3 +1,4 @@
 | selenium |
 | type | foobarbar | in | //input[@id='username'] |
 | check | value | //input[@id='username'] | foobarbar |
+| check | value | xpath=//input[@id='username'] | foobarbar |

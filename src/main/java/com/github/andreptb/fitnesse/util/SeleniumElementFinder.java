@@ -33,6 +33,7 @@ public class SeleniumElementFinder {
 		id(By.ById.class),
 		name(By.ByName.class),
 		css(By.ByCssSelector.class),
+		xpath(By.ByXPath.class),
 		link(By.ByLinkText.class);
 
 		private Class<? extends By> byClass;
@@ -138,9 +139,9 @@ public class SeleniumElementFinder {
 		String selectorPrefix = StringUtils.substringBefore(cleanedLocator, SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
 		SelectorType selectorType = EnumUtils.getEnum(SelectorType.class, selectorPrefix);
 		if(selectorType == null) {
-			return By.xpath(cleanedLocator);
+			selectorType = SelectorType.xpath;
 		}
-		String parsedLocator = StringUtils.removeStart(cleanedLocator, selectorPrefix + SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
+		String parsedLocator = StringUtils.removeStart(cleanedLocator, selectorType + SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
 		try {
 			return selectorType.byClass.getConstructor(String.class).newInstance(parsedLocator);
 		} catch (ReflectiveOperationException e) {
