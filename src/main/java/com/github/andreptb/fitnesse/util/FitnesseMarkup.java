@@ -22,7 +22,7 @@ public class FitnesseMarkup {
 	/**
 	 * Screenshot dir suffix constant
 	 */
-	private static final String SCREENSHOT_DIR_MARKUP = "/files/testResults/{0}/screenshots/{1}";
+	private static final String SCREENSHOT_DIR_MARKUP = "/files/testResults/{0}.{1}/screenshots/{2}";
 	/**
 	 * Markup which presents image preview and download link
 	 */
@@ -39,6 +39,11 @@ public class FitnesseMarkup {
 	 * Running page path variable
 	 */
 	private static final String RUNNING_PAGE_PATH = "RUNNING_PAGE_PATH";
+	/**
+	 * Running page path name variable
+	 */
+	private static final String RUNNING_PAGE_NAME = "RUNNING_PAGE_NAME";
+
 	/**
 	 * FitNesseRoot dir variable key
 	 */
@@ -107,7 +112,7 @@ public class FitnesseMarkup {
 		if(!src.canRead()) {
 			return null;
 		}
-		String imgUrl = MessageFormat.format(FitnesseMarkup.SCREENSHOT_DIR_MARKUP, currentTestPage.getVariable(FitnesseMarkup.RUNNING_PAGE_PATH), src.getName());
+		String imgUrl = MessageFormat.format(FitnesseMarkup.SCREENSHOT_DIR_MARKUP, currentTestPage.getVariable(FitnesseMarkup.RUNNING_PAGE_PATH), currentTestPage.getVariable(FitnesseMarkup.RUNNING_PAGE_NAME), src.getName());
 		FileUtils.moveFile(src, FileUtils.getFile(currentTestPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH), currentTestPage.getVariable(FitnesseMarkup.FITNESSE_ROOT_DIR), imgUrl));
 		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, StringUtils.stripEnd(currentTestPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT), "/"), imgUrl);
 	}

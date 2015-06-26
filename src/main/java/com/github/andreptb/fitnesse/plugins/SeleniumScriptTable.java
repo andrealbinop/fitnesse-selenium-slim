@@ -1,6 +1,7 @@
 package com.github.andreptb.fitnesse.plugins;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -9,11 +10,13 @@ import org.apache.commons.lang.math.NumberUtils;
 import com.github.andreptb.fitnesse.SeleniumFixture;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
+import fitnesse.slim.instructions.ImportInstruction;
 import fitnesse.testsystems.slim.SlimTestContext;
 import fitnesse.testsystems.slim.Table;
 import fitnesse.testsystems.slim.results.SlimTestResult;
 import fitnesse.testsystems.slim.tables.ScriptTable;
 import fitnesse.testsystems.slim.tables.SlimAssertion;
+import fitnesse.testsystems.slim.tables.SlimExpectation;
 
 /**
  * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and such
@@ -32,6 +35,10 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * SeleniumFixture screenshot action
 	 */
 	private static final String SCREENSHOT_FIXTURE_ACTION = "screenshot";
+	/**
+	 * Fixture package to auto-import package
+	 */
+	private static final String SELENIUM_FIXTURE_PACKAGE_TO_IMPORT = "com.github.andreptb.fitnesse";
 
 	/**
 	 * Utility to process FitNesse markup
@@ -53,10 +60,12 @@ public class SeleniumScriptTable extends ScriptTable {
 	}
 
 	/**
-	 * Overrides start actor to force the use of Selenium Fixture. Wouldn't make sense a Selenium Table running fixtures unrelated to Selenium.
+	 * Overrides start actor to force the use of Selenium Fixture. Auto imports selenium fixture if needed Wouldn't make sense a Selenium Table running fixtures unrelated to Selenium.
 	 */
 	@Override
 	protected List<SlimAssertion> startActor() {
+		List<SlimAssertion> assertions = new ArrayList<>();
+		assertions.add(makeAssertion(new ImportInstruction(ImportInstruction.INSTRUCTION, SeleniumScriptTable.SELENIUM_FIXTURE_PACKAGE_TO_IMPORT), SlimExpectation.NOOP_EXPECTATION));
 		return startActor(NumberUtils.INTEGER_ZERO, SeleniumFixture.class.getName(), NumberUtils.INTEGER_ZERO);
 	}
 
@@ -107,7 +116,7 @@ public class SeleniumScriptTable extends ScriptTable {
 
 	/**
 	 * Adds an empty column for previous columns that didn't have screenshot
-	 * 
+	 *
 	 * @param row
 	 */
 	private void fillPreviousRowsWithoutScreenshot(int row) {
