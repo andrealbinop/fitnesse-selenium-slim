@@ -17,3 +17,4 @@ fitnesse/FitNesseRoot/properties
 fitnesse/FitNesseRoot/updateDoNotCopyOverList
 fitnesse/FitNesseRoot/updateList
 *.log
+ossrh_keys.tar.gz
