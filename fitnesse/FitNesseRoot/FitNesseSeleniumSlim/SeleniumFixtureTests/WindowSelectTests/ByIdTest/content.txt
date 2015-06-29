@@ -1,0 +1,11 @@
+| selenium |
+| ensure | open window | https://saucelabs.com/login |
+| note | should still be in Google Window |
+| check | title | Google |
+| note | get's google window ID |
+| $googleWindowId= | current window |
+| ensure | select window | https://saucelabs.com/login |
+| check | text | css=#login-section h1 | Welcome back. |
+| ensure | close |
+| select window | $googleWindowId |
+| ensure | present | id=lst-ib |

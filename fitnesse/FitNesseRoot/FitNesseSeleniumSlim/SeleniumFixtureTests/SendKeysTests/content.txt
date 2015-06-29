@@ -1,1 +1,11 @@
-!contents -R2 -g -p -f -h
+| selenium |
+| open | http://saucelabs.com/login |
+| send keys | foo | in | name=username |
+| check | value | name=username | foo |
+| send keys | bar |
+| check | value | name=username | foobar |
+| send keys | ${KEY_TAB} |
+| send keys | some password |
+| check | value | name=password | some password |
+| send keys | ${KEY_ENTER} |
+| check | text | css=div.alert-error | Incorrect username or password. |

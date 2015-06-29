@@ -11,9 +11,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.EnumUtils;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
@@ -229,6 +227,23 @@ public class SeleniumFixture {
 	}
 
 	/**
+	 * Returns current window ID. Returns "null" if no window is available
+	 * <p>
+	 * <code>
+	 * | current window |
+	 * </code>
+	 * </p>
+	 *
+	 * @return windowID
+	 */
+	public String currentWindow() {
+		if (browserAvailable()) {
+			return SeleniumFixture.DRIVER.getWindowHandle();
+		}
+		return null;
+	}
+
+	/**
 	 * Current page title
 	 * <p>
 	 * | ensure title | <i>title</i> | </code>
@@ -269,8 +284,6 @@ public class SeleniumFixture {
 	/**
 	 * Sets the value of the current focused input field, as though you typed it in.
 	 * Can also be used to set the value of combo boxes, check boxes, etc. In these cases, value should be the value of the option selected, not the visible text.
-	 * Last but no least, if the value matches any special key from {@link Keys}, the special key will be typed without clearing the element. Useful when you need
-	 * to type something and then press enter or tab.
 	 * <p>
 	 * <code>
 	 * | type | <i>value</i> |
@@ -287,8 +300,6 @@ public class SeleniumFixture {
 	/**
 	 * Sets the value of an input field, as though you typed it in.
 	 * Can also be used to set the value of combo boxes, check boxes, etc. In these cases, value should be the value of the option selected, not the visible text.
-	 * Last but no least, if the value matches any special key from {@link Keys}, the special key will be typed without clearing the element. Useful when you need
-	 * to type something and then press enter or tab.
 	 * <p>
 	 * <code>
 	 * | type | <i>value</i> | in | <i>locator</i> |
@@ -352,12 +363,7 @@ public class SeleniumFixture {
 			return false;
 		}
 		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
-		String cleanedValue = this.fitnesseMarkup.clean(value);
-		CharSequence keys = EnumUtils.getEnum(Keys.class, StringUtils.upperCase(cleanedValue));
-		if (keys == null) {
-			keys = cleanedValue;
-		}
-		element.sendKeys(keys);
+		element.sendKeys(this.fitnesseMarkup.clean(value));
 		return true;
 	}
 
