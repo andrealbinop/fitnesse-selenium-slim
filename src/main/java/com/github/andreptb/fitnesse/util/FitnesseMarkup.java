@@ -1,18 +1,14 @@
 package com.github.andreptb.fitnesse.util;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
-
-import fitnesse.testsystems.TestPage;
 
 /**
  * General utilities to process FitNesse markup syntax so can be used by Selenium Fixture
@@ -20,38 +16,18 @@ import fitnesse.testsystems.TestPage;
 public class FitnesseMarkup {
 
 	/**
-	 * Screenshot dir suffix constant
-	 */
-	private static final String SCREENSHOT_DIR_MARKUP = "/files/testResults/{0}.{1}/screenshots/{2}";
-	/**
 	 * Markup which presents image preview and download link
 	 */
-	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}{1}\" target='_blank'><img src=\"{0}{1}\" height=\"200\"></img</a>";
+	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}\" target='_blank'><img src=\"{0}\" height=\"200\"></img</a>";
+
+	/**
+	 * Constant of FitnesseRoot files dir (relative path)
+	 */
+	private static final String FITNESSE_ROOT_FILES_DIR = "/files/";
 	/**
 	 * @see #compare(Object, Object)
 	 */
 	private static final Pattern FITNESSE_REGEX_MARKUP = Pattern.compile("^=~/(.+)/$");
-	/**
-	 * Rootpath variable key
-	 */
-	private static final String FITNESSE_ROOTPATH = "FITNESSE_ROOTPATH";
-	/**
-	 * Running page path variable
-	 */
-	private static final String RUNNING_PAGE_PATH = "RUNNING_PAGE_PATH";
-	/**
-	 * Running page path name variable
-	 */
-	private static final String RUNNING_PAGE_NAME = "RUNNING_PAGE_NAME";
-
-	/**
-	 * FitNesseRoot dir variable key
-	 */
-	private static final String FITNESSE_ROOT_DIR = "FitNesseRoot";
-	/**
-	 * FitNesse context path variable key
-	 */
-	private static final String FITNESSE_CONTEXTROOT = "ContextRoot";
 
 	/**
 	 * Compares two values emulating FitNesse comparisons:
@@ -100,20 +76,17 @@ public class FitnesseMarkup {
 	}
 
 	/**
-	 * Copies the src screenshot file to test result dir and creates img markup to be viewed in test page.
-	 * Usually used by fixtures that wants to return a image link for the test result.
+	 * Creates img markup to be viewed in test page.
+	 * Usually used by fixtures that wants to return a image link for the test result.s
 	 *
 	 * @param img File containing the image
-	 * @param slimTestContext
 	 * @return Image link
 	 */
-	public String img(String img, TestPage currentTestPage) throws IOException {
-		File src = new File(FilenameUtils.normalize(img));
-		if(!src.canRead()) {
-			return null;
+	public String imgLink(Object img) throws IOException {
+		String cleanedImg = FilenameUtils.normalize(ObjectUtils.toString(img), true);
+		if(StringUtils.containsIgnoreCase(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR)) {
+			cleanedImg = FitnesseMarkup.FITNESSE_ROOT_FILES_DIR + StringUtils.substringAfter(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR);
 		}
-		String imgUrl = MessageFormat.format(FitnesseMarkup.SCREENSHOT_DIR_MARKUP, currentTestPage.getVariable(FitnesseMarkup.RUNNING_PAGE_PATH), currentTestPage.getVariable(FitnesseMarkup.RUNNING_PAGE_NAME), src.getName());
-		FileUtils.moveFile(src, FileUtils.getFile(currentTestPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH), currentTestPage.getVariable(FitnesseMarkup.FITNESSE_ROOT_DIR), imgUrl));
-		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, StringUtils.stripEnd(currentTestPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT), "/"), imgUrl);
+		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, cleanedImg);
 	}
 }

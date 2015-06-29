@@ -3,7 +3,7 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 
 **Important**: This is a work in progress, come back later if you want something usable. Or contact me if you want to contribute.
 
-  [FitNesse](https://github.com/unclebob/fitnesse) Selenium fixture in [slim format](http://www.fitnesse.org/FitNesse.UserGuide.WritingAcceptanceTests.SliM). Resembles [Xebium](http://xebia.github.io/Xebium/), but it's even more similar to [Selenium IDE Firefox Plugin](http://www.seleniumhq.org/projects/ide/). Also gets inspiration from  [hsac-fitnesse-fixtures](https://github.com/fhoeben/hsac-fitnesse-fixtures) but doesn't try to "simplify" Selenium IDE development flow. This project is licensed under [MIT](LICENSE).
+  [FitNesse](https://github.com/unclebob/fitnesse) Selenium fixture in [slim format](http://www.fitnesse.org/FitNesse.UserGuide.WritingAcceptanceTests.SliM). Resembles [Xebium](http://xebia.github.io/Xebium/), but it's even more similar to [Selenium IDE Firefox Plugin](http://www.seleniumhq.org/projects/ide/). Also gets inspiration from [hsac-fitnesse-fixtures](https://github.com/fhoeben/hsac-fitnesse-fixtures) but doesn't try to "simplify" Selenium IDE development flow. This project is licensed under [MIT](LICENSE).
 
 #### Installation
 
@@ -20,13 +20,6 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 
 #### Testing
 
-* Currently this branch uses a modified version of FitNesse while this [pull request](https://github.com/unclebob/fitnesse/pull/755) is not accepted. Before you can start FitNesse run:
-
-```
-mvn -f fitnesse/fitnesse.pom install:install-file -Dfile=fitnesse.jar -DpomFile=fitnesse.pom
-```
-
-
 * To run JUnit tests using firefox browser:
 
 ```
@@ -39,12 +32,20 @@ BROWSER=firefox mvn test
 mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain -Dexec.args="-d fitnesse"
 ```
 
+#### A word about screenshots
+
+Similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin), this plugin includes screenshot for each operation. However, if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.CommandLineArguments)** arguments are changed, you must configure [SeleniumFixture's](/fitnesse-selenium-slim/src/main/java/com/github/andreptb/fitnesse/SeleniumFixture.java) screenshot dir with the following action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SuiteSetUp](/fitnesse-selenium-slim/fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SuiteSetUp/content.txt):
+
+```
+| set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots | 
+```
+
+**Important:** At this time the screenshot feature won't work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this issue](https://github.com/unclebob/fitnesse/pull/755) is closed.
+
+
 ####  Sample:
 
 ```
-| import |
-| com.github.andreptb.fitnesse |
-
 | selenium |
 | start browser | firefox |
 | open | http://www.google.com.br |

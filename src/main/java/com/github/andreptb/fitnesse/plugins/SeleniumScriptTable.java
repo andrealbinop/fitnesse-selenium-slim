@@ -154,7 +154,7 @@ public class SeleniumScriptTable extends ScriptTable {
 			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(actual);
 			if (StringUtils.isNotBlank(cleanedActual)) {
 				try {
-					SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.img(cleanedActual, SeleniumScriptTable.this.getTestContext().getPageToTest()));
+					SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(cleanedActual));
 				} catch (IOException e) {
 					throw new IllegalStateException("Unexpected IO error providing screenshot for test result", e);
 				}

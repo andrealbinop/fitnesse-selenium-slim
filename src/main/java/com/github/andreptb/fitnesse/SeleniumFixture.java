@@ -1,11 +1,14 @@
 
 package com.github.andreptb.fitnesse;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Iterator;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.EnumUtils;
@@ -19,6 +22,8 @@ import org.openqa.selenium.WebElement;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 import com.github.andreptb.fitnesse.util.FixtureWebDriverProvider;
 import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
+
+import fitnesse.ContextConfigurator;
 
 /**
  * Slim fixture to execute Selenium commands, see README.md for more information.
@@ -44,6 +49,11 @@ public class SeleniumFixture {
 	 */
 	private static int WAIT_TIMEOUT = 20;
 	/**
+	 * Screenshot dir to save
+	 */
+	private static String SCREENSHOT_DIR = ContextConfigurator.DEFAULT_ROOT + "/files/screenshots";
+
+	/**
 	 * Utility to help creating WebDriver instances
 	 */
 	private FixtureWebDriverProvider driverProvider = new FixtureWebDriverProvider();
@@ -64,7 +74,11 @@ public class SeleniumFixture {
 
 			@Override
 			public void run() {
-				SeleniumFixture.DRIVER.quit();
+				try {
+					SeleniumFixture.DRIVER.quit();
+				} catch (Throwable e) {
+					// quietly quit driver
+				}
 			}
 		});
 	}
@@ -186,7 +200,7 @@ public class SeleniumFixture {
 
 	/**
 	 * Selects a popup window using a window locator; once a popup window has been selected, all commands go to that window.
-	 * Currently only window search by title property is supported
+	 * Currently supports window search by nameOrHandle, title and current url
 	 * <p>
 	 * <code>
 	 * | select window | <i>locator</i> |
@@ -203,7 +217,7 @@ public class SeleniumFixture {
 		String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();
 		for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {
 			WebDriver window = SeleniumFixture.DRIVER.switchTo().window(windowId);
-			if (this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {
+			if (this.fitnesseMarkup.compare(locator, windowId) || this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {
 				return true;
 			}
 		}
@@ -395,7 +409,7 @@ public class SeleniumFixture {
 	 */
 	public String value(String locator) {
 		if (browserAvailable()) {
-			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
+			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 			return this.fitnesseMarkup.clean(element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE));
 		}
 		return null;
@@ -415,7 +429,7 @@ public class SeleniumFixture {
 	 */
 	public String text(String locator) {
 		if (browserAvailable()) {
-			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator);
+			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 			return this.fitnesseMarkup.clean(element.getText());
 		}
 		return null;
@@ -436,9 +450,29 @@ public class SeleniumFixture {
 			return null;
 		}
 		if (SeleniumFixture.DRIVER instanceof TakesScreenshot) {
-			return ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE).getAbsolutePath();
+			File src = ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE);
+			File dest = new File(SeleniumFixture.SCREENSHOT_DIR, src.getName());
+			FileUtils.moveFile(src, dest);
+
+			return dest.getAbsolutePath();
 		}
 		return null;
+	}
+
+	/**
+	 * Takes screenshot from current browser state and returns to be previewed in test result page.
+	 * This method can be removed when <a href="https://github.com/unclebob/fitnesse/pull/755">this issue</a> is resolved
+	 * <p>
+	 * <code>
+	 * | set screenshot dir | <i>dir</i> |
+	 * </code>
+	 * </p>
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean setScreenshotDir(String dest) {
+		SeleniumFixture.SCREENSHOT_DIR = FilenameUtils.normalize(this.fitnesseMarkup.clean(dest));
+		return true;
 	}
 
 	/**
