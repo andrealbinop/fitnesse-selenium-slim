@@ -1,4 +1,4 @@
-fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-selenium-slim.svg?branch=selenium_script_table)](https://travis-ci.org/andreptb/fitnesse-selenium-slim) [![Coverage Status](https://coveralls.io/repos/andreptb/fitnesse-selenium-slim/badge.svg?branch=selenium_script_table)](https://coveralls.io/r/andreptb/fitnesse-selenium-slim?branch=selenium_script_table) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/)
+fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-selenium-slim.svg?branch=master)](https://travis-ci.org/andreptb/fitnesse-selenium-slim) [![Coverage Status](https://coveralls.io/repos/andreptb/fitnesse-selenium-slim/badge.svg?branch=master)](https://coveralls.io/r/andreptb/fitnesse-selenium-slim?branch=master) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/)
 ==============
 
 **Important**: This is a work in progress, come back later if you want something usable. Or contact me if you want to contribute.
@@ -14,7 +14,7 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 <dependency>
   <groupId>com.github.andreptb</groupId>
   <artifactId>fitnesse-selenium-slim</artifactId>
-  <version>0.0.2</version>
+  <version>0.0.3-SNAPSHOT</version>
 </dependency>
 ```
 
@@ -37,7 +37,7 @@ mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain -Dexec.args="-d fitness
 Similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin), this plugin includes screenshot for each operation. However, if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.CommandLineArguments)** arguments are changed, you must configure [SeleniumFixture's](/fitnesse-selenium-slim/src/main/java/com/github/andreptb/fitnesse/SeleniumFixture.java) screenshot dir with the following action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SuiteSetUp](/fitnesse-selenium-slim/fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SuiteSetUp/content.txt):
 
 ```
-| set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots | 
+| set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots |
 ```
 
 **Important:** At this time the screenshot feature won't work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this issue](https://github.com/unclebob/fitnesse/pull/755) is closed.
