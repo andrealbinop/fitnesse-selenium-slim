@@ -34,7 +34,7 @@ mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain -Dexec.args="-d fitness
 
 #### A word about screenshots
 
-Similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin), this plugin includes screenshot for each operation. However, if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.CommandLineArguments)** arguments are changed, you must configure [SeleniumFixture's](/fitnesse-selenium-slim/src/main/java/com/github/andreptb/fitnesse/SeleniumFixture.java) screenshot dir with the following action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SuiteSetUp](/fitnesse-selenium-slim/fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SuiteSetUp/content.txt):
+Similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin), this plugin includes screenshot for each operation. However, if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.CommandLineArguments)** arguments are changed, you must configure [SeleniumFixture's](/fitnesse-selenium-slim/src/main/java/com/github/andreptb/fitnesse/SeleniumFixture.java) screenshot dir with the following action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SuiteSetUp](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SuiteSetUp/content.txt):
 
 ```
 | set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots |
