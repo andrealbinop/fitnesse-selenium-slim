@@ -14,7 +14,7 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 <dependency>
   <groupId>com.github.andreptb</groupId>
   <artifactId>fitnesse-selenium-slim</artifactId>
-  <version>0.0.3-SNAPSHOT</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
