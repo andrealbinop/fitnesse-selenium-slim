@@ -1,6 +1,7 @@
 language: java
 script:
-- mvn clean install jacoco:report org.eluder.coveralls:coveralls-maven-plugin:report
+  - mvn clean install jacoco:report org.eluder.coveralls:coveralls-maven-plugin:report
+  
 env:
   global:
     secure: g8/h6AOrHeimm/lpn4V2Vvei3dWMv0M99xwyr6mX1nvVSMJQ8IkcRtccZv5dTjii2rEk0NjiTETeOt2wNxyg50Vw2kT4h9oC5bLEt2O5vpriOkhi5e3C6Ls7Ajsq1NI3V9PiKHrvQK4Yyl1oo4hdVMH/uvAz8B0avW4Th6inOci5zFM23fVSjALYTPBlGehpb5775X2Ubc82t7llJW/ZBIg0un+D+jtuF2af8XfK2ogzYdPMtlMsQCiS+Ri9JVIumSNIgE5JwGXEkWhGTXRnzIDqnOU/G/8Huc5IeTtBybgezDEWy5MEj44CUzbHG2RqeFRyifRSjmXViFFbPe/EAVjuMzIyVFd9CmCeT8qDiLruhxmJWDayeH51RIAPbTO5Dm4JIjsIFKdWLkWUC6IujQgjqhGYe792ykkTsknwZvNNVg87eGbsyg7CY802kNYKICJ0iztq4GYDWHon45IktezggnFJdasOmqPKUtFH9wwQ9SmYLO651vuPwlhDk/AIfa5UKKTxtTjGbeZX3pobUpduwfpTAn+aTrMU/318/RYZLvOGUTHA+xx7J9UI732CrR02cy/pfPBkBhArd26ELYpqtIu9VpN9g5lRaNKEn2Bpbz5T0zX1V/TjWLjuMf0yGGT3+GFzrhLOmtJEBi2hwapwXGxnjSMFm3GcqyUOSZc=
@@ -12,11 +13,9 @@ deploy:
   on:
     repo: andreptb/fitnesse-selenium-slim
 
-after_success:
-- openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv
-  -in ossrh_keys.tar.gz.enc -out ossrh_keys.tar.gz -d
-- tar -zxvf ossrh_keys.tar.gz
-- gpg --import private.key && gpg --import public.key
-- echo "<settings><servers><server><id>ossrh</id><username>\${env.ossrh_username}</username><password>\${env.ossrh_password}</password></server><server><id>gpg.passphrase</id><passphrase>\${env.gpg_password}</passphrase></server></servers></settings>"
-  > ~/settings.xml
-- mvn deploy -DskipTests=true -s ~/settings.xml -PactivateDeploy
+after_deploy:
+  - openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv -in ossrh_keys.tar.gz.enc -out ossrh_keys.tar.gz -d
+  - tar -zxvf ossrh_keys.tar.gz
+  - gpg --import private.key && gpg --import public.key
+  - echo "<settings><servers><server><id>ossrh</id><username>\${env.ossrh_username}</username><password>\${env.ossrh_password}</password></server><server><id>gpg.passphrase</id><passphrase>\${env.gpg_password}</passphrase></server></servers></settings>" > ~/settings.xml
+  - mvn deploy -DskipTests=true -s ~/settings.xml -PactivateDeploy
