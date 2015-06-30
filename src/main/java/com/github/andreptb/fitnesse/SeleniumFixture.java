@@ -72,11 +72,7 @@ public class SeleniumFixture {
 
 			@Override
 			public void run() {
-				try {
-					SeleniumFixture.DRIVER.quit();
-				} catch (Throwable e) {
-					// quietly quit driver
-				}
+				SeleniumFixture.quitQuietly();
 			}
 		});
 	}
@@ -122,8 +118,20 @@ public class SeleniumFixture {
 		if (driver == null) {
 			return false;
 		}
+		SeleniumFixture.quitQuietly();
 		SeleniumFixture.DRIVER = driver;
 		return true;
+	}
+
+	/**
+	 * Quietly quits driver instance. Used to ensure no connections are left open when test ends
+	 */
+	private static void quitQuietly() {
+		try {
+			SeleniumFixture.DRIVER.quit();
+		} catch (Throwable e) {
+			// quietly quit driver
+		}
 	}
 
 	/**
