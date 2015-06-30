@@ -10,4 +10,4 @@ script:
 after_success:
   - openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv -in deploy/private.key.enc -out deploy/private.key -d
   - gpg --import deploy/private.key && gpg --import deploy/public.key
-  - mvn deploy -DskipTests -DstagingDescription=$TRAVIS_COMMIT
+  - mvn -s deploy/settings.xml deploy -DskipTests -DstagingDescription=$TRAVIS_COMMIT
