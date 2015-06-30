@@ -4,8 +4,8 @@ env:
   global:
     secure: vEvtWat+I6dJCXJchJDmduzOFRvDW5+BZqa1P9cUR+HKs67IgCdGZcPyhiAqQDY4JXY7RKvcjHC+ncD3n49BTZtdADh62PVu6k/UW8BvOz7SbwYrzSRPmXM0sAzkfQZ28VVpvsNWh3stuqyvVpLRVaTipEkoWhvBq+RfXazjYwMKIseQRX05Ii30FreG1eAvlcB+bouvyEcbmifESMx+Th0bdJpdeERF7W/UmV/Kl/f9/QTd/JqunoAfY0KMwWwwZpVtroOxMPCMYoN0xP9pHlq0peMArAStVOYqmQ8NA6sXAbyIw70SMiYYavN+Z8q9/vSyMXr+PSJCMnbPNP2Ii/qn15kfzF07xbvRQJr2MfgDnr1e2VQmEt7WgdvgWaHrfbL8RX+CUHc6BY63hR66pnciYCMha4VdNDWE3E1kyNF1WyxdLUl8Id351DyLZj8bi/dH0i38bzKoNlN/6GYXk4adyuMjVDAZfaWZ28JjL87d44WlyeSvJ093VgWj6wnd18VygfvAMIEbWOkLnBEWfi/5njqp9BmN1g1vZluF24Y5XSoOZJgFD5mSiCjc/j3y1u8ZngrgfVINv72PO46H/v0jUzkusDvRPsbHdj2i88ahrwiRVF2LtkB0iBEhFvReNPcALqC0Bv6eLoB7F/v2ZQQhK8mzk3TaNhJs3oqADZI=
 
-script:
-  - mvn clean test jacoco:report org.eluder.coveralls:coveralls-maven-plugin:report
+install:
+  - mvn test jacoco:report org.eluder.coveralls:coveralls-maven-plugin:report
 
 after_success:
   - openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv -in deploy/private.key.enc -out deploy/private.key -d
