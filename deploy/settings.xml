@@ -8,12 +8,15 @@
   </servers>
   <profiles>
   	<profile>
-  		<id>activateDeploy</id>
+  		<id>deactivateDeploy</id>
   		<activation>
   			<property>
-  				<name>env.TRAVIS_TAG</name>
+  				<name>!env.TRAVIS_TAG</name>
   			</property>
   		</activation>
+  		<properties>
+  			<skipNexusStagingDeployMojo>true</skipNexusStagingDeployMojo>
+  		</properties>
   	</profile>
   </profiles>
 </settings>
