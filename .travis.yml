@@ -2,14 +2,11 @@ language: java
 
 env:
   global:
-    secure: vEvtWat+I6dJCXJchJDmduzOFRvDW5+BZqa1P9cUR+HKs67IgCdGZcPyhiAqQDY4JXY7RKvcjHC+ncD3n49BTZtdADh62PVu6k/UW8BvOz7SbwYrzSRPmXM0sAzkfQZ28VVpvsNWh3stuqyvVpLRVaTipEkoWhvBq+RfXazjYwMKIseQRX05Ii30FreG1eAvlcB+bouvyEcbmifESMx+Th0bdJpdeERF7W/UmV/Kl/f9/QTd/JqunoAfY0KMwWwwZpVtroOxMPCMYoN0xP9pHlq0peMArAStVOYqmQ8NA6sXAbyIw70SMiYYavN+Z8q9/vSyMXr+PSJCMnbPNP2Ii/qn15kfzF07xbvRQJr2MfgDnr1e2VQmEt7WgdvgWaHrfbL8RX+CUHc6BY63hR66pnciYCMha4VdNDWE3E1kyNF1WyxdLUl8Id351DyLZj8bi/dH0i38bzKoNlN/6GYXk4adyuMjVDAZfaWZ28JjL87d44WlyeSvJ093VgWj6wnd18VygfvAMIEbWOkLnBEWfi/5njqp9BmN1g1vZluF24Y5XSoOZJgFD5mSiCjc/j3y1u8ZngrgfVINv72PO46H/v0jUzkusDvRPsbHdj2i88ahrwiRVF2LtkB0iBEhFvReNPcALqC0Bv6eLoB7F/v2ZQQhK8mzk3TaNhJs3oqADZI=
-
+    secure: EAJbL0+JSszaC/e574jvY6N9v+/SopJQBcgVYEmCQd/JdbtVu51zAkn9MoxFpKnNFWemfXdYV+6XQ8M+XZrLeE9Mzdwj7X3ZhM2Yv86UUy4lxYdBhjwBOynUZcZADjo3ZSC5Z4hphqM2bb3tW2qrvlhccWFUb1drz7vpCczQdlJdXl7nnswkkSSejTPkmcs/gjzYtK9Uzg4M+sXPWed7TT3apZI9imejJ4LxWCeGgBHEReUCfWXzE7mxXKpXy46enzFlQqDLkV0CjFMc5KrheIHT8SMa61hlOGkWhY2BehDIXojdN1y6AUAXcPTz0RwkMflbNnnVx2bII6wWiBbzITrJHfK1e+16RSRSlJg8MJogLtqe9UHn+mRPA+QSG8YgLSQKdxIvNiKr9YNjPYshpxxIbalotvjKCoOxKdUks91/C8yQu5HhclxmoPVrKk7VF7+PGIScqbDA+nEPCNOISmibbICTlmfuYgWgNH/35cqiFGn2fL1YMeOJm86y5Bn/GTMIO681/6LFtDD8rCI39g8UH+lj8AhUGE4VZkOXKiWA7lkWpvRItz4Qp+wyYx8zLwU7MY/dxvuSdbF2de0URhEhN+SKtE+PgJUArL8hUaqoq44BrOT83pgjQnrIbGUEiNtvS68SgxINbN+ItlnhmJwDm4w26enbISPjy7O++MQ=
 install:
   - mvn dependency:resolve dependency:resolve-plugins
-
 script:
   - mvn test jacoco:report org.eluder.coveralls:coveralls-maven-plugin:report
-
 after_success:
   - openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv -in deploy/private.key.enc -out deploy/private.key -d
   - gpg --import deploy/private.key && gpg --import deploy/public.key
