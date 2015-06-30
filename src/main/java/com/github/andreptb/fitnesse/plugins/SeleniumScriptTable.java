@@ -1,6 +1,5 @@
 package com.github.andreptb.fitnesse.plugins;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -153,11 +152,7 @@ public class SeleniumScriptTable extends ScriptTable {
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
 			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(actual);
 			if (StringUtils.isNotBlank(cleanedActual)) {
-				try {
-					SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(cleanedActual));
-				} catch (IOException e) {
-					throw new IllegalStateException("Unexpected IO error providing screenshot for test result", e);
-				}
+				SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(cleanedActual));
 			}
 			return SlimTestResult.plain();
 		}

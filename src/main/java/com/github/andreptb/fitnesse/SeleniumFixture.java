@@ -92,6 +92,8 @@ public class SeleniumFixture {
 	 * @see #startBrowserWith(String, String)
 	 * @param browser The browser to be used
 	 * @return result Boolean result indication of assertion/operation
+	 * @throws MalformedURLException if the remote driver has a malformed URL
+	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 */
 	public boolean startBrowser(String browser) throws ReflectiveOperationException, MalformedURLException {
 		return startBrowserWith(browser, null);
@@ -110,7 +112,10 @@ public class SeleniumFixture {
 	 * </p>
 	 *
 	 * @param browser The browser to be used
+	 * @param capabilities Usually used to configure remote driver, but some local driver also uses.
 	 * @return result Boolean result indication of assertion/operation
+	 * @throws MalformedURLException if the remote driver has a malformed URL
+	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 */
 	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, MalformedURLException {
 		WebDriver driver = this.driverProvider.createDriver(browser, capabilities);
@@ -143,6 +148,7 @@ public class SeleniumFixture {
 	 * | $previousTimeout= | set wait timeout | <i>timeout in seconds</i> |
 	 * </code>
 	 *
+	 * @param timeoutInSeconds wait seconds to timeout
 	 * @return previous timeout value
 	 */
 	public int setWaitTimeout(int timeoutInSeconds) {
@@ -205,8 +211,8 @@ public class SeleniumFixture {
 	 * </code>
 	 * </p>
 	 *
-	 * @param locator
-	 * @return
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectWindow(String locator) {
 		if (!browserAvailable()) {
@@ -246,7 +252,9 @@ public class SeleniumFixture {
 	/**
 	 * Current page title
 	 * <p>
-	 * | ensure title | <i>title</i> | </code>
+	 * <code>
+	 * | ensure title | <i>title</i> |
+	 * </code>
 	 * </p>
 	 *
 	 * @return result Boolean result indication of assertion/operation
@@ -375,7 +383,6 @@ public class SeleniumFixture {
 	 * </code>
 	 * </p>
 	 *
-	 * @param locator an element locator
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click() {
@@ -450,6 +457,7 @@ public class SeleniumFixture {
 	 * </p>
 	 *
 	 * @return screenshot saved file absolute path
+	 * @throws IOException if something goes wrong while manipulating screenshot file
 	 */
 	public String screenshot() throws IOException {
 		if (!browserAvailable()) {
@@ -474,6 +482,7 @@ public class SeleniumFixture {
 	 * </code>
 	 * </p>
 	 *
+	 * @param dest directory to save screenshot
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean setScreenshotDir(String dest) {

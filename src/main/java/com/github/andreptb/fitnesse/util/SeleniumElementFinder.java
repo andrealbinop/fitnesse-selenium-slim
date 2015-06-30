@@ -61,7 +61,7 @@ public class SeleniumElementFinder {
 	}
 
 	/**
-	 * Selects element. If <code>locator></code> is <code>null</code> or an empty {@link String}, delegates call to {@link #current(WebDriver)}
+	 * Selects element. If <code>locator</code> is <code>null</code> or an empty {@link String}, delegates call to {@link #current(WebDriver)}
 	 *
 	 * @see #parseElementLocator(String)
 	 * @see #current(WebDriver)

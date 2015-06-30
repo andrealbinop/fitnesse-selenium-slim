@@ -68,7 +68,7 @@ public class FixtureWebDriverProvider {
 	 * key1="value1" key2="value with space 2" key3="value3"
 	 * </p>
 	 *
-	 * @see FitnesseMarkup#clean(String)
+	 * @see FitnesseMarkup#clean(Object)
 	 * @param capabilities {@link String}
 	 * @return capabilitiesInstance which is an instanceof {@link Capabilities}
 	 */

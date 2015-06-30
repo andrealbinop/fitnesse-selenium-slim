@@ -1,6 +1,5 @@
 package com.github.andreptb.fitnesse.util;
 
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -82,7 +81,7 @@ public class FitnesseMarkup {
 	 * @param img File containing the image
 	 * @return Image link
 	 */
-	public String imgLink(Object img) throws IOException {
+	public String imgLink(Object img) {
 		String cleanedImg = FilenameUtils.normalize(ObjectUtils.toString(img), true);
 		if(StringUtils.containsIgnoreCase(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR)) {
 			cleanedImg = FitnesseMarkup.FITNESSE_ROOT_FILES_DIR + StringUtils.substringAfter(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR);
