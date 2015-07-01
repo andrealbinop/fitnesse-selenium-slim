@@ -1,9 +1,13 @@
-fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-selenium-slim.svg?branch=master)](https://travis-ci.org/andreptb/fitnesse-selenium-slim) [![Coverage Status](https://coveralls.io/repos/andreptb/fitnesse-selenium-slim/badge.svg?branch=master)](https://coveralls.io/r/andreptb/fitnesse-selenium-slim?branch=master) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.andreptb/fitnesse-selenium-slim/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/)
+fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-selenium-slim.svg?branch=master)](https://travis-ci.org/andreptb/fitnesse-selenium-slim) [![Coverage Status](https://coveralls.io/repos/andreptb/fitnesse-selenium-slim/badge.svg?branch=master)](https://coveralls.io/r/andreptb/fitnesse-selenium-slim?branch=master) [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.andreptb/fitnesse-selenium-slim/badge.svg)](https://maven-badges.herokuapp.com/maven-central/org.andreptb/fitnesse-selenium-slim/) [![javadoc](http://javadoc-badge.appspot.com/com.github.andreptb/fitnesse-selenium-slim.svg?label=javadoc)](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/index.html) [![Join the chat at https://gitter.im/andreptb/fitnesse-selenium-slim](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/andreptb/fitnesse-selenium-slim?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 ==============
 
 **Important**: This is a work in progress, come back later if you want something usable. Or contact me if you want to contribute.
 
   [FitNesse](https://github.com/unclebob/fitnesse) Selenium fixture in [slim format](http://www.fitnesse.org/FitNesse.UserGuide.WritingAcceptanceTests.SliM). Resembles [Xebium](http://xebia.github.io/Xebium/), but it's even more similar to [Selenium IDE Firefox Plugin](http://www.seleniumhq.org/projects/ide/). Also gets inspiration from [hsac-fitnesse-fixtures](https://github.com/fhoeben/hsac-fitnesse-fixtures) but doesn't try to "simplify" Selenium IDE development flow. This project is licensed under [MIT](LICENSE).
+
+####  Getting started
+
+Take a look at [this](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/BasicUsageSample/content.txt) FitNesseRoot test. Furthermore, detailed information about the available fixture commands can be found  [here](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#startBrowser-java.lang.String-). 
 
 #### Installation
 
@@ -19,9 +23,6 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 ```
 
 #### Testing and Building
-
-* To run JUnit tests using firefox browser:
-
 ```
 BROWSER=firefox mvn test
 ```
@@ -49,17 +50,3 @@ Similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugi
 ```
 
 **Important:** At this time the screenshot feature won't work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this issue](https://github.com/unclebob/fitnesse/pull/755) is closed.
-
-
-####  Sample:
-
-```
-| selenium |
-| start browser | firefox |
-| open | http://www.google.com.br |
-| note | types something on google search box |
-| type | selenium web browser | in | id=lst-ib |
-| note | checks if the input has the desired value |
-| check | value | id=lst-ib | selenium web browser |
-| close |
-```

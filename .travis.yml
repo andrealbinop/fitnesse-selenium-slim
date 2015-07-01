@@ -2,7 +2,8 @@ language: java
 
 env:
   global:
-    secure: EAJbL0+JSszaC/e574jvY6N9v+/SopJQBcgVYEmCQd/JdbtVu51zAkn9MoxFpKnNFWemfXdYV+6XQ8M+XZrLeE9Mzdwj7X3ZhM2Yv86UUy4lxYdBhjwBOynUZcZADjo3ZSC5Z4hphqM2bb3tW2qrvlhccWFUb1drz7vpCczQdlJdXl7nnswkkSSejTPkmcs/gjzYtK9Uzg4M+sXPWed7TT3apZI9imejJ4LxWCeGgBHEReUCfWXzE7mxXKpXy46enzFlQqDLkV0CjFMc5KrheIHT8SMa61hlOGkWhY2BehDIXojdN1y6AUAXcPTz0RwkMflbNnnVx2bII6wWiBbzITrJHfK1e+16RSRSlJg8MJogLtqe9UHn+mRPA+QSG8YgLSQKdxIvNiKr9YNjPYshpxxIbalotvjKCoOxKdUks91/C8yQu5HhclxmoPVrKk7VF7+PGIScqbDA+nEPCNOISmibbICTlmfuYgWgNH/35cqiFGn2fL1YMeOJm86y5Bn/GTMIO681/6LFtDD8rCI39g8UH+lj8AhUGE4VZkOXKiWA7lkWpvRItz4Qp+wyYx8zLwU7MY/dxvuSdbF2de0URhEhN+SKtE+PgJUArL8hUaqoq44BrOT83pgjQnrIbGUEiNtvS68SgxINbN+ItlnhmJwDm4w26enbISPjy7O++MQ=
+    secure: lk5sOGWmEGWHerSPY5QGjZPPTcNo3HokKpmiue7nAfgmwp2l/jvYQuvTCV639KcxegTzDfFR7nIheaw+tqHjudePnP4Py0yWEPduVZUI5Vbs6awyt8t7JcwTaWLQILTpSzjc4iXR6cTi/h+DUEjYRgxSbhPKk4IlBeRQ3FvTIAXoegZoTLjmBGR8b/Azs7DzU3fAntZnOK8PKRFj6U4ZsUJg6ESKLs0gPFMfgK7Q6STQ4T1qC1tlfCb2ToflILb2mcccwIGDtDSWQksnL4FS9EXTi0RaJ/DkWP1bctsvW9ACrvG0mjzZLSO0yQ5tua/Q0WgClU1C0bXikFOSPLBEP8Lec7Abhnd1P0xMEN/9lQ3JEj822eZayrqGpuxNPvGW5Mi6NESZyx4AJPNwwIAGwYibAV01bQj0dZLlvY8AcdbesYaQGf+opTaK0E6OoTxlzVverWDj/+O+OO4b0JvL+6GeP0ohhQkKhobW5Bh3gVbbLPX/VsIPoV66jAhFqLXA3h9OHILedorfh6UvkssOOzn/IuOJPKm0AhRnLSslNBTrvARDCOriz3wCs8DHF6IfCL9FILabkf3kqoVW8JbJ64PrPkGPxQoqxOF5jSDssjH7Fn6bCSX8yXluwt1cCUL42V8pLKng/1kHOOFSvVe57mcJM7jOQkdcZ5p9ediVYZ8=
+
 install:
   - mvn dependency:resolve dependency:resolve-plugins
 script:
@@ -11,3 +12,4 @@ after_success:
   - openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv -in deploy/private.key.enc -out deploy/private.key -d
   - gpg --import deploy/private.key && gpg --import deploy/public.key
   - mvn -s deploy/settings.xml deploy -DskipTests -Dmaven.install.skip -DstagingDescription=$TRAVIS_COMMIT
+  - GH_REF=github.com/andreptb/fitnesse-selenium-slim.git deploy/gh-pages.sh
