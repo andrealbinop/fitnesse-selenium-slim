@@ -18,7 +18,6 @@ public class FitnesseMarkup {
 	 * Markup which presents image preview and download link
 	 */
 	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}\" target='_blank'><img src=\"{0}\" height=\"200\"></img</a>";
-
 	/**
 	 * Constant of FitnesseRoot files dir (relative path)
 	 */
@@ -28,6 +27,15 @@ public class FitnesseMarkup {
 	 */
 	private static final Pattern FITNESSE_REGEX_MARKUP = Pattern.compile("^=~/(.+)/$");
 
+	/**
+	 * Constant used to register selenium special keys as system properties
+	 */
+	private static final String KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP = "KEY_{0}";
+
+	/**
+	 * Constant representing special key format. Needs !--! to properly render html markup
+	 */
+	private static final String KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP = "!-<span keycode=\"{1}\">$'{'{0}'}'</span>-!";
 	/**
 	 * Compares two values emulating FitNesse comparisons:
 	 * <p>
@@ -52,6 +60,7 @@ public class FitnesseMarkup {
 	/**
 	 * Cleans FitNesse markup from symbols such as:
 	 * <ul>
+	 * <li>Extracts a keyboard special key value from special key markup. See #</li>
 	 * <li>Extracts URL only from HTML generated links</li>
 	 * <li>Extracts text from HTML wiki page creation suggestion link</li>
 	 * <li>Strips undefined variable ocurrences on text</li>
@@ -66,6 +75,10 @@ public class FitnesseMarkup {
 		if (StringUtils.isBlank(strippedSymbol)) {
 			return strippedSymbol;
 		}
+		// transforms keyboard special keys markup
+		strippedSymbol = strippedSymbol.replaceAll("<span keycode=\"([^\"]+)\"[^/]+/span>", "$1");
+		// removes undefined variable references
+		strippedSymbol = strippedSymbol.replaceAll("<span[^>]+>undefined variable:[^<]+</span>", StringUtils.EMPTY);
 		// removes create wikipage markup
 		strippedSymbol = strippedSymbol.replaceAll("<a[^>]+>\\[\\?\\]</a>", StringUtils.EMPTY);
 		// removes undefined variable references
@@ -87,5 +100,19 @@ public class FitnesseMarkup {
 			cleanedImg = FitnesseMarkup.FITNESSE_ROOT_FILES_DIR + StringUtils.substringAfter(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR);
 		}
 		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, cleanedImg);
+	}
+
+	/**
+	 * Registers a system property ({@link System#setProperty(String, String)}) allowing user to develop tests referencing special keys such as tab and enter by using variables. For example:
+	 * <p>
+	 * If <b>keyName="tab"</b> and <b>keyValue="\uE004"</b> then <b>${KEY_TAB}</b> will resolve to <b>"&lt;span keycode=&quot;\uE004&quot;&gt;tab&lt;/span&gt;"</b>
+	 * </p>
+	 *
+	 * @param keyName Special keyboard key name
+	 * @param keyValue Special keyboard key value
+	 */
+	public void registerKeyboardSpecialKey(String keyName, String keyValue) {
+		String generatedKeyName = MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP, StringUtils.upperCase(keyName));
+		System.setProperty(generatedKeyName, MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP, generatedKeyName, keyValue));
 	}
 }

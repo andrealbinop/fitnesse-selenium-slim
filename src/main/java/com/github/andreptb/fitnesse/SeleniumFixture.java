@@ -151,10 +151,15 @@ public class SeleniumFixture {
 	 * Influences the following methods:
 	 * <ul>
 	 * <li>{@link #present(String)}</li>
+	 * <li>{@link #value(String)}</li>
+	 * <li>{@link #text(String)}</li>
+	 * <li></li>
 	 * </ul>
+	 * <p>
 	 * <code>
 	 * | $previousTimeout= | set wait timeout | <i>timeout in seconds</i> |
 	 * </code>
+	 * </p>
 	 *
 	 * @param timeoutInSeconds wait seconds to timeout
 	 * @return previous timeout value

@@ -25,7 +25,7 @@ public class SeleniumScriptTable extends ScriptTable {
 	/**
 	 * Table keyword constant
 	 */
-	private static final String TABLE_KEYWORD = "selenium";
+	public static final String TABLE_KEYWORD = "selenium";
 	/**
 	 * Table type constant
 	 */

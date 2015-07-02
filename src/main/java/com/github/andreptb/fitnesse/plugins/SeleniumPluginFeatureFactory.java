@@ -1,9 +1,8 @@
 package com.github.andreptb.fitnesse.plugins;
 
-import java.text.MessageFormat;
-
-import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.Keys;
+
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
 import fitnesse.plugins.PluginException;
 import fitnesse.plugins.PluginFeatureFactoryBase;
@@ -15,16 +14,18 @@ import fitnesse.testsystems.slim.tables.SlimTableFactory;
 public class SeleniumPluginFeatureFactory extends PluginFeatureFactoryBase {
 
 	/**
-	 * Constant used to register selenium special keys as system properties
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
-	private static final String SELENIUM_SPECIAL_KEY_MARKUP = "KEY_{0}";
+	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 
     /**
-     * SeleniumScriptTable registering
-     */
+	 * SeleniumScriptTable registering
+	 *
+	 * @param slimTableFactory Instance responsible for registering slim tables
+	 */
     @Override
     public void registerSlimTables(SlimTableFactory slimTableFactory) throws PluginException {
-        slimTableFactory.addTableType("selenium", SeleniumScriptTable.class);
+		slimTableFactory.addTableType(SeleniumScriptTable.TABLE_KEYWORD, SeleniumScriptTable.class);
 		registerSpecialKeysVariables();
     }
 
@@ -33,7 +34,7 @@ public class SeleniumPluginFeatureFactory extends PluginFeatureFactoryBase {
 	 */
 	private void registerSpecialKeysVariables() {
 		for(Keys key : Keys.values()) {
-			System.setProperty(MessageFormat.format(SeleniumPluginFeatureFactory.SELENIUM_SPECIAL_KEY_MARKUP, StringUtils.upperCase(key.name())), key.toString());
+			this.fitnesseMarkup.registerKeyboardSpecialKey(key.name(), key.toString());
 		}
 	}
 }
