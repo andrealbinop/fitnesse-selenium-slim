@@ -22,6 +22,18 @@ public class SeleniumElementFinder {
 	 */
 	private static final String SELECTOR_TYPE_SEPARATOR = "=";
 	/**
+	 * HTML Value attribute, usually used on inputs
+	 */
+	private static final String INPUT_TYPE_ATTRIBUTE = "type";
+	/**
+	 * HTML input type radio attribute constant
+	 */
+	private static final String INPUT_TYPE_RADIO = "radio";
+	/**
+	 * HTML input type checkbox attribute constant
+	 */
+	private static final String INPUT_TYPE_CHECKBOX = "checkbox";
+	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
@@ -147,5 +159,16 @@ public class SeleniumElementFinder {
 		} catch (ReflectiveOperationException e) {
 			throw new IllegalStateException("Unexpected failure instantiating selector: " + selectorPrefix, e);
 		}
+	}
+
+	/**
+	 * Returns if the {@link WebElement} argument is a radio or checkbox HTML element
+	 * 
+	 * @param element {@link WebElement} instance
+	 * @return radioOrCheckbox boolean indicating if the element is a radio or checkbox
+	 */
+	public boolean isRadioOrCheckbox(WebElement element) {
+		String elementType = element.getAttribute(SeleniumElementFinder.INPUT_TYPE_ATTRIBUTE);
+		return StringUtils.equalsIgnoreCase(elementType, SeleniumElementFinder.INPUT_TYPE_CHECKBOX) || StringUtils.equalsIgnoreCase(elementType, SeleniumElementFinder.INPUT_TYPE_RADIO);
 	}
 }

@@ -32,6 +32,14 @@ public class SeleniumFixture {
 	 * HTML Value attribute, usually used on inputs
 	 */
 	private static final String INPUT_VALUE_ATTRIBUTE = "value";
+	/**
+	 * <b>on</b> value constant, used by {@link #value(String)}
+	 */
+	private static final String ON_VALUE = "on";
+	/**
+	 * <b>off</b> value constant, used by {@link #value(String)}
+	 */
+	private static final String OFF_VALUE = "off";
 
 	/**
 	 * Constant representing the selector of the current element focused
@@ -431,10 +439,14 @@ public class SeleniumFixture {
 	public String value(String locator) {
 		if (browserAvailable()) {
 			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
+			if (this.elementFinder.isRadioOrCheckbox(element)) {
+				return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;
+			}
 			return this.fitnesseMarkup.clean(element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE));
 		}
 		return null;
 	}
+
 
 	/**
 	 * Gets the text of an element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element,

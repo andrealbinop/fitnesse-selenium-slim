@@ -40,11 +40,6 @@ public class SeleniumScriptTable extends ScriptTable {
 	private static final String SELENIUM_FIXTURE_PACKAGE_TO_IMPORT = "com.github.andreptb.fitnesse";
 
 	/**
-	 * Cell markup for rows with now screenshot
-	 */
-	private static final String EMPTY_SCREENSHOT_MARKUP = "<span class=\"no_screenshot\"></span>";
-
-	/**
 	 * Utility to process FitNesse markup
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();

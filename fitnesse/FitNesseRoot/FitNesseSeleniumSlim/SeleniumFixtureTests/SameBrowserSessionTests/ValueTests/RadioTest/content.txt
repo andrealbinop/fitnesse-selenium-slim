@@ -1,0 +1,9 @@
+| selenium |
+| open | http://www.roboform.com/filling-test-custom-fields |
+| check | value | css=input[value="Dr"] | off |
+| click | css=input[value="Dr"] |
+| check | value | css=input[value="Dr"] | on |
+| click | css=input[value="Mrs"] |
+| check | value | css=input[value="Dr"] | off |
+| check | value | css=input[value="Mrs"] | on |
+
