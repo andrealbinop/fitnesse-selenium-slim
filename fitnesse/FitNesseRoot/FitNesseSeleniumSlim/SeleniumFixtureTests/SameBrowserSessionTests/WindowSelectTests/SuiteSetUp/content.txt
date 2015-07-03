@@ -1,4 +1,0 @@
-!include <SeleniumFixtureTests.SuiteSetUp
-
-| selenium |
-| open | http://google.com |
