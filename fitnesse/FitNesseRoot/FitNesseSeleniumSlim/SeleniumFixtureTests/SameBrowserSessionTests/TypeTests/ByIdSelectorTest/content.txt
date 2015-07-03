@@ -1,3 +1,4 @@
 | selenium |
+| open | http://saucelabs.com/login |
 | type | foo | in | name=username |
 | check | value | name=username | foo |

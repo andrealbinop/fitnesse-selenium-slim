@@ -40,6 +40,11 @@ public class SeleniumScriptTable extends ScriptTable {
 	private static final String SELENIUM_FIXTURE_PACKAGE_TO_IMPORT = "com.github.andreptb.fitnesse";
 
 	/**
+	 * Cell markup for rows with now screenshot
+	 */
+	private static final String EMPTY_SCREENSHOT_MARKUP = "<span class=\"no_screenshot\"></span>";
+
+	/**
 	 * Utility to process FitNesse markup
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
@@ -108,28 +113,10 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
 	 */
 	protected List<SlimAssertion> configureScreenshot(List<SlimAssertion> assertions, int row) {
-		fillPreviousRowsWithoutScreenshot(row);
 		assertions.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION), new ShowScreenshotExpectation(row)));
 		return assertions;
 	}
 
-	/**
-	 * Adds an empty column for previous columns that didn't have screenshot
-	 *
-	 * @param row
-	 */
-	private void fillPreviousRowsWithoutScreenshot(int row) {
-		while (--row >= NumberUtils.INTEGER_ZERO) {
-			if (this.table.getColumnCountInRow(row) > NumberUtils.INTEGER_ONE) {
-				continue;
-			}
-			String content = StringUtils.EMPTY;
-			if (row == NumberUtils.INTEGER_ZERO) {
-				content = SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION;
-			}
-			this.table.addColumnToRow(row, content);
-		}
-	}
 
 	/**
 	 * Expectation implementation to process screenshot of browser current state
@@ -153,8 +140,29 @@ public class SeleniumScriptTable extends ScriptTable {
 			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(actual);
 			if (StringUtils.isNotBlank(cleanedActual)) {
 				SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(cleanedActual));
+				fillPreviousRowsWithoutScreenshot();
 			}
 			return SlimTestResult.plain();
+		}
+
+		/**
+		 * Adds an empty column for previous columns that didn't have screenshot
+		 *
+		 * @param row
+		 */
+		private void fillPreviousRowsWithoutScreenshot() {
+			int row = getRow();
+			while (--row >= NumberUtils.INTEGER_ZERO) {
+				String content = StringUtils.EMPTY;
+				if (row == NumberUtils.INTEGER_ZERO) {
+					content = SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION;
+				}
+				String currentContent = SeleniumScriptTable.this.table.getCellContents(SeleniumScriptTable.this.table.getColumnCountInRow(row) - 1, row);
+				if (StringUtils.contains(currentContent, "img") || StringUtils.equals(content, currentContent)) {
+					continue;
+				}
+				SeleniumScriptTable.this.table.addColumnToRow(row, content);
+			}
 		}
 	}
 }

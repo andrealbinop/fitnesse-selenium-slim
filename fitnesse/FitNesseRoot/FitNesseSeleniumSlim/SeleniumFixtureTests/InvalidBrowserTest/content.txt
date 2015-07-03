@@ -1,2 +1,3 @@
 | selenium |
 | reject | start browser | invalid browser |
+| reject | browser available |

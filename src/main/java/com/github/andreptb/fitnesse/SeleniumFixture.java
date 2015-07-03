@@ -65,19 +65,6 @@ public class SeleniumFixture {
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 
 	/**
-	 * Register runtime to ensure that WebDriver quits before fixture ends
-	 */
-	static {
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-
-			@Override
-			public void run() {
-				SeleniumFixture.quitQuietly();
-			}
-		});
-	}
-
-	/**
 	 * Registers the DRIVER to further execute selenium commands
 	 * <p>
 	 * <code>
@@ -118,20 +105,9 @@ public class SeleniumFixture {
 		if (driver == null) {
 			return false;
 		}
-		SeleniumFixture.quitQuietly();
+		quit();
 		SeleniumFixture.DRIVER = driver;
 		return true;
-	}
-
-	/**
-	 * Quietly quits driver instance. Used to ensure no connections are left open when test ends
-	 */
-	private static void quitQuietly() {
-		try {
-			SeleniumFixture.DRIVER.quit();
-		} catch (Throwable e) {
-			// quietly quit driver
-		}
 	}
 
 	/**
@@ -143,7 +119,7 @@ public class SeleniumFixture {
 	public boolean browserAvailable() {
 		// http://stackoverflow.com/questions/27616470/webdriver-how-to-check-if-browser-still-exists-or-still-open
 		String driverString = ObjectUtils.toString(SeleniumFixture.DRIVER);
-		return driverString != null && !StringUtils.containsIgnoreCase(driverString, "null");
+		return StringUtils.isNotBlank(driverString) && !StringUtils.containsIgnoreCase(driverString, "null");
 	}
 
 	/**
@@ -298,6 +274,25 @@ public class SeleniumFixture {
 				SeleniumFixture.DRIVER.switchTo().window(currentWindows.next());
 			}
 			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Quits driver instance, closing all associated windows
+	 * <p>
+	 * <code>
+	 * | quit |
+	 * </code>
+	 * </p>
+	 */
+	public boolean quit() {
+		try {
+			SeleniumFixture.DRIVER.quit();
+			SeleniumFixture.DRIVER = null;
+			return true;
+		} catch (Throwable e) {
+			// quietly quit driver
 		}
 		return false;
 	}

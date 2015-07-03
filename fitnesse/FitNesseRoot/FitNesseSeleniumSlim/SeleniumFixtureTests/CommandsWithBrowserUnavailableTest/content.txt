@@ -1,0 +1,16 @@
+| selenium |
+| note | since the browser is not started, none of the commands below should work |
+| reject | open | http://google.com |
+| reject | open window | http://google.com |
+| reject | select window | http://google.com |
+| check | current window | null |
+| check | title | null |
+| reject | close |
+| reject | quit |
+| reject | type | some text |
+| reject | send keys | some text |
+| reject | click |
+| check | value | id=lst-ib | null |
+| check | text | id=lst-ib | null |
+| check | screenshot | null |
+| reject | present | id=lst-ib |

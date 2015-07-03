@@ -2,3 +2,4 @@
 | start browser | ${BROWSER} | with | name='fitnesse-selenium-slim-tests' browserName='firefox' |
 | note | since rootpath was changed, the screenshot dir must be configured here | 
 | set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots |
+| set wait timeout | 5 |

@@ -1,13 +1,17 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <properties>
-  <AddChild/>
-  <Edit/>
-  <Files/>
-  <Properties/>
-  <Prune/>
-  <RecentChanges/>
-  <Search/>
-  <Static/>
-  <Versions/>
-  <WhereUsed/>
+<AddChild/>
+<Edit/>
+<Files/>
+<Properties/>
+<Prune/>
+<RecentChanges/>
+<Search/>
+<Suite/>
+<SymbolicLinks>
+<BasicUsageSample>FitNesseSeleniumSlim.BasicUsageSample</BasicUsageSample>
+<SeleniumFixtureTests>FitNesseSeleniumSlim.SeleniumFixtureTests</SeleniumFixtureTests>
+</SymbolicLinks>
+<Versions/>
+<WhereUsed/>
 </properties>

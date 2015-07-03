@@ -4,12 +4,8 @@
 !pomFile pom.xml@runtime
 ***!
 
-| import |
-| com.github.andreptb.fitnesse |
-
 | selenium |
 | start browser | firefox |
-| open | http://www.google.com.br |
+| open | http://www.google.com |
 | type | selenium web browser | in | id=lst-ib |
 | check | value | id=lst-ib | selenium web browser |
-| close |
