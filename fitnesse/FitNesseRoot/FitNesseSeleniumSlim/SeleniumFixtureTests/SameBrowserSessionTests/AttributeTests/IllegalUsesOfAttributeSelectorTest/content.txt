@@ -1,0 +1,9 @@
+Unfortunatelly FitNesse don't provide a way to assert if an exception is thrown by the fixture, this test must be analyzed manually to ensure the commands below throws the correct exception. 
+
+| selenium |
+| open | http://www.google.com |
+| click | name=btnK@type |
+| send keys | text | in | id=lst-ib@type |
+| show | text | link=Gmail@class |
+| type | text | in | id=lst-ib@type |
+| show | value | id=lst-ib@value |

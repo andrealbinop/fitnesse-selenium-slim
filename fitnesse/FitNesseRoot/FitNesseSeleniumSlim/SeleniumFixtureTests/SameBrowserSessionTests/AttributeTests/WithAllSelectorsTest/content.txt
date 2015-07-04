@@ -1,0 +1,6 @@
+| selenium |
+| open | http://saucelabs.com |
+| check | attribute | id=signup@class | callout |
+| check | attribute | css=#signup@class | callout |
+| check | attribute | xpath=//li[@id='signinout']/a@href | !-https://saucelabs.com/login-! |
+| check | attribute | //li[@id='signinout']/a@href | !-https://saucelabs.com/login-! |

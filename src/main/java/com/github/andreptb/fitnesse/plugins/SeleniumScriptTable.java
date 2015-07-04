@@ -65,7 +65,8 @@ public class SeleniumScriptTable extends ScriptTable {
 	protected List<SlimAssertion> startActor() {
 		List<SlimAssertion> assertions = new ArrayList<>();
 		assertions.add(makeAssertion(new ImportInstruction(ImportInstruction.INSTRUCTION, SeleniumScriptTable.SELENIUM_FIXTURE_PACKAGE_TO_IMPORT), SlimExpectation.NOOP_EXPECTATION));
-		return startActor(NumberUtils.INTEGER_ZERO, SeleniumFixture.class.getName(), NumberUtils.INTEGER_ZERO);
+		assertions.addAll(startActor(NumberUtils.INTEGER_ZERO, SeleniumFixture.class.getName(), NumberUtils.INTEGER_ZERO));
+		return assertions;
 	}
 
 	/**

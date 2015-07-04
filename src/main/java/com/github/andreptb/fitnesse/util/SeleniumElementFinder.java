@@ -1,5 +1,9 @@
 package com.github.andreptb.fitnesse.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
@@ -11,28 +15,22 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 /**
- * Utility to find elements supporting different selectors.
- *
- * @see #find(WebDriver, String)
+ * Utility class to parse locators and find elements
  */
 public class SeleniumElementFinder {
 
 	/**
-	 * Locator selector typeIn separator constant
+	 * Selector pattern containing attribute
 	 */
-	private static final String SELECTOR_TYPE_SEPARATOR = "=";
+	private static final Pattern SELECTOR_WITH_ATTRIBUTE_PATTERN = Pattern.compile("(.+)@(\\w+)$");
 	/**
 	 * HTML Value attribute, usually used on inputs
 	 */
-	private static final String INPUT_TYPE_ATTRIBUTE = "type";
+	public static final String INPUT_VALUE_ATTRIBUTE = "value";
 	/**
-	 * HTML input type radio attribute constant
+	 * Locator selector typeIn separator constant
 	 */
-	private static final String INPUT_TYPE_RADIO = "radio";
-	/**
-	 * HTML input type checkbox attribute constant
-	 */
-	private static final String INPUT_TYPE_CHECKBOX = "checkbox";
+	private static final String SELECTOR_TYPE_SEPARATOR = "=";
 	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
@@ -56,71 +54,9 @@ public class SeleniumElementFinder {
 	}
 
 	/**
-	 * Checks if element is contained in the page.
+	 * Tries to selects element, waiting until is available. If locator is null, tries to return the current active (focused) element if there is one
 	 *
-	 * @see #find(WebDriver, String)
-	 * @param driver instance of {@link WebDriver}
-	 * @param locator an element locator
-	 * @return containsElement true if found, false otherwise
-	 */
-	public boolean contains(WebDriver driver, String locator) {
-		try {
-			find(driver, locator);
-		} catch (NoSuchElementException e) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Selects element. If <code>locator</code> is <code>null</code> or an empty {@link String}, delegates call to {@link #current(WebDriver)}
-	 *
-	 * @see #parseElementLocator(String)
-	 * @see #current(WebDriver)
-	 * @param driver instance of {@link WebDriver}
-	 * @param locator an element locator
-	 * @return webElementFound
-	 * @throws NoSuchElementException if element don't exist or cannot be found
-	 */
-	public WebElement find(WebDriver driver, String locator) {
-		if (StringUtils.isEmpty(locator)) {
-			return current(driver);
-		}
-		return driver.findElement(parseElementLocator(locator));
-	}
-
-	/**
-	 * Gets the current active (focused) element if there is one
-	 *
-	 * @param driver instance of {@link WebDriver}
-	 * @return currentElement instance of element found, null if there is none
-	 */
-	public WebElement current(WebDriver driver) {
-		return driver.switchTo().activeElement();
-	}
-
-	/**
-	 * Checks if element is contained in the page, waiting for a certain time
-	 *
-	 * @see #find(WebDriver, String, int)
-	 * @param driver instance of {@link WebDriver}
-	 * @param locator an element locator
-	 * @param timeoutInSeconds time to wait for element
-	 * @return containsElement true if found, false otherwise
-	 */
-	public boolean contains(WebDriver driver, String locator, int timeoutInSeconds) {
-		try {
-			find(driver, locator, timeoutInSeconds);
-		} catch (TimeoutException e) {
-			return false;
-		}
-		return true;
-	}
-
-	/**
-	 * Tries to selects element, waiting until is available.
-	 *
-	 * @see #parseElementLocator(String)
+	 * @see #parse(String)
 	 * @param driver instance of {@link WebDriver}
 	 * @param locator an element locator
 	 * @param timeoutInSeconds time to wait for element
@@ -128,47 +64,82 @@ public class SeleniumElementFinder {
 	 * @throws NoSuchElementException if element don't exist or cannot be found
 	 * @throws TimeoutException if timeoutInSeconds is exceeded
 	 */
-	public WebElement find(WebDriver driver, String locator, int timeoutInSeconds) {
+	public WebElement find(WebDriver driver, By locator, int timeoutInSeconds) {
+		if (locator == null) {
+			return driver.switchTo().activeElement();
+		}
 		WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);
-		return wait.until(ExpectedConditions.presenceOfElementLocated(parseElementLocator(locator)));
+		return wait.until(ExpectedConditions.presenceOfElementLocated(locator));
 	}
 
 	/**
-	 * Parses locator to an instance of {@link By}. Tries to emulate Selenium IDE searching methods
+	 * Parses locator to an instance of {@link SeleniumLocator}, which by itself contains {@link By} instance and an optional attribute selector. Tries to emulate Selenium IDE searching methods:
 	 * <ul>
-	 * <li>By id: 'id=&lt;id&gt;</li>'
-	 * <li>By name: 'name=&lt;name&gt;</li>'
-	 * <li>By css selector: 'css=#&lt;id&gt;</li>'
-	 * <li>By link text selector: 'link=#&lt;linktext&gt;</li>'
-	 * <li>By xpath selector: 'div[@id=&lt;id&gt;]</li>'
+	 * <li>By id: 'id=&lt;id&gt;'</li>
+	 * <li>By name: 'name=&lt;name&gt;'</li>
+	 * <li>By css selector: 'css=#&lt;id&gt;'</li>
+	 * <li>By link text selector: 'link=#&lt;linktext&gt;'</li>
+	 * <li>By xpath selector: 'div[@id=&lt;id&gt;]'</li>
+	 * </ul>
+	 * Just like SeleniumIDE, attribute name is parsed from selector when element locator is followed by an @ sign and then the name of the attribute. For Example:
+	 * <ul>
+	 * <li>'id=&lt;id&gt;@&lt;attributeName&gt;'</li>
 	 * </ul>
 	 *
-	 * @param locator tja po be parse to {@link By} instance
-	 * @return selector {@link By} instance selector
+	 * @see SeleniumLocator
+	 * @param locator to be parsed
+	 * @return parsedLocator instance of {@link SeleniumLocator}
 	 */
-	private By parseElementLocator(String locator) {
+	public SeleniumLocator parse(String locator) {
 		String cleanedLocator = this.fitnesseMarkup.clean(locator);
+		if (StringUtils.isBlank(cleanedLocator)) {
+			return new SeleniumLocator(null, null);
+		}
+		String attribute = null;
+		Matcher matcher = SeleniumElementFinder.SELECTOR_WITH_ATTRIBUTE_PATTERN.matcher(cleanedLocator);
+		if (matcher.matches()) {
+			cleanedLocator = matcher.group(NumberUtils.INTEGER_ONE);
+			 attribute = matcher.group(2);
+		}
 		String selectorPrefix = StringUtils.substringBefore(cleanedLocator, SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
 		SelectorType selectorType = EnumUtils.getEnum(SelectorType.class, selectorPrefix);
 		if(selectorType == null) {
 			selectorType = SelectorType.xpath;
 		}
-		String parsedLocator = StringUtils.removeStart(cleanedLocator, selectorType + SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);
 		try {
-			return selectorType.byClass.getConstructor(String.class).newInstance(parsedLocator);
+			return new SeleniumLocator(selectorType.byClass.getConstructor(String.class).newInstance(StringUtils.removeStart(cleanedLocator, selectorType + SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR)), attribute);
 		} catch (ReflectiveOperationException e) {
 			throw new IllegalStateException("Unexpected failure instantiating selector: " + selectorPrefix, e);
 		}
 	}
 
 	/**
-	 * Returns if the {@link WebElement} argument is a radio or checkbox HTML element
-	 * 
-	 * @param element {@link WebElement} instance
-	 * @return radioOrCheckbox boolean indicating if the element is a radio or checkbox
+	 * DTO holding element selector ({@link By} instance) and an optional attribute name.
+	 *
+	 * @see SeleniumElementFinder#parse(String)
 	 */
-	public boolean isRadioOrCheckbox(WebElement element) {
-		String elementType = element.getAttribute(SeleniumElementFinder.INPUT_TYPE_ATTRIBUTE);
-		return StringUtils.equalsIgnoreCase(elementType, SeleniumElementFinder.INPUT_TYPE_CHECKBOX) || StringUtils.equalsIgnoreCase(elementType, SeleniumElementFinder.INPUT_TYPE_RADIO);
+	public static class SeleniumLocator {
+
+		/**
+		 * {@link By} selector implementation, can be null if locator is meant to find the current active element
+		 */
+		private final By by;
+		/**
+		 * Attribute selected, can be null
+		 */
+		private final String attribute;
+
+		public SeleniumLocator(By by, String attribute) {
+			this.by = by;
+			this.attribute = attribute;
+		}
+
+		public By getBy() {
+			return this.by;
+		}
+
+		public String getAttributeName() {
+			return this.attribute;
+		}
 	}
 }
