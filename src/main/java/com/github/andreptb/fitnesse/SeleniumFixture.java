@@ -151,14 +151,7 @@ public class SeleniumFixture {
 	 * | $previousTimeout= | set wait timeout | <i>timeout in seconds</i> |
 	 * </code>
 	 * </p>
-	 * Sets the time to wait for a element or text presence.
-	 * Influences the following methods:
-	 * <ul>
-	 * <li>{@link #present(String)}</li>
-	 * <li>{@link #value(String)}</li>
-	 * <li>{@link #text(String)}</li>
-	 * <li></li>
-	 * </ul>
+	 * Sets the time to wait while finding an element.
 	 *
 	 * @param timeoutInSeconds wait seconds to timeout
 	 * @return previous timeout value
@@ -308,7 +301,7 @@ public class SeleniumFixture {
 	 * </code>
 	 * </p>
 	 * Quits driver instance, closing all associated windows
-	 * 
+	 *
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean quit() {
@@ -458,7 +451,7 @@ public class SeleniumFixture {
 		}
 		WebElement element = findElement(locator);
 		String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);
-		if (StringUtils.equals(inputType, INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, INPUT_TYPE_RADIO)) {
+		if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {
 			return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;
 		}
 		return this.fitnesseMarkup.clean(element.getAttribute(SeleniumElementFinder.INPUT_VALUE_ATTRIBUTE));
