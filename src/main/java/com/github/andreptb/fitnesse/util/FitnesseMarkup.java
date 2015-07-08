@@ -95,7 +95,10 @@ public class FitnesseMarkup {
 	 * @return Image link
 	 */
 	public String imgLink(Object img) {
-		String cleanedImg = FilenameUtils.normalize(ObjectUtils.toString(img), true);
+		String cleanedImg = FilenameUtils.normalize(clean(img), true);
+		if (StringUtils.isBlank(cleanedImg)) {
+			return null;
+		}
 		if(StringUtils.containsIgnoreCase(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR)) {
 			cleanedImg = FitnesseMarkup.FITNESSE_ROOT_FILES_DIR + StringUtils.substringAfter(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR);
 		}

@@ -38,7 +38,6 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * Fixture package to auto-import package
 	 */
 	private static final String SELENIUM_FIXTURE_PACKAGE_TO_IMPORT = "com.github.andreptb.fitnesse";
-
 	/**
 	 * Utility to process FitNesse markup
 	 */
@@ -59,7 +58,7 @@ public class SeleniumScriptTable extends ScriptTable {
 	}
 
 	/**
-	 * Overrides start actor to force the use of Selenium Fixture. Auto imports selenium fixture if needed Wouldn't make sense a Selenium Table running fixtures unrelated to Selenium.
+	 * Overrides start actor to force the use of Selenium Fixture. Auto imports selenium fixture if needed
 	 */
 	@Override
 	protected List<SlimAssertion> startActor() {
@@ -69,37 +68,14 @@ public class SeleniumScriptTable extends ScriptTable {
 		return assertions;
 	}
 
-	/**
-	 * Overrides ensure action to add screenshot assertion
-	 */
 	@Override
-	protected List<SlimAssertion> ensure(int row) {
-		return configureScreenshot(super.ensure(row), row);
+	protected List<SlimAssertion> show(int row) {
+		if (StringUtils.contains(this.table.getCellContents(NumberUtils.INTEGER_ONE, row), SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION)) {
+			return showScreenshot(row);
+		}
+		return super.show(row);
 	}
 
-	/**
-	 * Overrides reject action to add screenshot assertion
-	 */
-	@Override
-	protected List<SlimAssertion> reject(int row) {
-		return configureScreenshot(super.reject(row), row);
-	}
-
-	/**
-	 * Overrides check action to add screenshot assertion
-	 */
-	@Override
-	protected List<SlimAssertion> checkAction(int row) {
-		return configureScreenshot(super.checkAction(row), row);
-	}
-
-	/**
-	 * Overrides check not action to add screenshot assertion
-	 */
-	@Override
-	protected List<SlimAssertion> checkNotAction(int row) {
-		return configureScreenshot(super.checkNotAction(row), row);
-	}
 
 	/**
 	 * Adds screenshot action to current stack
@@ -108,19 +84,19 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * @param row current table row the action occured
 	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
 	 */
-	protected List<SlimAssertion> configureScreenshot(List<SlimAssertion> assertions, int row) {
-		assertions.add(makeAssertion(callFunction(getTableType() + "Actor", SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION), new ShowScreenshotExpectation(row)));
-		return assertions;
+	protected List<SlimAssertion> showScreenshot(int row) {
+		int lastCol = this.table.getColumnCountInRow(row) - NumberUtils.INTEGER_ONE;
+		return invokeAction(NumberUtils.INTEGER_ONE, lastCol, row, new ShowScreenshotExpectation(NumberUtils.INTEGER_ONE, row));
 	}
 
 
 	/**
 	 * Expectation implementation to process screenshot of browser current state
 	 */
-	class ShowScreenshotExpectation extends RowExpectation {
+	private class ShowScreenshotExpectation extends RowExpectation {
 
-		public ShowScreenshotExpectation(int row) {
-			super(NumberUtils.INTEGER_ZERO, row);
+		public ShowScreenshotExpectation(int col, int row) {
+			super(col, row);
 		}
 
 		/**
@@ -133,32 +109,8 @@ public class SeleniumScriptTable extends ScriptTable {
 
 		@Override
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
-			String cleanedActual = SeleniumScriptTable.this.fitnesseMarkup.clean(actual);
-			if (StringUtils.isNotBlank(cleanedActual)) {
-				SeleniumScriptTable.this.table.addColumnToRow(getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(cleanedActual));
-				fillPreviousRowsWithoutScreenshot();
-			}
+			SeleniumScriptTable.this.table.substitute(getCol(), getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(actual));
 			return SlimTestResult.plain();
-		}
-
-		/**
-		 * Adds an empty column for previous columns that didn't have screenshot
-		 *
-		 * @param row
-		 */
-		private void fillPreviousRowsWithoutScreenshot() {
-			int row = getRow();
-			while (--row >= NumberUtils.INTEGER_ZERO) {
-				String content = StringUtils.EMPTY;
-				if (row == NumberUtils.INTEGER_ZERO) {
-					content = SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION;
-				}
-				String currentContent = SeleniumScriptTable.this.table.getCellContents(SeleniumScriptTable.this.table.getColumnCountInRow(row) - 1, row);
-				if (StringUtils.contains(currentContent, "img") || StringUtils.equals(content, currentContent)) {
-					continue;
-				}
-				SeleniumScriptTable.this.table.addColumnToRow(row, content);
-			}
 		}
 	}
 }
