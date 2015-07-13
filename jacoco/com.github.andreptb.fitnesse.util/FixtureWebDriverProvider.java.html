@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>FixtureWebDriverProvider.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.util</a> &gt; <span class="el_source">FixtureWebDriverProvider.java</span></div><h1>FixtureWebDriverProvider.java</h1><pre class="source lang-java linenums">
+package com.github.andreptb.fitnesse.util;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.StringUtils;
+import org.openqa.selenium.Capabilities;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
+import org.reflections.Reflections;
+
+/**
+ * Utility to create {@link WebDriver} instance from FitNesse wiki.
+ */
+<span class="fc" id="L19">public class FixtureWebDriverProvider {</span>
+
+	/**
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
+	 */
+<span class="fc" id="L24">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+
+	/**
+	 * HTTP scheme prefix, to detect remote DRIVER
+	 */
+	private static final String HTTP_PREFIX = &quot;http://&quot;;
+	/**
+	 * Pattern to parse capability string. Expected format: key='value' or key=&quot;value&quot;
+	 */
+<span class="fc" id="L33">	private static final Pattern CAPABILITY_PATTERN = Pattern.compile(&quot;(\\w+)=['\&quot;]([^'\&quot;]+)['\&quot;]&quot;);</span>
+
+	/**
+	 * Creates {@link WebDriver} instance with desired browser and capabilities. Capabilities should follow a key/value format
+	 *
+	 * @see #parseCapabilities(String)
+	 * @param browser to be initialized. Can be a remote driver URL
+	 * @param capabilities string. Should follow a key/value format
+	 * @return webDriver instance
+	 * @throws MalformedURLException if the remote driver has a malformed URL
+	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
+	 */
+	public WebDriver createDriver(String browser, String capabilities) throws MalformedURLException, ReflectiveOperationException {
+<span class="fc" id="L46">		String cleanedBrowser = this.fitnesseMarkup.clean(browser);</span>
+<span class="fc" id="L47">		Capabilities parsedCapabilities = parseCapabilities(capabilities);</span>
+<span class="fc bfc" id="L48" title="All 2 branches covered.">		if (StringUtils.startsWithIgnoreCase(cleanedBrowser, FixtureWebDriverProvider.HTTP_PREFIX)) {</span>
+<span class="fc" id="L49">			return new RemoteWebDriver(new URL(cleanedBrowser), parsedCapabilities);</span>
+		}
+<span class="fc" id="L51">		Reflections reflections = new Reflections(WebDriver.class.getPackage().getName());</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">		for (Class&lt;? extends WebDriver&gt; availableDriver : reflections.getSubTypesOf(WebDriver.class)) {</span>
+<span class="pc bpc" id="L53" title="1 of 2 branches missed.">			if (!StringUtils.startsWithIgnoreCase(availableDriver.getSimpleName(), cleanedBrowser)) {</span>
+<span class="fc" id="L54">				continue;</span>
+			}
+<span class="nc" id="L56">			return availableDriver.getConstructor(Capabilities.class).newInstance(parsedCapabilities);</span>
+		}
+<span class="fc" id="L58">		return null;</span>
+	}
+
+	/**
+	 * Creates {@link Capabilities} from string.
+	 * Supported formats:
+	 * &lt;p&gt;
+	 * key1='value1' key2='value with space 2' key3='value3'
+	 * &lt;/p&gt;
+	 * &lt;p&gt;
+	 * key1=&quot;value1&quot; key2=&quot;value with space 2&quot; key3=&quot;value3&quot;
+	 * &lt;/p&gt;
+	 *
+	 * @see FitnesseMarkup#clean(Object)
+	 * @param capabilities {@link String}
+	 * @return capabilitiesInstance which is an instanceof {@link Capabilities}
+	 */
+	protected Capabilities parseCapabilities(String capabilities) {
+<span class="fc" id="L76">		DesiredCapabilities desiredCapabilities = new DesiredCapabilities();</span>
+<span class="fc" id="L77">		String cleanedCapabilities = this.fitnesseMarkup.clean(capabilities);</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">		if (StringUtils.isBlank(cleanedCapabilities)) {</span>
+<span class="fc" id="L79">			return desiredCapabilities;</span>
+		}
+<span class="fc" id="L81">		Matcher matcher = FixtureWebDriverProvider.CAPABILITY_PATTERN.matcher(cleanedCapabilities);</span>
+<span class="fc bfc" id="L82" title="All 2 branches covered.">		while (matcher.find()) {</span>
+<span class="fc" id="L83">			String value = matcher.group(2);</span>
+<span class="pc bpc" id="L84" title="1 of 2 branches missed.">			if (StringUtils.isNotBlank(value)) {</span>
+<span class="fc" id="L85">				desiredCapabilities.setCapability(matcher.group(1), value);</span>
+			}
+<span class="fc" id="L87">		}</span>
+<span class="fc" id="L88">		return desiredCapabilities;</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

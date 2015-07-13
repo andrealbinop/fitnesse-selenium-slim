@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SeleniumElementFinder.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.util</a> &gt; <span class="el_source">SeleniumElementFinder.java</span></div><h1>SeleniumElementFinder.java</h1><pre class="source lang-java linenums">
+package com.github.andreptb.fitnesse.util;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.openqa.selenium.By;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+
+/**
+ * Utility class to parse locators and find elements
+ */
+<span class="fc" id="L21">public class SeleniumElementFinder {</span>
+
+	/**
+	 * Selector pattern containing attribute
+	 */
+<span class="fc" id="L26">	private static final Pattern SELECTOR_WITH_ATTRIBUTE_PATTERN = Pattern.compile(&quot;(.+)?@(\\w+)$&quot;);</span>
+	/**
+	 * HTML Value attribute, usually used on inputs
+	 */
+	public static final String INPUT_VALUE_ATTRIBUTE = &quot;value&quot;;
+	/**
+	 * Locator selector typeIn separator constant
+	 */
+	private static final String SELECTOR_TYPE_SEPARATOR = &quot;=&quot;;
+	/**
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
+	 */
+<span class="fc" id="L38">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+
+<span class="fc" id="L40">	private SeleniumElementFinderExpectedConditions expectedConditions = new SeleniumElementFinderExpectedConditions();</span>
+
+	/**
+	 * enum mapping selector identifier with selector implementation ({@link By} implementations).
+	 */
+<span class="pc" id="L45">	enum SelectorType {</span>
+<span class="fc" id="L46">		id(By.ById.class),</span>
+<span class="fc" id="L47">		name(By.ByName.class),</span>
+<span class="fc" id="L48">		css(By.ByCssSelector.class),</span>
+<span class="fc" id="L49">		xpath(By.ByXPath.class),</span>
+<span class="fc" id="L50">		link(By.ByLinkText.class);</span>
+
+		private Class&lt;? extends By&gt; byClass;
+
+<span class="fc" id="L54">		SelectorType(Class&lt;? extends By&gt; byClass) {</span>
+<span class="fc" id="L55">			this.byClass = byClass;</span>
+<span class="fc" id="L56">		}</span>
+	}
+
+	/**
+	 * Tries to selects element, waiting until is available. If locator is null, tries to return the current active (focused) element if there is one
+	 *
+	 * @see #waitUntilFind(WebDriver, int, ExpectedCondition)
+	 * @param driver instance of {@link WebDriver}
+	 * @param locator to be parsed
+	 * @param timeoutInSeconds time to wait for element
+	 * @return instance of {@link WebElement} found
+	 * @throws TimeoutException if timeoutInSeconds is exceeded and nothing is found
+	 */
+	public WebElement find(WebDriver driver, String locator, int timeoutInSeconds) {
+<span class="fc" id="L70">		return waitUntilFind(driver, timeoutInSeconds, this.expectedConditions.presenceOfElementLocated(parse(locator).getBy()));</span>
+	}
+
+	/**
+	 * Tries to get an element's attribute, waiting until is available. If the element selector part of the locator is empty, tries to return the current active (focused) element if there is one
+	 *
+	 * @param driver instance of {@link WebDriver}
+	 * @param locator to be parsed
+	 * @param timeoutInSeconds time to wait for element
+	 * @return attribute value
+	 * @throws TimeoutException if timeoutInSeconds is exceeded and nothing is found
+	 */
+	public String findAttribute(WebDriver driver, String locator, int timeoutInSeconds) {
+<span class="fc" id="L83">		SeleniumLocator parsedLocator = parse(locator);</span>
+<span class="fc" id="L84">		return waitUntilFind(driver, timeoutInSeconds, this.expectedConditions.presenceOfElementAttributeLocated(parsedLocator.getBy(), parsedLocator.getAttributeName()));</span>
+	}
+
+	/**
+	 * Returns if an element or an element's attribute with given locator is present or absent, depending of &lt;b&gt;ensurePresent&lt;/b&gt; argument.
+	 *
+	 * @param driver instance of {@link WebDriver}
+	 * @param locator to be parsed
+	 * @param timeoutInSeconds time to wait for element
+	 * @param ensurePresence if &lt;code&gt;true&lt;/code&gt; checks if the element is present on the page. Otherwise checks if the element is absent of the page
+	 * @return if an element or attribute with given locator is present on the page
+	 */
+	public boolean presentOrAbsent(WebDriver driver, String locator, int timeoutInSeconds, boolean ensurePresent) {
+<span class="fc" id="L97">		SeleniumLocator parsedLocator = parse(locator);</span>
+		try {
+<span class="fc" id="L99">			return waitUntilFind(driver, timeoutInSeconds, this.expectedConditions.presenceOrAbsenceOfElementOrAttribute(parsedLocator.getBy(), parsedLocator.getAttributeName(), ensurePresent));</span>
+<span class="fc" id="L100">		} catch (TimeoutException e) {</span>
+<span class="fc" id="L101">			return false;</span>
+		}
+	}
+
+	/**
+	 * Tries to get the return from {@link ExpectedCondition} waiting until configured timeout time
+	 *
+	 * @param driver instance of {@link WebDriver}
+	 * @param timeoutInSeconds time to wait for element
+	 * @param condition instance of {@link ExpectedCondition}
+	 * @return elementFound instance of whatever {@link ExpectedCondition} returned
+	 * @throws TimeoutException if timeoutInSeconds is exceeded
+	 */
+	private &lt;T&gt; T waitUntilFind(WebDriver driver, int timeoutInSeconds, ExpectedCondition&lt;T&gt; condition) {
+<span class="fc" id="L115">		WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);</span>
+<span class="fc" id="L116">		return wait.until(condition);</span>
+	}
+
+	/**
+	 * Parses locator to an instance of {@link SeleniumLocator}, which by itself contains {@link By} instance and an optional attribute selector. Tries to emulate Selenium IDE searching methods:
+	 * &lt;ul&gt;
+	 * &lt;li&gt;By id: 'id=&amp;lt;id&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By name: 'name=&amp;lt;name&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By css selector: 'css=#&amp;lt;id&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By link text selector: 'link=#&amp;lt;linktext&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By xpath selector: 'div[@id=&amp;lt;id&amp;gt;]'&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * Just like SeleniumIDE, attribute name is parsed from selector when element locator is followed by an @ sign and then the name of the attribute. For Example:
+	 * &lt;ul&gt;
+	 * &lt;li&gt;'id=&amp;lt;id&amp;gt;@&amp;lt;attributeName&amp;gt;'&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 *
+	 * @see SeleniumLocator
+	 * @param locator to be parsed
+	 * @return parsedLocator instance of {@link SeleniumLocator}
+	 */
+	private SeleniumLocator parse(String locator) {
+<span class="fc" id="L138">		String cleanedLocator = this.fitnesseMarkup.clean(locator);</span>
+<span class="fc bfc" id="L139" title="All 2 branches covered.">		if (StringUtils.isBlank(cleanedLocator)) {</span>
+<span class="fc" id="L140">			return new SeleniumLocator(null, null);</span>
+		}
+<span class="fc" id="L142">		String attribute = null;</span>
+<span class="fc" id="L143">		Matcher matcher = SeleniumElementFinder.SELECTOR_WITH_ATTRIBUTE_PATTERN.matcher(cleanedLocator);</span>
+<span class="fc bfc" id="L144" title="All 2 branches covered.">		if (matcher.matches()) {</span>
+<span class="fc" id="L145">			cleanedLocator = matcher.group(NumberUtils.INTEGER_ONE);</span>
+<span class="fc" id="L146">			attribute = matcher.group(2);</span>
+		}
+<span class="fc" id="L148">		String selectorPrefix = StringUtils.substringBefore(cleanedLocator, SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR);</span>
+<span class="fc" id="L149">		SelectorType selectorType = EnumUtils.getEnum(SelectorType.class, selectorPrefix);</span>
+<span class="fc bfc" id="L150" title="All 2 branches covered.">		if (selectorType == null) {</span>
+<span class="fc" id="L151">			selectorType = SelectorType.xpath;</span>
+		}
+		try {
+<span class="fc" id="L154">			return new SeleniumLocator(selectorType.byClass.getConstructor(String.class).newInstance(StringUtils.removeStart(cleanedLocator, selectorType + SeleniumElementFinder.SELECTOR_TYPE_SEPARATOR)), attribute);</span>
+<span class="nc" id="L155">		} catch (ReflectiveOperationException e) {</span>
+<span class="nc" id="L156">			throw new IllegalStateException(&quot;Unexpected failure instantiating selector: &quot; + selectorPrefix, e);</span>
+		}
+	}
+
+	/**
+	 * DTO holding element selector ({@link By} instance) and an optional attribute name.
+	 *
+	 * @see SeleniumElementFinder#parse(String)
+	 */
+<span class="fc" id="L165">	public static class SeleniumLocator {</span>
+
+		/**
+		 * {@link By} selector implementation, can be null if locator is meant to find the current active element
+		 */
+		private final By by;
+		/**
+		 * Attribute selected, can be null
+		 */
+		private final String attribute;
+
+<span class="fc" id="L176">		public SeleniumLocator(By by, String attribute) {</span>
+<span class="fc" id="L177">			this.by = by;</span>
+<span class="fc" id="L178">			this.attribute = attribute;</span>
+<span class="fc" id="L179">		}</span>
+
+		public By getBy() {
+<span class="fc" id="L182">			return this.by;</span>
+		}
+
+		public String getAttributeName() {
+<span class="fc" id="L186">			return this.attribute;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

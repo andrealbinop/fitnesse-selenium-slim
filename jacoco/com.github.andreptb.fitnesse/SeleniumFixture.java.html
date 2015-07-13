@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SeleniumFixture.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse</a> &gt; <span class="el_source">SeleniumFixture.java</span></div><h1>SeleniumFixture.java</h1><pre class="source lang-java linenums">
+package com.github.andreptb.fitnesse;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.util.Iterator;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+import com.github.andreptb.fitnesse.util.FixtureWebDriverProvider;
+import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
+
+import fitnesse.ContextConfigurator;
+
+/**
+ * Slim fixture to execute Selenium commands, see README.md for more information.
+ */
+<span class="fc" id="L29">public class SeleniumFixture {</span>
+
+	/**
+	 * HTML Value attribute, usually used on inputs
+	 */
+	private static final String INPUT_TYPE_ATTRIBUTE = &quot;type&quot;;
+	/**
+	 * HTML input type radio attribute constant
+	 */
+	private static final String INPUT_TYPE_RADIO = &quot;radio&quot;;
+	/**
+	 * HTML input type checkbox attribute constant
+	 */
+	private static final String INPUT_TYPE_CHECKBOX = &quot;checkbox&quot;;
+	/**
+	 * &lt;b&gt;on&lt;/b&gt; value constant, used by {@link #value(String)}
+	 */
+	private static final String ON_VALUE = &quot;on&quot;;
+	/**
+	 * &lt;b&gt;off&lt;/b&gt; value constant, used by {@link #value(String)}
+	 */
+	private static final String OFF_VALUE = &quot;off&quot;;
+	/**
+	 * Constant representing the selector of the current element focused
+	 */
+	private static final String CURRENT_ELEMENT_FOCUSED = StringUtils.EMPTY;
+
+	/**
+	 * Selenium Web Driver, static so the same DRIVER instance can be used through multiple tables
+	 */
+	private static WebDriver DRIVER;
+	/**
+	 * Timeout time to wait for elements to be present. Default is 20 seconds
+	 */
+<span class="fc" id="L63">	private static int WAIT_TIMEOUT = 20;</span>
+	/**
+	 * Screenshot dir to save
+	 */
+<span class="fc" id="L67">	private static String SCREENSHOT_DIR = ContextConfigurator.DEFAULT_ROOT + &quot;/files/screenshots&quot;;</span>
+
+	/**
+	 * Utility to help creating WebDriver instances
+	 */
+<span class="fc" id="L72">	private FixtureWebDriverProvider driverProvider = new FixtureWebDriverProvider();</span>
+	/**
+	 * Utility to help finding web elements with provided selector
+	 */
+<span class="fc" id="L76">	private SeleniumElementFinder elementFinder = new SeleniumElementFinder();</span>
+	/**
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
+	 */
+<span class="fc" id="L80">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | start browser | &lt;i&gt;browser&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Registers the DRIVER to further execute selenium commands
+	 *
+	 * @see #startBrowserWith(String, String)
+	 * @param browser The browser to be used
+	 * @return result Boolean result indication of assertion/operation
+	 * @throws MalformedURLException if the remote driver has a malformed URL
+	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
+	 */
+	public boolean startBrowser(String browser) throws ReflectiveOperationException, MalformedURLException {
+<span class="fc" id="L97">		return startBrowserWith(browser, null);</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | start browser | &lt;i&gt;browser&lt;/i&gt; | with | &lt;i&gt;capabilities&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Registers the DRIVER to further execute selenium commands. Capabilities should be informed in the following format:
+	 * &lt;p&gt;
+	 * name='some test' platform='LINUX' version='xx'
+	 * &lt;/p&gt;
+	 * This format was used instead of regular json format since FitNesse uses brackets for variables. Quotes between values must be used
+	 *
+	 * @see FixtureWebDriverProvider#createDriver(String, String)
+	 * @param browser The browser to be used
+	 * @param capabilities Usually used to configure remote driver, but some local driver also uses. For example: name='some test' platform='LINUX' version='xx'
+	 * @return result Boolean result indication of assertion/operation
+	 * @throws MalformedURLException if the remote driver has a malformed URL
+	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
+	 */
+	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, MalformedURLException {
+<span class="fc" id="L120">		WebDriver driver = this.driverProvider.createDriver(browser, capabilities);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">		if (driver == null) {</span>
+<span class="fc" id="L122">			return false;</span>
+		}
+<span class="fc" id="L124">		quit();</span>
+<span class="fc" id="L125">		SeleniumFixture.DRIVER = driver;</span>
+<span class="fc" id="L126">		return true;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | ensure | browser available |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Returns if browser is available and can be used
+	 *
+	 * @return browserStarted
+	 */
+	public boolean browserAvailable() {
+		// http://stackoverflow.com/questions/27616470/webdriver-how-to-check-if-browser-still-exists-or-still-open
+<span class="fc" id="L141">		String driverString = ObjectUtils.toString(SeleniumFixture.DRIVER);</span>
+<span class="pc bpc" id="L142" title="1 of 4 branches missed.">		return StringUtils.isNotBlank(driverString) &amp;&amp; !StringUtils.containsIgnoreCase(driverString, &quot;null&quot;);</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | $previousTimeout= | set wait timeout | &lt;i&gt;timeout in seconds&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Sets the time to wait while finding an element.
+	 *
+	 * @param timeoutInSeconds wait seconds to timeout
+	 * @return previous timeout value
+	 */
+	public int setWaitTimeout(int timeoutInSeconds) {
+<span class="fc" id="L157">		int previousTimeout = SeleniumFixture.WAIT_TIMEOUT;</span>
+<span class="fc" id="L158">		SeleniumFixture.WAIT_TIMEOUT = timeoutInSeconds;</span>
+<span class="fc" id="L159">		return previousTimeout;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | open | &lt;i&gt;url&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Navigates to the the desired url
+	 *
+	 * @param url to navigate
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean open(String url) {
+<span class="fc bfc" id="L174" title="All 2 branches covered.">		if (browserAvailable()) {</span>
+<span class="fc" id="L175">			SeleniumFixture.DRIVER.get(this.fitnesseMarkup.clean(url));</span>
+<span class="fc" id="L176">			return true;</span>
+		}
+<span class="fc" id="L178">		return false;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | open window | &lt;i&gt;url&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Opens a popup window with desired &lt;i&gt;url&lt;/i&gt;. After opening the window, you'll need to select it using the selectWindow command.
+	 *
+	 * @see #selectWindow(String)
+	 * @param url to navigate
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean openWindow(String url) {
+<span class="fc bfc" id="L194" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
+<span class="fc" id="L195">			return false;</span>
+		}
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">		if (CollectionUtils.isEmpty(SeleniumFixture.DRIVER.getWindowHandles())) {</span>
+<span class="nc" id="L198">			return open(url);</span>
+		}
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">		if (SeleniumFixture.DRIVER instanceof JavascriptExecutor) {</span>
+<span class="fc" id="L201">			((JavascriptExecutor) SeleniumFixture.DRIVER).executeScript(&quot;window.open(arguments[0])&quot;, this.fitnesseMarkup.clean(url));</span>
+<span class="fc" id="L202">			return true;</span>
+		}
+<span class="nc" id="L204">		return false;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | select window | &lt;i&gt;locator&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Selects a popup window using a window locator; once a popup window has been selected, all commands go to that window.
+	 * Currently supports window search by nameOrHandle, title and current url
+	 *
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean selectWindow(String locator) {
+<span class="fc bfc" id="L220" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
+<span class="fc" id="L221">			return false;</span>
+		}
+<span class="fc" id="L223">		String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();</span>
+<span class="pc bpc" id="L224" title="1 of 2 branches missed.">		for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {</span>
+<span class="fc" id="L225">			WebDriver window = SeleniumFixture.DRIVER.switchTo().window(windowId);</span>
+<span class="fc bfc" id="L226" title="All 6 branches covered.">			if (this.fitnesseMarkup.compare(locator, windowId) || this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {</span>
+<span class="fc" id="L227">				return true;</span>
+			}
+<span class="fc" id="L229">		}</span>
+		// if title didn't match anything go back to current window
+<span class="nc bnc" id="L231" title="All 2 branches missed.">		if (currentWindow != null) {</span>
+<span class="nc" id="L232">			SeleniumFixture.DRIVER.switchTo().window(currentWindow);</span>
+		}
+<span class="nc" id="L234">		return false;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | current window |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Returns current window ID. Returns &quot;null&quot; if no window is available
+	 *
+	 * @return windowID
+	 */
+	public String currentWindow() {
+<span class="fc bfc" id="L248" title="All 2 branches covered.">		if (browserAvailable()) {</span>
+<span class="fc" id="L249">			return SeleniumFixture.DRIVER.getWindowHandle();</span>
+		}
+<span class="fc" id="L251">		return null;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | ensure title | &lt;i&gt;title&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Current page title
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public String title() {
+<span class="fc bfc" id="L265" title="All 2 branches covered.">		if (browserAvailable()) {</span>
+<span class="fc" id="L266">			return SeleniumFixture.DRIVER.getTitle();</span>
+		}
+<span class="fc" id="L268">		return null;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | close |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Closes the last tab
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean close() {
+<span class="fc bfc" id="L282" title="All 2 branches covered.">		if (browserAvailable()) {</span>
+<span class="fc" id="L283">			SeleniumFixture.DRIVER.close();</span>
+<span class="fc" id="L284">			Iterator&lt;String&gt; currentWindows = SeleniumFixture.DRIVER.getWindowHandles().iterator();</span>
+<span class="pc bpc" id="L285" title="1 of 2 branches missed.">			if (currentWindows.hasNext()) {</span>
+				// if there's still windows opened focus anyone that's still opened
+<span class="fc" id="L287">				SeleniumFixture.DRIVER.switchTo().window(currentWindows.next());</span>
+			}
+<span class="fc" id="L289">			return true;</span>
+		}
+<span class="fc" id="L291">		return false;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | quit |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Quits driver instance, closing all associated windows
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean quit() {
+		try {
+<span class="fc" id="L306">			SeleniumFixture.DRIVER.quit();</span>
+<span class="fc" id="L307">			SeleniumFixture.DRIVER = null;</span>
+<span class="fc" id="L308">			return true;</span>
+<span class="fc" id="L309">		} catch (Throwable e) {</span>
+			// quietly quit driver
+		}
+<span class="fc" id="L312">		return false;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | type | &lt;i&gt;value&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Sets the value of the current focused input field, as though you typed it in.
+	 * Can also be used to set the value of combo boxes, check boxes, etc. In these cases, value should be the value of the option selected, not the visible text.
+	 *
+	 * @param value the value to typeIn
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean type(String value) {
+<span class="fc" id="L328">		return typeIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | type | &lt;i&gt;value&lt;/i&gt; | in | &lt;i&gt;locator&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Sets the value of an input field, as though you typed it in.
+	 * Can also be used to set the value of combo boxes, check boxes, etc. In these cases, value should be the value of the option selected, not the visible text.
+	 *
+	 * @param value the value to typeIn
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean typeIn(String value, String locator) {
+<span class="fc bfc" id="L345" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
+<span class="fc" id="L346">			return false;</span>
+		}
+<span class="fc" id="L348">		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);</span>
+<span class="fc" id="L349">		String cleanedValue = this.fitnesseMarkup.clean(value);</span>
+<span class="fc" id="L350">		element.clear();</span>
+<span class="pc bpc" id="L351" title="1 of 2 branches missed.">		if (StringUtils.isNotBlank(cleanedValue)) {</span>
+<span class="fc" id="L352">			element.sendKeys(cleanedValue);;</span>
+		}
+<span class="fc" id="L354">		return true;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | send keys | &lt;i&gt;value&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Simulates keystroke events on the current focused element, as though you typed the value key-by-key.
+	 * This simulates a real user typing every character in the specified string; it is also bound by the limitations of a real user, like not being able to type into a invisible or read only
+	 * elements. This is useful for dynamic UI widgets (like auto-completing combo boxes) that require explicit key events.
+	 * Unlike the simple &quot;type&quot; command, which forces the specified value into the page directly, this command will not replace the existing content. If you want to replace the existing contents, you
+	 * need to use the simple &quot;type&quot; command to set the value of the field to empty string to clear the field and then the &quot;sendKeys&quot; command to send the keystroke for what you want to type.
+	 *
+	 * @param value the value to typeIn
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean sendKeys(String value) {
+<span class="fc" id="L373">		return sendKeysIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | send keys | &lt;i&gt;value&lt;/i&gt; | in | &lt;i&gt;locator&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Simulates keystroke events on the specified element, as though you typed the value key-by-key.
+	 * This simulates a real user typing every character in the specified string; it is also bound by the limitations of a real user, like not being able to type into a invisible or read only
+	 * elements. This is useful for dynamic UI widgets (like auto-completing combo boxes) that require explicit key events.
+	 * Unlike the simple &quot;type&quot; command, which forces the specified value into the page directly, this command will not replace the existing content. If you want to replace the existing contents, you
+	 * need to use the simple &quot;type&quot; command to set the value of the field to empty string to clear the field and then the &quot;sendKeys&quot; command to send the keystroke for what you want to type.
+	 *
+	 * @param value the value to typeIn
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean sendKeysIn(String value, String locator) {
+<span class="fc bfc" id="L393" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
+<span class="fc" id="L394">			return false;</span>
+		}
+<span class="fc" id="L396">		this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).sendKeys(this.fitnesseMarkup.clean(value));</span>
+<span class="fc" id="L397">		return true;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | click |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Clicks on the current focused link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean click() {
+<span class="fc" id="L411">		return click(SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | click | &lt;i&gt;locator&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Clicks on a link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
+	 *
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean click(String locator) {
+<span class="fc bfc" id="L426" title="All 2 branches covered.">		if (browserAvailable()) {</span>
+<span class="fc" id="L427">			this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).click();</span>
+<span class="fc" id="L428">			return true;</span>
+		}
+<span class="fc" id="L430">		return false;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | check | &lt;i&gt;value&lt;/i&gt; | &lt;i&gt;locator&lt;/i&gt; | &lt;i&gt;expectedValue&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Gets the (whitespace-trimmed) value of an input field (or anything else with a value parameter). For checkbox/radio elements, the value will be &quot;on&quot; or &quot;off&quot; depending on whether the element is
+	 * checked or not.
+	 *
+	 * @param locator an element locator
+	 * @return value associated with the locator
+	 */
+	public String value(String locator) {
+<span class="fc bfc" id="L446" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
+<span class="fc" id="L447">			return null;</span>
+		}
+<span class="fc" id="L449">		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);</span>
+<span class="fc" id="L450">		String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);</span>
+<span class="fc bfc" id="L451" title="All 4 branches covered.">		if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {</span>
+<span class="fc bfc" id="L452" title="All 2 branches covered.">			return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;</span>
+		}
+<span class="fc" id="L454">		return this.fitnesseMarkup.clean(element.getAttribute(SeleniumElementFinder.INPUT_VALUE_ATTRIBUTE));</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | check | &lt;i&gt;value&lt;/i&gt; | &lt;i&gt;attributeLocator&lt;/i&gt; | &lt;i&gt;expectedValue&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Gets the value of an element attribute. The value of the attribute may differ across browsers (this is the case for the &quot;style&quot; attribute, for example).
+	 *
+	 * @param attributeLocator an element locator followed by an @ sign and then the name of the attribute, e.g. &quot;foo@bar&quot;
+	 * @return attributeValue the value of the specified attribute
+	 * @throws IllegalArgumentException if locator do not contain an attribute part such as &quot;id=&amp;lt;id&amp;gt;@&amp;lt;attributeName&amp;gt;&quot;
+	 */
+	public String attribute(String attributeLocator) {
+<span class="pc bpc" id="L470" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L471">			return null;</span>
+		}
+<span class="fc" id="L473">		return this.elementFinder.findAttribute(SeleniumFixture.DRIVER, attributeLocator, SeleniumFixture.WAIT_TIMEOUT);</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | check | text | &lt;i&gt;locator&lt;/i&gt; | &lt;i&gt;expectedValue&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Gets the text of an element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element,
+	 * which is the rendered text shown to the user.
+	 *
+	 * @param locator an element locator
+	 * @return text associated with the locator
+	 */
+	public String text(String locator) {
+<span class="fc bfc" id="L489" title="All 2 branches covered.">		if (browserAvailable()) {</span>
+<span class="fc" id="L490">			return this.fitnesseMarkup.clean(this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).getText());</span>
+		}
+<span class="fc" id="L492">		return null;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | show | screenshot |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Takes screenshot from current browser state and returns to be previewed in test result page.
+	 *
+	 * @return screenshot saved file absolute path
+	 * @throws IOException if something goes wrong while manipulating screenshot file
+	 */
+	public String screenshot() throws IOException {
+<span class="fc bfc" id="L507" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
+<span class="fc" id="L508">			return null;</span>
+		}
+<span class="pc bpc" id="L510" title="1 of 2 branches missed.">		if (SeleniumFixture.DRIVER instanceof TakesScreenshot) {</span>
+<span class="fc" id="L511">			File src = ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE);</span>
+<span class="fc" id="L512">			File dest = new File(SeleniumFixture.SCREENSHOT_DIR, src.getName());</span>
+<span class="fc" id="L513">			FileUtils.moveFile(src, dest);</span>
+<span class="fc" id="L514">			return dest.getAbsolutePath();</span>
+		}
+<span class="nc" id="L516">		return null;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | set screenshot dir | &lt;i&gt;dir&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Takes screenshot from current browser state and returns to be previewed in test result page.
+	 * This method can be removed when &lt;a href=&quot;https://github.com/unclebob/fitnesse/pull/755&quot;&gt;this issue&lt;/a&gt; is resolved
+	 *
+	 * @param dest directory to save screenshot
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean setScreenshotDir(String dest) {
+<span class="fc" id="L532">		SeleniumFixture.SCREENSHOT_DIR = FilenameUtils.normalize(this.fitnesseMarkup.clean(dest));</span>
+<span class="fc" id="L533">		return true;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | ensure | present | &lt;i&gt;locator&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Verifies that the specified element is somewhere on the page.
+	 * There's a little difference from SeleniumIDE version, this method also supports attributes, if the selector is something like &quot;id=&amp;lt;id&amp;gt;@&amp;lt;attributeName&amp;gt;&quot;,
+	 * this method will return true if the attribute exists on the element with any value.
+	 *
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean present(String locator) {
+<span class="fc bfc" id="L550" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
+<span class="fc" id="L551">			return false;</span>
+		}
+<span class="fc" id="L553">		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, true);</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | ensure | not present | &lt;i&gt;locator&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 * Verifies that the specified element is not somewhere on the page.
+	 * There's a little difference from SeleniumIDE version, this method also supports attributes, if the selector is something like &quot;id=&amp;lt;id&amp;gt;@&amp;lt;attributeName&amp;gt;&quot;,
+	 * this method will return true if the attribute don't exists on the element with any value.
+	 *
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean notPresent(String locator) {
+<span class="pc bpc" id="L570" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L571">			return false;</span>
+		}
+<span class="fc" id="L573">		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, false);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

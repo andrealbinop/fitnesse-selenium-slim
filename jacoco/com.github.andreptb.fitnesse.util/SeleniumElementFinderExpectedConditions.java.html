@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SeleniumElementFinderExpectedConditions.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.util</a> &gt; <span class="el_source">SeleniumElementFinderExpectedConditions.java</span></div><h1>SeleniumElementFinderExpectedConditions.java</h1><pre class="source lang-java linenums">package com.github.andreptb.fitnesse.util;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.NotFoundException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+
+/**
+ * Utility Selenium class used exclusively by {@link SeleniumElementFinder} to provide {@link ExpectedCondition} implementations, just like {@link ExpectedConditions} do.
+ */
+<span class="fc" id="L14">class SeleniumElementFinderExpectedConditions {</span>
+
+	/**
+	 * Extends {@link ExpectedConditions#presenceOfElementLocated(By)} by returning the current focused element if &lt;code&gt;by == null&lt;/code&gt;
+	 *
+	 * @param by instance o {@link By} representing an element selector
+	 * @return instance of {@link ExpectedCondition}
+	 */
+	ExpectedCondition&lt;WebElement&gt; presenceOfElementLocated(final By by) {
+<span class="fc" id="L23">		return new ExpectedCondition&lt;WebElement&gt;() {</span>
+
+			@Override
+			public WebElement apply(WebDriver input) {
+<span class="fc bfc" id="L27" title="All 2 branches covered.">				if (by == null) {</span>
+<span class="fc" id="L28">					return input.switchTo().activeElement();</span>
+				}
+<span class="fc" id="L30">				return ExpectedConditions.presenceOfElementLocated(by).apply(input);</span>
+			}
+
+		};
+	}
+
+	/**
+	 * Implements an {@link ExpectedCondition} which locates element attributes
+	 *
+	 * @param by instance o {@link By} representing an element selector
+	 * @param attributeName Attribute name for the given element to be searched
+	 * @return instance of {@link ExpectedCondition}
+	 */
+	ExpectedCondition&lt;String&gt; presenceOfElementAttributeLocated(final By by, final String attributeName) {
+<span class="fc" id="L44">		final ExpectedCondition&lt;WebElement&gt; condition = SeleniumElementFinderExpectedConditions.this.presenceOfElementLocated(by);</span>
+<span class="fc" id="L45">		return new ExpectedCondition&lt;String&gt;() {</span>
+
+			@Override
+			public String apply(WebDriver input) {
+<span class="fc" id="L49">				WebElement element = condition.apply(input);</span>
+<span class="fc" id="L50">				String attributeValue = element.getAttribute(attributeName);</span>
+<span class="fc bfc" id="L51" title="All 2 branches covered.">				if (attributeValue == null) {</span>
+<span class="fc" id="L52">					throw new NoSuchElementException(String.format(&quot;Unable to locate attribute %s@%s&quot;, element.getTagName(), attributeName));</span>
+				}
+<span class="fc" id="L54">				return attributeValue;</span>
+			}
+
+		};
+	}
+
+	/**
+	 * Implements an {@link ExpectedCondition} which returns a boolean value indicating if the selector (and optionally an attribute) is present (or absent) in the page, depending of ensurePresence
+	 * argument
+	 *
+	 * @param by instance o {@link By} representing an element selector
+	 * @param attributeName Attribute name for the given element to be searched
+	 * @param ensurePresence if &lt;code&gt;true&lt;/code&gt; checks if the element is present on the page. Otherwise checks if the element is absent of the page
+	 * @return instance of {@link ExpectedCondition}
+	 */
+	ExpectedCondition&lt;Boolean&gt; presenceOrAbsenceOfElementOrAttribute(final By by, final String attributeName, final boolean ensurePresence) {
+<span class="fc bfc" id="L70" title="All 2 branches covered.">		final ExpectedCondition&lt;?&gt; condition = attributeName != null ? presenceOfElementAttributeLocated(by, attributeName) : presenceOfElementLocated(by);</span>
+<span class="fc" id="L71">		return new ExpectedCondition&lt;Boolean&gt;() {</span>
+
+			@Override
+			public Boolean apply(WebDriver input) {
+				try {
+<span class="fc" id="L76">					condition.apply(input);</span>
+<span class="fc" id="L77">				} catch (NotFoundException e) {</span>
+<span class="fc bfc" id="L78" title="All 2 branches covered.">					return !ensurePresence;</span>
+<span class="fc" id="L79">				}</span>
+<span class="fc" id="L80">				return ensurePresence;</span>
+			}
+
+		};
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

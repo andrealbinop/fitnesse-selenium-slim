@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SeleniumScriptTable.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.plugins</a> &gt; <span class="el_source">SeleniumScriptTable.java</span></div><h1>SeleniumScriptTable.java</h1><pre class="source lang-java linenums">package com.github.andreptb.fitnesse.plugins;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+
+import com.github.andreptb.fitnesse.SeleniumFixture;
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+
+import fitnesse.slim.instructions.ImportInstruction;
+import fitnesse.testsystems.slim.SlimTestContext;
+import fitnesse.testsystems.slim.Table;
+import fitnesse.testsystems.slim.results.SlimTestResult;
+import fitnesse.testsystems.slim.tables.ScriptTable;
+import fitnesse.testsystems.slim.tables.SlimAssertion;
+import fitnesse.testsystems.slim.tables.SlimExpectation;
+
+/**
+ * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and such
+ */
+public class SeleniumScriptTable extends ScriptTable {
+
+	/**
+	 * Table keyword constant
+	 */
+	public static final String TABLE_KEYWORD = &quot;selenium&quot;;
+	/**
+	 * Table type constant
+	 */
+	private static final String TABLE_TYPE = SeleniumScriptTable.TABLE_KEYWORD + &quot;Script&quot;;
+	/**
+	 * SeleniumFixture screenshot action
+	 */
+	private static final String SCREENSHOT_FIXTURE_ACTION = &quot;screenshot&quot;;
+	/**
+	 * Fixture package to auto-import package
+	 */
+	private static final String SELENIUM_FIXTURE_PACKAGE_TO_IMPORT = &quot;com.github.andreptb.fitnesse&quot;;
+	/**
+	 * Utility to process FitNesse markup
+	 */
+<span class="fc" id="L44">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+
+	public SeleniumScriptTable(Table table, String id, SlimTestContext testContext) {
+<span class="fc" id="L47">		super(table, id, testContext);</span>
+<span class="fc" id="L48">	}</span>
+
+	@Override
+	protected String getTableType() {
+<span class="fc" id="L52">		return SeleniumScriptTable.TABLE_TYPE;</span>
+	}
+
+	@Override
+	protected String getTableKeyword() {
+<span class="fc" id="L57">		return SeleniumScriptTable.TABLE_KEYWORD;</span>
+	}
+
+	/**
+	 * Overrides start actor to force the use of Selenium Fixture. Auto imports selenium fixture if needed
+	 */
+	@Override
+	protected List&lt;SlimAssertion&gt; startActor() {
+<span class="fc" id="L65">		List&lt;SlimAssertion&gt; assertions = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L66">		assertions.add(makeAssertion(new ImportInstruction(ImportInstruction.INSTRUCTION, SeleniumScriptTable.SELENIUM_FIXTURE_PACKAGE_TO_IMPORT), SlimExpectation.NOOP_EXPECTATION));</span>
+<span class="fc" id="L67">		assertions.addAll(startActor(NumberUtils.INTEGER_ZERO, SeleniumFixture.class.getName(), NumberUtils.INTEGER_ZERO));</span>
+<span class="fc" id="L68">		return assertions;</span>
+	}
+
+	@Override
+	protected List&lt;SlimAssertion&gt; show(int row) {
+<span class="pc bpc" id="L73" title="1 of 2 branches missed.">		if (StringUtils.contains(this.table.getCellContents(NumberUtils.INTEGER_ONE, row), SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION)) {</span>
+<span class="fc" id="L74">			return showScreenshot(row);</span>
+		}
+<span class="nc" id="L76">		return super.show(row);</span>
+	}
+
+
+	/**
+	 * Adds screenshot action to current stack
+	 *
+	 * @param assertions Current collection of assertions
+	 * @param row current table row the action occured
+	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
+	 */
+	protected List&lt;SlimAssertion&gt; showScreenshot(int row) {
+<span class="fc" id="L88">		int lastCol = this.table.getColumnCountInRow(row) - NumberUtils.INTEGER_ONE;</span>
+<span class="fc" id="L89">		return invokeAction(NumberUtils.INTEGER_ONE, lastCol, row, new ShowScreenshotExpectation(NumberUtils.INTEGER_ONE, row));</span>
+	}
+
+
+	/**
+	 * Expectation implementation to process screenshot of browser current state
+	 */
+	private class ShowScreenshotExpectation extends RowExpectation {
+
+<span class="fc" id="L98">		public ShowScreenshotExpectation(int col, int row) {</span>
+<span class="fc" id="L99">			super(col, row);</span>
+<span class="fc" id="L100">		}</span>
+
+		/**
+		 * Delegates screenshot markup to FitnesseMarkup and adds a new column to last action's row
+		 *
+		 * @param actual The screenshot image filename which fixture screenshot action returned
+		 * @param expected Not used
+		 * @return testResult Always SlimTestResult#plain()
+		 */
+
+		@Override
+		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
+<span class="fc" id="L112">			SeleniumScriptTable.this.table.substitute(getCol(), getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(actual));</span>
+<span class="fc" id="L113">			return SlimTestResult.plain();</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

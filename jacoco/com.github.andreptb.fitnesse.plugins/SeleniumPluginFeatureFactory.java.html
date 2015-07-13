@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SeleniumPluginFeatureFactory.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.plugins</a> &gt; <span class="el_source">SeleniumPluginFeatureFactory.java</span></div><h1>SeleniumPluginFeatureFactory.java</h1><pre class="source lang-java linenums">package com.github.andreptb.fitnesse.plugins;
+
+import org.openqa.selenium.Keys;
+
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+
+import fitnesse.plugins.PluginException;
+import fitnesse.plugins.PluginFeatureFactoryBase;
+import fitnesse.testsystems.slim.tables.SlimTableFactory;
+
+/**
+ * Plugin factory registers selenium table type
+ */
+<span class="fc" id="L14">public class SeleniumPluginFeatureFactory extends PluginFeatureFactoryBase {</span>
+
+	/**
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
+	 */
+<span class="fc" id="L19">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+
+    /**
+	 * SeleniumScriptTable registering
+	 *
+	 * @param slimTableFactory Instance responsible for registering slim tables
+	 */
+    @Override
+    public void registerSlimTables(SlimTableFactory slimTableFactory) throws PluginException {
+<span class="fc" id="L28">		slimTableFactory.addTableType(SeleniumScriptTable.TABLE_KEYWORD, SeleniumScriptTable.class);</span>
+<span class="fc" id="L29">		registerSpecialKeysVariables();</span>
+<span class="fc" id="L30">    }</span>
+
+	/**
+	 * Registers selenium {@link Keys} as system properties, so can be used by wiki pages as ${KEY_XXX}
+	 */
+	private void registerSpecialKeysVariables() {
+<span class="fc bfc" id="L36" title="All 2 branches covered.">		for(Keys key : Keys.values()) {</span>
+<span class="fc" id="L37">			this.fitnesseMarkup.registerKeyboardSpecialKey(key.name(), key.toString());</span>
+		}
+<span class="fc" id="L39">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

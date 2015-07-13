@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>FitnesseMarkup.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.util</a> &gt; <span class="el_source">FitnesseMarkup.java</span></div><h1>FitnesseMarkup.java</h1><pre class="source lang-java linenums">package com.github.andreptb.fitnesse.util;
+
+import java.text.MessageFormat;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+
+/**
+ * General utilities to process FitNesse markup syntax so can be used by Selenium Fixture
+ */
+<span class="fc" id="L15">public class FitnesseMarkup {</span>
+
+	/**
+	 * Markup which presents image preview and download link
+	 */
+	private static final String SCREENSHOT_LINK_MARKUP = &quot;&lt;a href=\&quot;{0}\&quot; target='_blank'&gt;&lt;img src=\&quot;{0}\&quot; height=\&quot;200\&quot;&gt;&lt;/img&lt;/a&gt;&quot;;
+	/**
+	 * Constant of FitnesseRoot files dir (relative path)
+	 */
+	private static final String FITNESSE_ROOT_FILES_DIR = &quot;/files/&quot;;
+	/**
+	 * @see #compare(Object, Object)
+	 */
+<span class="fc" id="L28">	private static final Pattern FITNESSE_REGEX_MARKUP = Pattern.compile(&quot;^=~/(.+)/$&quot;);</span>
+
+	/**
+	 * Constant used to register selenium special keys as system properties
+	 */
+	private static final String KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP = &quot;KEY_{0}&quot;;
+
+	/**
+	 * Constant representing special key format. Needs !--! to properly render html markup
+	 */
+	private static final String KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP = &quot;!-&lt;span keycode=\&quot;{1}\&quot;&gt;$'{'{0}'}'&lt;/span&gt;-!&quot;;
+	/**
+	 * Compares two values emulating FitNesse comparisons:
+	 * &lt;p&gt;
+	 * http://fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.ValueComparisons
+	 * &lt;/p&gt;
+	 * For now supports only exact equal and regular expression comparisons
+	 *
+	 * @param expected value
+	 * @param obtained value
+	 * @return comparisonResult
+	 */
+	public boolean compare(Object expected, Object obtained) {
+<span class="fc" id="L51">		String cleanedExpected = clean(expected);</span>
+<span class="fc" id="L52">		String cleanedObtained = clean(obtained);</span>
+<span class="fc" id="L53">		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP.matcher(cleanedExpected);</span>
+<span class="fc bfc" id="L54" title="All 2 branches covered.">		if (matcher.matches()) {</span>
+<span class="fc" id="L55">			return cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));</span>
+		}
+<span class="fc" id="L57">		return StringUtils.equals(cleanedExpected, cleanedObtained);</span>
+	}
+
+	/**
+	 * Cleans FitNesse markup from symbols such as:
+	 * &lt;ul&gt;
+	 * &lt;li&gt;Extracts a keyboard special key value from special key markup. See #&lt;/li&gt;
+	 * &lt;li&gt;Extracts URL only from HTML generated links&lt;/li&gt;
+	 * &lt;li&gt;Extracts text from HTML wiki page creation suggestion link&lt;/li&gt;
+	 * &lt;li&gt;Strips undefined variable ocurrences on text&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 *
+	 * @param symbol to be cleaned
+	 * @return cleanedSymbol
+	 */
+	public String clean(Object symbol) {
+		// strips whitespace and accidental &quot;null&quot; string representation of null value
+<span class="fc" id="L74">		String strippedSymbol = StringUtils.remove(StringUtils.strip(ObjectUtils.toString(symbol)), &quot;null&quot;);</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">		if (StringUtils.isBlank(strippedSymbol)) {</span>
+<span class="fc" id="L76">			return strippedSymbol;</span>
+		}
+		// transforms keyboard special keys markup
+<span class="fc" id="L79">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span keycode=\&quot;([^\&quot;]+)\&quot;[^/]+/span&gt;&quot;, &quot;$1&quot;);</span>
+		// removes undefined variable references
+<span class="fc" id="L81">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
+		// removes create wikipage markup
+<span class="fc" id="L83">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;a[^&gt;]+&gt;\\[\\?\\]&lt;/a&gt;&quot;, StringUtils.EMPTY);</span>
+		// removes undefined variable references
+<span class="fc" id="L85">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
+		// removes html tags
+<span class="fc" id="L87">		return strippedSymbol.replaceAll(&quot;&lt;/?.[^&gt;]+&gt;&quot;, StringUtils.EMPTY);</span>
+	}
+
+	/**
+	 * Creates img markup to be viewed in test page.
+	 * Usually used by fixtures that wants to return a image link for the test result.s
+	 *
+	 * @param img File containing the image
+	 * @return Image link
+	 */
+	public String imgLink(Object img) {
+<span class="fc" id="L98">		String cleanedImg = FilenameUtils.normalize(clean(img), true);</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">		if (StringUtils.isBlank(cleanedImg)) {</span>
+<span class="nc" id="L100">			return null;</span>
+		}
+<span class="pc bpc" id="L102" title="1 of 2 branches missed.">		if(StringUtils.containsIgnoreCase(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR)) {</span>
+<span class="fc" id="L103">			cleanedImg = FitnesseMarkup.FITNESSE_ROOT_FILES_DIR + StringUtils.substringAfter(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR);</span>
+		}
+<span class="fc" id="L105">		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, cleanedImg);</span>
+	}
+
+	/**
+	 * Registers a system property ({@link System#setProperty(String, String)}) allowing user to develop tests referencing special keys such as tab and enter by using variables. For example:
+	 * &lt;p&gt;
+	 * If &lt;b&gt;keyName=&quot;tab&quot;&lt;/b&gt; and &lt;b&gt;keyValue=&quot;\uE004&quot;&lt;/b&gt; then &lt;b&gt;${KEY_TAB}&lt;/b&gt; will resolve to &lt;b&gt;&quot;&amp;lt;span keycode=&amp;quot;\uE004&amp;quot;&amp;gt;tab&amp;lt;/span&amp;gt;&quot;&lt;/b&gt;
+	 * &lt;/p&gt;
+	 *
+	 * @param keyName Special keyboard key name
+	 * @param keyValue Special keyboard key value
+	 */
+	public void registerKeyboardSpecialKey(String keyName, String keyValue) {
+<span class="fc" id="L118">		String generatedKeyName = MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP, StringUtils.upperCase(keyName));</span>
+<span class="fc" id="L119">		System.setProperty(generatedKeyName, MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP, generatedKeyName, keyValue));</span>
+<span class="fc" id="L120">	}</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
