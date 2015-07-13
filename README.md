@@ -17,7 +17,7 @@ Take a look at [this](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/BasicUsageSampl
 <dependency>
   <groupId>com.github.andreptb</groupId>
   <artifactId>fitnesse-selenium-slim</artifactId>
-  <version>0.4.0-SNAPSHOT</version>
+  <version>0.4.0</version>
 </dependency>
 ```
 
@@ -54,7 +54,7 @@ Note that if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullR
 | set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots |
 ```
 
-**Important:** At this time the screenshot feature won't work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this version is released](https://github.com/unclebob/fitnesse/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22Next+release%22) is closed.
+**Important:** At this time the screenshot feature won't work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this version is released](https://github.com/unclebob/fitnesse/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22Next+release%22).
 
 #### Wait behavior
 
