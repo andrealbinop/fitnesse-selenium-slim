@@ -4,7 +4,6 @@ package com.github.andreptb.fitnesse;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.text.MessageFormat;
 import java.util.Iterator;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -15,14 +14,12 @@ import org.apache.commons.lang.StringUtils;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 import com.github.andreptb.fitnesse.util.FixtureWebDriverProvider;
 import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
-import com.github.andreptb.fitnesse.util.SeleniumElementFinder.SeleniumLocator;
 
 import fitnesse.ContextConfigurator;
 
@@ -348,7 +345,7 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return false;
 		}
-		WebElement element = findElement(locator);
+		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 		String cleanedValue = this.fitnesseMarkup.clean(value);
 		element.clear();
 		if (StringUtils.isNotBlank(cleanedValue)) {
@@ -396,7 +393,7 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return false;
 		}
-		findElement(locator).sendKeys(this.fitnesseMarkup.clean(value));
+		this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).sendKeys(this.fitnesseMarkup.clean(value));
 		return true;
 	}
 
@@ -427,7 +424,7 @@ public class SeleniumFixture {
 	 */
 	public boolean click(String locator) {
 		if (browserAvailable()) {
-			findElement(locator).click();
+			this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).click();
 			return true;
 		}
 		return false;
@@ -449,7 +446,7 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return null;
 		}
-		WebElement element = findElement(locator);
+		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 		String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);
 		if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {
 			return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;
@@ -473,13 +470,7 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return null;
 		}
-		SeleniumLocator parsedLocator = this.elementFinder.parse(attributeLocator);
-		String attributeName = parsedLocator.getAttributeName();
-		if (StringUtils.isBlank(attributeName)) {
-			throw new IllegalArgumentException(MessageFormat.format("No attribute name part found, must be something like: {0}@<attributeName>", this.fitnesseMarkup.clean(attributeLocator)));
-		}
-		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, parsedLocator.getBy(), SeleniumFixture.WAIT_TIMEOUT);
-		return this.fitnesseMarkup.clean(element.getAttribute(attributeName));
+		return this.elementFinder.findAttribute(SeleniumFixture.DRIVER, attributeLocator, SeleniumFixture.WAIT_TIMEOUT);
 	}
 
 	/**
@@ -496,24 +487,9 @@ public class SeleniumFixture {
 	 */
 	public String text(String locator) {
 		if (browserAvailable()) {
-			return this.fitnesseMarkup.clean(findElement(locator).getText());
+			return this.fitnesseMarkup.clean(this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).getText());
 		}
 		return null;
-	}
-
-	/**
-	 * Internal method to create a {@link SeleniumLocator} from argument and invoke {@link SeleniumElementFinder#find(WebDriver, org.openqa.selenium.By, int)} with {@link #WAIT_TIMEOUT}.
-	 *
-	 * @param locator an element locator
-	 * @return webElementFound instance of {@link WebElement} associated with the locator
-	 * @throws IllegalArgumentException if locator contains an attribute such as "id=&lt;id&gt;@&lt;attributeName&gt;" since callers of this method were not intended to work with attributes
-	 */
-	private WebElement findElement(String locator) {
-		SeleniumLocator parsedLocator = this.elementFinder.parse(locator);
-		if (StringUtils.isNotBlank(parsedLocator.getAttributeName())) {
-			throw new IllegalArgumentException("Illegal use of attribute selector. It's only allowed for the 'attribute' and 'present' actions");
-		}
-		return this.elementFinder.find(SeleniumFixture.DRIVER, parsedLocator.getBy(), SeleniumFixture.WAIT_TIMEOUT);
 	}
 
 	/**
@@ -574,16 +550,26 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return false;
 		}
-		SeleniumLocator parsedLocator = this.elementFinder.parse(locator);
-		String attributeName = parsedLocator.getAttributeName();
-		try {
-			WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, parsedLocator.getBy(), SeleniumFixture.WAIT_TIMEOUT);
-			if (StringUtils.isNotBlank(attributeName)) {
-				return element.getAttribute(attributeName) != null;
-			}
-			return true;
-		} catch (TimeoutException e) {
+		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, true);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | ensure | not present | <i>locator</i> |
+	 * </code>
+	 * </p>
+	 * Verifies that the specified element is not somewhere on the page.
+	 * There's a little difference from SeleniumIDE version, this method also supports attributes, if the selector is something like "id=&lt;id&gt;@&lt;attributeName&gt;",
+	 * this method will return true if the attribute don't exists on the element with any value.
+	 *
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean notPresent(String locator) {
+		if (!browserAvailable()) {
 			return false;
 		}
+		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, false);
 	}
 }

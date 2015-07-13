@@ -1,3 +1,4 @@
 | selenium |
 | open | http://saucelabs.com/login |
 | check | text | css=#login-section h1 | Welcome back. |
+| show | screenshot |

@@ -37,12 +37,33 @@ mvn exec:java -Dexec.mainClass=fitnesseMain.FitNesseMain -Dexec.args="-d fitness
 ```
 mvn install -Dgpg.skip
 ```
-#### A word about screenshots
 
-Similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin), this plugin includes screenshot for each operation. However, if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.CommandLineArguments)** arguments are changed, you must configure [SeleniumFixture's](/fitnesse-selenium-slim/src/main/java/com/github/andreptb/fitnesse/SeleniumFixture.java) screenshot dir with the following action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SuiteSetUp](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SameBrowserSessionTests/SuiteSetUp/content.txt):
+#### Screenshots
+
+This plugin provides a screenshot feature, showing the screenshot preview (and link) similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin). To trigger the screenshot you just need to invoke the screenshot with show action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SameBrowserSessionTests.EnsureTextTest](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SameBrowserSessionTests/EnsureTextTest/content.txt)):
 
 ```
+| selenium |
+| show | screenshot |
+```
+
+Note that if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.CommandLineArguments)** arguments are changed, you must configure [SeleniumFixture's](/fitnesse-selenium-slim/src/main/java/com/github/andreptb/fitnesse/SeleniumFixture.java) screenshot dir with the following action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SuiteSetUp](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SameBrowserSessionTests/SuiteSetUp/content.txt)):
+
+```
+| selenium |
 | set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots |
 ```
 
-**Important:** At this time the screenshot feature won't work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this issue](https://github.com/unclebob/fitnesse/pull/755) is closed.
+**Important:** At this time the screenshot feature won't work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this version is released](https://github.com/unclebob/fitnesse/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22Next+release%22) is closed.
+
+#### Wait behavior
+
+Every action that searches for elements within the page (**text**, **value**, **click**, **attribute**, **present** and **not present**) will try to find the element until specified timeout configuration is reached. You can change the timeout configuration with the following:
+
+```
+| selenium |
+| note | changes timeout configuration for 5 seconds (default is 20) |
+| set wait timeout | 5 |
+```
+
+**Important:** The **present** action will return false if timeout is reached and no element was found with the given selector. **not present** do the other way around.
