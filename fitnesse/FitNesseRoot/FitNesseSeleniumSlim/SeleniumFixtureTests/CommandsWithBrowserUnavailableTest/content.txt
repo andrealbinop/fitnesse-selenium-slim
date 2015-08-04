@@ -5,6 +5,7 @@
 | reject | select window | http://google.com |
 | check | current window | null |
 | check | title | null |
+| check | current url | null |
 | reject | close |
 | reject | quit |
 | reject | type | some text |

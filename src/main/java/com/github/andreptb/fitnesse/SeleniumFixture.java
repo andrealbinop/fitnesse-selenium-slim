@@ -29,26 +29,6 @@ import fitnesse.ContextConfigurator;
 public class SeleniumFixture {
 
 	/**
-	 * HTML Value attribute, usually used on inputs
-	 */
-	private static final String INPUT_TYPE_ATTRIBUTE = "type";
-	/**
-	 * HTML input type radio attribute constant
-	 */
-	private static final String INPUT_TYPE_RADIO = "radio";
-	/**
-	 * HTML input type checkbox attribute constant
-	 */
-	private static final String INPUT_TYPE_CHECKBOX = "checkbox";
-	/**
-	 * <b>on</b> value constant, used by {@link #value(String)}
-	 */
-	private static final String ON_VALUE = "on";
-	/**
-	 * <b>off</b> value constant, used by {@link #value(String)}
-	 */
-	private static final String OFF_VALUE = "off";
-	/**
 	 * Constant representing the selector of the current element focused
 	 */
 	private static final String CURRENT_ELEMENT_FOCUSED = StringUtils.EMPTY;
@@ -181,6 +161,22 @@ public class SeleniumFixture {
 	/**
 	 * <p>
 	 * <code>
+	 * | check | current url | <i>url</i> |
+	 * </code>
+	 * </p>
+	 *
+	 * @return current url defined in browser
+	 */
+	public String currentUrl() {
+		if (browserAvailable()) {
+			return SeleniumFixture.DRIVER.getCurrentUrl();
+		}
+		return null;
+	}
+
+	/**
+	 * <p>
+	 * <code>
 	 * | open window | <i>url</i> |
 	 * </code>
 	 * </p>
@@ -254,7 +250,7 @@ public class SeleniumFixture {
 	/**
 	 * <p>
 	 * <code>
-	 * | ensure title | <i>title</i> |
+	 * | check | title | <i>title</i> |
 	 * </code>
 	 * </p>
 	 * Current page title
@@ -345,7 +341,7 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return false;
 		}
-		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
+		WebElement element = this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 		String cleanedValue = this.fitnesseMarkup.clean(value);
 		element.clear();
 		if (StringUtils.isNotBlank(cleanedValue)) {
@@ -393,7 +389,7 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return false;
 		}
-		this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).sendKeys(this.fitnesseMarkup.clean(value));
+		this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).sendKeys(this.fitnesseMarkup.clean(value));
 		return true;
 	}
 
@@ -403,7 +399,7 @@ public class SeleniumFixture {
 	 * | click |
 	 * </code>
 	 * </p>
-	 * Clicks on the current focused link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
+	 * Clicks on the current focused link, button, checkbox or radio button.
 	 *
 	 * @return result Boolean result indication of assertion/operation
 	 */
@@ -424,7 +420,7 @@ public class SeleniumFixture {
 	 */
 	public boolean click(String locator) {
 		if (browserAvailable()) {
-			this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).click();
+			this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).click();
 			return true;
 		}
 		return false;
@@ -433,7 +429,7 @@ public class SeleniumFixture {
 	/**
 	 * <p>
 	 * <code>
-	 * | check | <i>value</i> | <i>locator</i> | <i>expectedValue</i> |
+	 * | check | value | <i>locator</i> | <i>expectedValue</i> |
 	 * </code>
 	 * </p>
 	 * Gets the (whitespace-trimmed) value of an input field (or anything else with a value parameter). For checkbox/radio elements, the value will be "on" or "off" depending on whether the element is
@@ -443,15 +439,10 @@ public class SeleniumFixture {
 	 * @return value associated with the locator
 	 */
 	public String value(String locator) {
-		if (!browserAvailable()) {
-			return null;
+		if (browserAvailable()) {
+			return this.elementFinder.findValue(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 		}
-		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
-		String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);
-		if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {
-			return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;
-		}
-		return this.fitnesseMarkup.clean(element.getAttribute(SeleniumElementFinder.INPUT_VALUE_ATTRIBUTE));
+		return null;
 	}
 
 	/**
@@ -487,7 +478,7 @@ public class SeleniumFixture {
 	 */
 	public String text(String locator) {
 		if (browserAvailable()) {
-			return this.fitnesseMarkup.clean(this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).getText());
+			return this.elementFinder.findText(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
 		}
 		return null;
 	}

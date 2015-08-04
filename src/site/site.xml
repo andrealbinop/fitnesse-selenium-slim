@@ -1,0 +1,15 @@
+  <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/DECORATION/1.6.0" xsi:schemaLocation="http://maven.apache.org/DECORATION/1.6.0 http://maven.apache.org/xsd/decoration-1.6.0.xsd">
+    <body>
+      <menu name="Overview">
+        <item name="README.md" href="https://github.com/andreptb/fitnesse-selenium-slim/blob/master/README.md" />
+      </menu>
+      <menu name="Reports">
+        <item name="Javadoc" href="apidocs/index.html" />
+        <item name="Dependencies" href="dependencies.html" />
+        <item name="surefire" href="surefire-report.html" />
+        <item name="findbugs" href="findbugs.html" />
+        <item name="pmd" href="pmd.html" />
+        <item name="jdepend" href="jdepend-report.html" />
+      </menu>
+    </body>
+  </project>

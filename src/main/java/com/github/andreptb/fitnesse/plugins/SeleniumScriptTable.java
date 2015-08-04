@@ -1,15 +1,23 @@
+
 package com.github.andreptb.fitnesse.plugins;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 import com.github.andreptb.fitnesse.SeleniumFixture;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
+import fitnesse.slim.instructions.CallInstruction;
 import fitnesse.slim.instructions.ImportInstruction;
+import fitnesse.slim.instructions.Instruction;
 import fitnesse.testsystems.slim.SlimTestContext;
 import fitnesse.testsystems.slim.Table;
 import fitnesse.testsystems.slim.results.SlimTestResult;
@@ -21,6 +29,11 @@ import fitnesse.testsystems.slim.tables.SlimExpectation;
  * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and such
  */
 public class SeleniumScriptTable extends ScriptTable {
+
+	/**
+	 * JUL Logger instance
+	 */
+	private static final Logger LOGGER = Logger.getLogger(SeleniumScriptTable.class.getName());
 
 	/**
 	 * Table keyword constant
@@ -38,6 +51,11 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * Fixture package to auto-import package
 	 */
 	private static final String SELENIUM_FIXTURE_PACKAGE_TO_IMPORT = "com.github.andreptb.fitnesse";
+
+	/**
+	 * Constant to reference {@link CallInstruction} args private field
+	 */
+	private static final String CALL_INSTRUCTION_ARGS_FIELD = "args";
 	/**
 	 * Utility to process FitNesse markup
 	 */
@@ -76,11 +94,9 @@ public class SeleniumScriptTable extends ScriptTable {
 		return super.show(row);
 	}
 
-
 	/**
 	 * Adds screenshot action to current stack
 	 *
-	 * @param assertions Current collection of assertions
 	 * @param row current table row the action occured
 	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
 	 */
@@ -89,6 +105,36 @@ public class SeleniumScriptTable extends ScriptTable {
 		return invokeAction(NumberUtils.INTEGER_ONE, lastCol, row, new ShowScreenshotExpectation(NumberUtils.INTEGER_ONE, row));
 	}
 
+	@Override
+	protected List<SlimAssertion> checkAction(int row) {
+		List<SlimAssertion> assertions = super.checkAction(row);
+		injectResultToCheckInAction(row, assertions);
+		return assertions;
+	}
+
+	@Override
+	protected List<SlimAssertion> checkNotAction(int row) {
+		List<SlimAssertion> assertions = super.checkNotAction(row);
+		injectResultToCheckInAction(row, assertions);
+		return assertions;
+	}
+
+	private void injectResultToCheckInAction(int row, List<SlimAssertion> assertions) {
+		String contentToCheck = this.fitnesseMarkup.clean(this.table.getCellContents(this.table.getColumnCountInRow(row) - 1, row));
+		if (CollectionUtils.isEmpty(assertions) || StringUtils.isBlank(contentToCheck)) {
+			return;
+		}
+		Instruction instruction = SlimAssertion.getInstructions(assertions).get(NumberUtils.INTEGER_ZERO);
+		try {
+			Object field = FieldUtils.getField(instruction.getClass(), SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true).get(instruction);
+			if (field instanceof Object[] && ArrayUtils.getLength(field) > NumberUtils.INTEGER_ZERO) {
+				((Object[]) field)[NumberUtils.INTEGER_ZERO] += FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + contentToCheck;
+
+			}
+		} catch (ReflectiveOperationException e) {
+			SeleniumScriptTable.LOGGER.log(Level.WARNING, "Failed to inject check value using reflection", e);
+		}
+	}
 
 	/**
 	 * Expectation implementation to process screenshot of browser current state
@@ -109,7 +155,11 @@ public class SeleniumScriptTable extends ScriptTable {
 
 		@Override
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
-			SeleniumScriptTable.this.table.substitute(getCol(), getRow(), SeleniumScriptTable.this.fitnesseMarkup.imgLink(actual));
+			String imgLink = SeleniumScriptTable.this.fitnesseMarkup.imgLink(actual);
+			if (StringUtils.isBlank(imgLink)) {
+				return SlimTestResult.fail("failed to generate screenshot preview");
+			}
+			SeleniumScriptTable.this.table.substitute(getCol(), getRow(), imgLink);
 			return SlimTestResult.plain();
 		}
 	}

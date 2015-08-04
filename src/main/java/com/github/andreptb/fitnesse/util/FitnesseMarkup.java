@@ -1,3 +1,4 @@
+
 package com.github.andreptb.fitnesse.util;
 
 import java.text.MessageFormat;
@@ -25,7 +26,7 @@ public class FitnesseMarkup {
 	/**
 	 * @see #compare(Object, Object)
 	 */
-	private static final Pattern FITNESSE_REGEX_MARKUP = Pattern.compile("^=~/(.+)/$");
+	private static final Pattern FITNESSE_REGEX_MARKUP_PATTERN = Pattern.compile("^=~/(.+)/");
 
 	/**
 	 * Constant used to register selenium special keys as system properties
@@ -36,6 +37,15 @@ public class FitnesseMarkup {
 	 * Constant representing special key format. Needs !--! to properly render html markup
 	 */
 	private static final String KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP = "!-<span keycode=\"{1}\">$'{'{0}'}'</span>-!";
+	/**
+	 * Constants representing selector separators [selector]@[atributte]$[value]
+	 */
+	public static final String SELECTOR_VALUE_SEPARATOR = "$";
+	/**
+	 * Constants representing selector separators [selector]@[atributte]$[value]
+	 */
+	public static final String SELECTOR_ATTRIBUTE_SEPARATOR = "@";
+
 	/**
 	 * Compares two values emulating FitNesse comparisons:
 	 * <p>
@@ -50,7 +60,7 @@ public class FitnesseMarkup {
 	public boolean compare(Object expected, Object obtained) {
 		String cleanedExpected = clean(expected);
 		String cleanedObtained = clean(obtained);
-		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP.matcher(cleanedExpected);
+		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP_PATTERN.matcher(cleanedExpected);
 		if (matcher.matches()) {
 			return cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));
 		}
@@ -99,7 +109,7 @@ public class FitnesseMarkup {
 		if (StringUtils.isBlank(cleanedImg)) {
 			return null;
 		}
-		if(StringUtils.containsIgnoreCase(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR)) {
+		if (StringUtils.containsIgnoreCase(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR)) {
 			cleanedImg = FitnesseMarkup.FITNESSE_ROOT_FILES_DIR + StringUtils.substringAfter(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR);
 		}
 		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, cleanedImg);
