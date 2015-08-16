@@ -45,15 +45,15 @@ import org.reflections.Reflections;
 	public WebDriver createDriver(String browser, String capabilities) throws MalformedURLException, ReflectiveOperationException {
 <span class="fc" id="L46">		String cleanedBrowser = this.fitnesseMarkup.clean(browser);</span>
 <span class="fc" id="L47">		Capabilities parsedCapabilities = parseCapabilities(capabilities);</span>
-<span class="fc bfc" id="L48" title="All 2 branches covered.">		if (StringUtils.startsWithIgnoreCase(cleanedBrowser, FixtureWebDriverProvider.HTTP_PREFIX)) {</span>
-<span class="fc" id="L49">			return new RemoteWebDriver(new URL(cleanedBrowser), parsedCapabilities);</span>
+<span class="pc bpc" id="L48" title="1 of 2 branches missed.">		if (StringUtils.startsWithIgnoreCase(cleanedBrowser, FixtureWebDriverProvider.HTTP_PREFIX)) {</span>
+<span class="nc" id="L49">			return new RemoteWebDriver(new URL(cleanedBrowser), parsedCapabilities);</span>
 		}
 <span class="fc" id="L51">		Reflections reflections = new Reflections(WebDriver.class.getPackage().getName());</span>
 <span class="fc bfc" id="L52" title="All 2 branches covered.">		for (Class&lt;? extends WebDriver&gt; availableDriver : reflections.getSubTypesOf(WebDriver.class)) {</span>
-<span class="pc bpc" id="L53" title="1 of 2 branches missed.">			if (!StringUtils.startsWithIgnoreCase(availableDriver.getSimpleName(), cleanedBrowser)) {</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">			if (!StringUtils.startsWithIgnoreCase(availableDriver.getSimpleName(), cleanedBrowser)) {</span>
 <span class="fc" id="L54">				continue;</span>
 			}
-<span class="nc" id="L56">			return availableDriver.getConstructor(Capabilities.class).newInstance(parsedCapabilities);</span>
+<span class="fc" id="L56">			return availableDriver.getConstructor(Capabilities.class).newInstance(parsedCapabilities);</span>
 		}
 <span class="fc" id="L58">		return null;</span>
 	}

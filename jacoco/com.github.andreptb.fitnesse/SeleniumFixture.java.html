@@ -29,26 +29,6 @@ import fitnesse.ContextConfigurator;
 <span class="fc" id="L29">public class SeleniumFixture {</span>
 
 	/**
-	 * HTML Value attribute, usually used on inputs
-	 */
-	private static final String INPUT_TYPE_ATTRIBUTE = &quot;type&quot;;
-	/**
-	 * HTML input type radio attribute constant
-	 */
-	private static final String INPUT_TYPE_RADIO = &quot;radio&quot;;
-	/**
-	 * HTML input type checkbox attribute constant
-	 */
-	private static final String INPUT_TYPE_CHECKBOX = &quot;checkbox&quot;;
-	/**
-	 * &lt;b&gt;on&lt;/b&gt; value constant, used by {@link #value(String)}
-	 */
-	private static final String ON_VALUE = &quot;on&quot;;
-	/**
-	 * &lt;b&gt;off&lt;/b&gt; value constant, used by {@link #value(String)}
-	 */
-	private static final String OFF_VALUE = &quot;off&quot;;
-	/**
 	 * Constant representing the selector of the current element focused
 	 */
 	private static final String CURRENT_ELEMENT_FOCUSED = StringUtils.EMPTY;
@@ -60,24 +40,24 @@ import fitnesse.ContextConfigurator;
 	/**
 	 * Timeout time to wait for elements to be present. Default is 20 seconds
 	 */
-<span class="fc" id="L63">	private static int WAIT_TIMEOUT = 20;</span>
+<span class="fc" id="L43">	private static int WAIT_TIMEOUT = 20;</span>
 	/**
 	 * Screenshot dir to save
 	 */
-<span class="fc" id="L67">	private static String SCREENSHOT_DIR = ContextConfigurator.DEFAULT_ROOT + &quot;/files/screenshots&quot;;</span>
+<span class="fc" id="L47">	private static String SCREENSHOT_DIR = ContextConfigurator.DEFAULT_ROOT + &quot;/files/screenshots&quot;;</span>
 
 	/**
 	 * Utility to help creating WebDriver instances
 	 */
-<span class="fc" id="L72">	private FixtureWebDriverProvider driverProvider = new FixtureWebDriverProvider();</span>
+<span class="fc" id="L52">	private FixtureWebDriverProvider driverProvider = new FixtureWebDriverProvider();</span>
 	/**
 	 * Utility to help finding web elements with provided selector
 	 */
-<span class="fc" id="L76">	private SeleniumElementFinder elementFinder = new SeleniumElementFinder();</span>
+<span class="fc" id="L56">	private SeleniumElementFinder elementFinder = new SeleniumElementFinder();</span>
 	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
-<span class="fc" id="L80">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+<span class="fc" id="L60">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
 
 	/**
 	 * &lt;p&gt;
@@ -94,7 +74,7 @@ import fitnesse.ContextConfigurator;
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 */
 	public boolean startBrowser(String browser) throws ReflectiveOperationException, MalformedURLException {
-<span class="fc" id="L97">		return startBrowserWith(browser, null);</span>
+<span class="nc" id="L77">		return startBrowserWith(browser, null);</span>
 	}
 
 	/**
@@ -117,13 +97,13 @@ import fitnesse.ContextConfigurator;
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 */
 	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, MalformedURLException {
-<span class="fc" id="L120">		WebDriver driver = this.driverProvider.createDriver(browser, capabilities);</span>
-<span class="fc bfc" id="L121" title="All 2 branches covered.">		if (driver == null) {</span>
-<span class="fc" id="L122">			return false;</span>
+<span class="fc" id="L100">		WebDriver driver = this.driverProvider.createDriver(browser, capabilities);</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">		if (driver == null) {</span>
+<span class="nc" id="L102">			return false;</span>
 		}
-<span class="fc" id="L124">		quit();</span>
-<span class="fc" id="L125">		SeleniumFixture.DRIVER = driver;</span>
-<span class="fc" id="L126">		return true;</span>
+<span class="fc" id="L104">		quit();</span>
+<span class="fc" id="L105">		SeleniumFixture.DRIVER = driver;</span>
+<span class="fc" id="L106">		return true;</span>
 	}
 
 	/**
@@ -138,8 +118,8 @@ import fitnesse.ContextConfigurator;
 	 */
 	public boolean browserAvailable() {
 		// http://stackoverflow.com/questions/27616470/webdriver-how-to-check-if-browser-still-exists-or-still-open
-<span class="fc" id="L141">		String driverString = ObjectUtils.toString(SeleniumFixture.DRIVER);</span>
-<span class="pc bpc" id="L142" title="1 of 4 branches missed.">		return StringUtils.isNotBlank(driverString) &amp;&amp; !StringUtils.containsIgnoreCase(driverString, &quot;null&quot;);</span>
+<span class="fc" id="L121">		String driverString = ObjectUtils.toString(SeleniumFixture.DRIVER);</span>
+<span class="pc bpc" id="L122" title="2 of 4 branches missed.">		return StringUtils.isNotBlank(driverString) &amp;&amp; !StringUtils.containsIgnoreCase(driverString, &quot;null&quot;);</span>
 	}
 
 	/**
@@ -154,9 +134,9 @@ import fitnesse.ContextConfigurator;
 	 * @return previous timeout value
 	 */
 	public int setWaitTimeout(int timeoutInSeconds) {
-<span class="fc" id="L157">		int previousTimeout = SeleniumFixture.WAIT_TIMEOUT;</span>
-<span class="fc" id="L158">		SeleniumFixture.WAIT_TIMEOUT = timeoutInSeconds;</span>
-<span class="fc" id="L159">		return previousTimeout;</span>
+<span class="fc" id="L137">		int previousTimeout = SeleniumFixture.WAIT_TIMEOUT;</span>
+<span class="fc" id="L138">		SeleniumFixture.WAIT_TIMEOUT = timeoutInSeconds;</span>
+<span class="fc" id="L139">		return previousTimeout;</span>
 	}
 
 	/**
@@ -171,11 +151,27 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-<span class="fc bfc" id="L174" title="All 2 branches covered.">		if (browserAvailable()) {</span>
-<span class="fc" id="L175">			SeleniumFixture.DRIVER.get(this.fitnesseMarkup.clean(url));</span>
-<span class="fc" id="L176">			return true;</span>
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L155">			SeleniumFixture.DRIVER.get(this.fitnesseMarkup.clean(url));</span>
+<span class="fc" id="L156">			return true;</span>
 		}
-<span class="fc" id="L178">		return false;</span>
+<span class="nc" id="L158">		return false;</span>
+	}
+
+	/**
+	 * &lt;p&gt;
+	 * &lt;code&gt;
+	 * | check | current url | &lt;i&gt;url&lt;/i&gt; |
+	 * &lt;/code&gt;
+	 * &lt;/p&gt;
+	 *
+	 * @return current url defined in browser
+	 */
+	public String currentUrl() {
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L172">			return SeleniumFixture.DRIVER.getCurrentUrl();</span>
+		}
+<span class="nc" id="L174">		return null;</span>
 	}
 
 	/**
@@ -191,17 +187,17 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean openWindow(String url) {
-<span class="fc bfc" id="L194" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
-<span class="fc" id="L195">			return false;</span>
+<span class="pc bpc" id="L190" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L191">			return false;</span>
 		}
-<span class="pc bpc" id="L197" title="1 of 2 branches missed.">		if (CollectionUtils.isEmpty(SeleniumFixture.DRIVER.getWindowHandles())) {</span>
-<span class="nc" id="L198">			return open(url);</span>
+<span class="pc bpc" id="L193" title="1 of 2 branches missed.">		if (CollectionUtils.isEmpty(SeleniumFixture.DRIVER.getWindowHandles())) {</span>
+<span class="nc" id="L194">			return open(url);</span>
 		}
-<span class="pc bpc" id="L200" title="1 of 2 branches missed.">		if (SeleniumFixture.DRIVER instanceof JavascriptExecutor) {</span>
-<span class="fc" id="L201">			((JavascriptExecutor) SeleniumFixture.DRIVER).executeScript(&quot;window.open(arguments[0])&quot;, this.fitnesseMarkup.clean(url));</span>
-<span class="fc" id="L202">			return true;</span>
+<span class="pc bpc" id="L196" title="1 of 2 branches missed.">		if (SeleniumFixture.DRIVER instanceof JavascriptExecutor) {</span>
+<span class="fc" id="L197">			((JavascriptExecutor) SeleniumFixture.DRIVER).executeScript(&quot;window.open(arguments[0])&quot;, this.fitnesseMarkup.clean(url));</span>
+<span class="fc" id="L198">			return true;</span>
 		}
-<span class="nc" id="L204">		return false;</span>
+<span class="nc" id="L200">		return false;</span>
 	}
 
 	/**
@@ -217,21 +213,21 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectWindow(String locator) {
-<span class="fc bfc" id="L220" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
-<span class="fc" id="L221">			return false;</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L217">			return false;</span>
 		}
-<span class="fc" id="L223">		String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();</span>
-<span class="pc bpc" id="L224" title="1 of 2 branches missed.">		for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {</span>
-<span class="fc" id="L225">			WebDriver window = SeleniumFixture.DRIVER.switchTo().window(windowId);</span>
-<span class="fc bfc" id="L226" title="All 6 branches covered.">			if (this.fitnesseMarkup.compare(locator, windowId) || this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {</span>
-<span class="fc" id="L227">				return true;</span>
+<span class="fc" id="L219">		String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();</span>
+<span class="pc bpc" id="L220" title="1 of 2 branches missed.">		for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {</span>
+<span class="fc" id="L221">			WebDriver window = SeleniumFixture.DRIVER.switchTo().window(windowId);</span>
+<span class="fc bfc" id="L222" title="All 6 branches covered.">			if (this.fitnesseMarkup.compare(locator, windowId) || this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {</span>
+<span class="fc" id="L223">				return true;</span>
 			}
-<span class="fc" id="L229">		}</span>
-		// if title didn't match anything go back to current window
-<span class="nc bnc" id="L231" title="All 2 branches missed.">		if (currentWindow != null) {</span>
-<span class="nc" id="L232">			SeleniumFixture.DRIVER.switchTo().window(currentWindow);</span>
 		}
-<span class="nc" id="L234">		return false;</span>
+		// if title didn't match anything go back to current window
+<span class="nc bnc" id="L227" title="All 2 branches missed.">		if (currentWindow != null) {</span>
+<span class="nc" id="L228">			SeleniumFixture.DRIVER.switchTo().window(currentWindow);</span>
+		}
+<span class="nc" id="L230">		return false;</span>
 	}
 
 	/**
@@ -245,16 +241,16 @@ import fitnesse.ContextConfigurator;
 	 * @return windowID
 	 */
 	public String currentWindow() {
-<span class="fc bfc" id="L248" title="All 2 branches covered.">		if (browserAvailable()) {</span>
-<span class="fc" id="L249">			return SeleniumFixture.DRIVER.getWindowHandle();</span>
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L245">			return SeleniumFixture.DRIVER.getWindowHandle();</span>
 		}
-<span class="fc" id="L251">		return null;</span>
+<span class="nc" id="L247">		return null;</span>
 	}
 
 	/**
 	 * &lt;p&gt;
 	 * &lt;code&gt;
-	 * | ensure title | &lt;i&gt;title&lt;/i&gt; |
+	 * | check | title | &lt;i&gt;title&lt;/i&gt; |
 	 * &lt;/code&gt;
 	 * &lt;/p&gt;
 	 * Current page title
@@ -262,10 +258,10 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public String title() {
-<span class="fc bfc" id="L265" title="All 2 branches covered.">		if (browserAvailable()) {</span>
-<span class="fc" id="L266">			return SeleniumFixture.DRIVER.getTitle();</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L262">			return SeleniumFixture.DRIVER.getTitle();</span>
 		}
-<span class="fc" id="L268">		return null;</span>
+<span class="nc" id="L264">		return null;</span>
 	}
 
 	/**
@@ -279,16 +275,16 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean close() {
-<span class="fc bfc" id="L282" title="All 2 branches covered.">		if (browserAvailable()) {</span>
-<span class="fc" id="L283">			SeleniumFixture.DRIVER.close();</span>
-<span class="fc" id="L284">			Iterator&lt;String&gt; currentWindows = SeleniumFixture.DRIVER.getWindowHandles().iterator();</span>
-<span class="pc bpc" id="L285" title="1 of 2 branches missed.">			if (currentWindows.hasNext()) {</span>
+<span class="pc bpc" id="L278" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L279">			SeleniumFixture.DRIVER.close();</span>
+<span class="fc" id="L280">			Iterator&lt;String&gt; currentWindows = SeleniumFixture.DRIVER.getWindowHandles().iterator();</span>
+<span class="pc bpc" id="L281" title="1 of 2 branches missed.">			if (currentWindows.hasNext()) {</span>
 				// if there's still windows opened focus anyone that's still opened
-<span class="fc" id="L287">				SeleniumFixture.DRIVER.switchTo().window(currentWindows.next());</span>
+<span class="fc" id="L283">				SeleniumFixture.DRIVER.switchTo().window(currentWindows.next());</span>
 			}
-<span class="fc" id="L289">			return true;</span>
+<span class="fc" id="L285">			return true;</span>
 		}
-<span class="fc" id="L291">		return false;</span>
+<span class="nc" id="L287">		return false;</span>
 	}
 
 	/**
@@ -303,13 +299,13 @@ import fitnesse.ContextConfigurator;
 	 */
 	public boolean quit() {
 		try {
-<span class="fc" id="L306">			SeleniumFixture.DRIVER.quit();</span>
-<span class="fc" id="L307">			SeleniumFixture.DRIVER = null;</span>
-<span class="fc" id="L308">			return true;</span>
-<span class="fc" id="L309">		} catch (Throwable e) {</span>
+<span class="fc" id="L302">			SeleniumFixture.DRIVER.quit();</span>
+<span class="fc" id="L303">			SeleniumFixture.DRIVER = null;</span>
+<span class="fc" id="L304">			return true;</span>
+<span class="fc" id="L305">		} catch (Throwable e) {</span>
 			// quietly quit driver
 		}
-<span class="fc" id="L312">		return false;</span>
+<span class="fc" id="L308">		return false;</span>
 	}
 
 	/**
@@ -325,7 +321,7 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean type(String value) {
-<span class="fc" id="L328">		return typeIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
+<span class="fc" id="L324">		return typeIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
 	}
 
 	/**
@@ -342,16 +338,16 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean typeIn(String value, String locator) {
-<span class="fc bfc" id="L345" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
-<span class="fc" id="L346">			return false;</span>
+<span class="pc bpc" id="L341" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L342">			return false;</span>
 		}
-<span class="fc" id="L348">		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);</span>
-<span class="fc" id="L349">		String cleanedValue = this.fitnesseMarkup.clean(value);</span>
-<span class="fc" id="L350">		element.clear();</span>
-<span class="pc bpc" id="L351" title="1 of 2 branches missed.">		if (StringUtils.isNotBlank(cleanedValue)) {</span>
-<span class="fc" id="L352">			element.sendKeys(cleanedValue);;</span>
+<span class="fc" id="L344">		WebElement element = this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);</span>
+<span class="fc" id="L345">		String cleanedValue = this.fitnesseMarkup.clean(value);</span>
+<span class="fc" id="L346">		element.clear();</span>
+<span class="pc bpc" id="L347" title="1 of 2 branches missed.">		if (StringUtils.isNotBlank(cleanedValue)) {</span>
+<span class="fc" id="L348">			element.sendKeys(cleanedValue);;</span>
 		}
-<span class="fc" id="L354">		return true;</span>
+<span class="fc" id="L350">		return true;</span>
 	}
 
 	/**
@@ -370,7 +366,7 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean sendKeys(String value) {
-<span class="fc" id="L373">		return sendKeysIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
+<span class="fc" id="L369">		return sendKeysIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
 	}
 
 	/**
@@ -390,11 +386,11 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean sendKeysIn(String value, String locator) {
-<span class="fc bfc" id="L393" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
-<span class="fc" id="L394">			return false;</span>
+<span class="pc bpc" id="L389" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L390">			return false;</span>
 		}
-<span class="fc" id="L396">		this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).sendKeys(this.fitnesseMarkup.clean(value));</span>
-<span class="fc" id="L397">		return true;</span>
+<span class="fc" id="L392">		this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).sendKeys(this.fitnesseMarkup.clean(value));</span>
+<span class="fc" id="L393">		return true;</span>
 	}
 
 	/**
@@ -403,12 +399,12 @@ import fitnesse.ContextConfigurator;
 	 * | click |
 	 * &lt;/code&gt;
 	 * &lt;/p&gt;
-	 * Clicks on the current focused link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
+	 * Clicks on the current focused link, button, checkbox or radio button.
 	 *
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click() {
-<span class="fc" id="L411">		return click(SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
+<span class="nc" id="L407">		return click(SeleniumFixture.CURRENT_ELEMENT_FOCUSED);</span>
 	}
 
 	/**
@@ -423,17 +419,17 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-<span class="fc bfc" id="L426" title="All 2 branches covered.">		if (browserAvailable()) {</span>
-<span class="fc" id="L427">			this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).click();</span>
-<span class="fc" id="L428">			return true;</span>
+<span class="pc bpc" id="L422" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L423">			this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).click();</span>
+<span class="fc" id="L424">			return true;</span>
 		}
-<span class="fc" id="L430">		return false;</span>
+<span class="nc" id="L426">		return false;</span>
 	}
 
 	/**
 	 * &lt;p&gt;
 	 * &lt;code&gt;
-	 * | check | &lt;i&gt;value&lt;/i&gt; | &lt;i&gt;locator&lt;/i&gt; | &lt;i&gt;expectedValue&lt;/i&gt; |
+	 * | check | value | &lt;i&gt;locator&lt;/i&gt; | &lt;i&gt;expectedValue&lt;/i&gt; |
 	 * &lt;/code&gt;
 	 * &lt;/p&gt;
 	 * Gets the (whitespace-trimmed) value of an input field (or anything else with a value parameter). For checkbox/radio elements, the value will be &quot;on&quot; or &quot;off&quot; depending on whether the element is
@@ -443,15 +439,10 @@ import fitnesse.ContextConfigurator;
 	 * @return value associated with the locator
 	 */
 	public String value(String locator) {
-<span class="fc bfc" id="L446" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
-<span class="fc" id="L447">			return null;</span>
+<span class="pc bpc" id="L442" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L443">			return this.elementFinder.findValue(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);</span>
 		}
-<span class="fc" id="L449">		WebElement element = this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);</span>
-<span class="fc" id="L450">		String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);</span>
-<span class="fc bfc" id="L451" title="All 4 branches covered.">		if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {</span>
-<span class="fc bfc" id="L452" title="All 2 branches covered.">			return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;</span>
-		}
-<span class="fc" id="L454">		return this.fitnesseMarkup.clean(element.getAttribute(SeleniumElementFinder.INPUT_VALUE_ATTRIBUTE));</span>
+<span class="nc" id="L445">		return null;</span>
 	}
 
 	/**
@@ -467,10 +458,10 @@ import fitnesse.ContextConfigurator;
 	 * @throws IllegalArgumentException if locator do not contain an attribute part such as &quot;id=&amp;lt;id&amp;gt;@&amp;lt;attributeName&amp;gt;&quot;
 	 */
 	public String attribute(String attributeLocator) {
-<span class="pc bpc" id="L470" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
-<span class="nc" id="L471">			return null;</span>
+<span class="pc bpc" id="L461" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L462">			return null;</span>
 		}
-<span class="fc" id="L473">		return this.elementFinder.findAttribute(SeleniumFixture.DRIVER, attributeLocator, SeleniumFixture.WAIT_TIMEOUT);</span>
+<span class="fc" id="L464">		return this.elementFinder.findAttribute(SeleniumFixture.DRIVER, attributeLocator, SeleniumFixture.WAIT_TIMEOUT);</span>
 	}
 
 	/**
@@ -486,10 +477,10 @@ import fitnesse.ContextConfigurator;
 	 * @return text associated with the locator
 	 */
 	public String text(String locator) {
-<span class="fc bfc" id="L489" title="All 2 branches covered.">		if (browserAvailable()) {</span>
-<span class="fc" id="L490">			return this.fitnesseMarkup.clean(this.elementFinder.find(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).getText());</span>
+<span class="pc bpc" id="L480" title="1 of 2 branches missed.">		if (browserAvailable()) {</span>
+<span class="fc" id="L481">			return this.elementFinder.findText(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);</span>
 		}
-<span class="fc" id="L492">		return null;</span>
+<span class="nc" id="L483">		return null;</span>
 	}
 
 	/**
@@ -504,16 +495,16 @@ import fitnesse.ContextConfigurator;
 	 * @throws IOException if something goes wrong while manipulating screenshot file
 	 */
 	public String screenshot() throws IOException {
-<span class="fc bfc" id="L507" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
-<span class="fc" id="L508">			return null;</span>
+<span class="pc bpc" id="L498" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L499">			return null;</span>
 		}
-<span class="pc bpc" id="L510" title="1 of 2 branches missed.">		if (SeleniumFixture.DRIVER instanceof TakesScreenshot) {</span>
-<span class="fc" id="L511">			File src = ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE);</span>
-<span class="fc" id="L512">			File dest = new File(SeleniumFixture.SCREENSHOT_DIR, src.getName());</span>
-<span class="fc" id="L513">			FileUtils.moveFile(src, dest);</span>
-<span class="fc" id="L514">			return dest.getAbsolutePath();</span>
+<span class="pc bpc" id="L501" title="1 of 2 branches missed.">		if (SeleniumFixture.DRIVER instanceof TakesScreenshot) {</span>
+<span class="fc" id="L502">			File src = ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE);</span>
+<span class="fc" id="L503">			File dest = new File(SeleniumFixture.SCREENSHOT_DIR, src.getName());</span>
+<span class="fc" id="L504">			FileUtils.moveFile(src, dest);</span>
+<span class="fc" id="L505">			return dest.getAbsolutePath();</span>
 		}
-<span class="nc" id="L516">		return null;</span>
+<span class="nc" id="L507">		return null;</span>
 	}
 
 	/**
@@ -529,8 +520,8 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean setScreenshotDir(String dest) {
-<span class="fc" id="L532">		SeleniumFixture.SCREENSHOT_DIR = FilenameUtils.normalize(this.fitnesseMarkup.clean(dest));</span>
-<span class="fc" id="L533">		return true;</span>
+<span class="fc" id="L523">		SeleniumFixture.SCREENSHOT_DIR = FilenameUtils.normalize(this.fitnesseMarkup.clean(dest));</span>
+<span class="fc" id="L524">		return true;</span>
 	}
 
 	/**
@@ -547,10 +538,10 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean present(String locator) {
-<span class="fc bfc" id="L550" title="All 2 branches covered.">		if (!browserAvailable()) {</span>
-<span class="fc" id="L551">			return false;</span>
+<span class="pc bpc" id="L541" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L542">			return false;</span>
 		}
-<span class="fc" id="L553">		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, true);</span>
+<span class="fc" id="L544">		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, true);</span>
 	}
 
 	/**
@@ -567,10 +558,10 @@ import fitnesse.ContextConfigurator;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean notPresent(String locator) {
-<span class="pc bpc" id="L570" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
-<span class="nc" id="L571">			return false;</span>
+<span class="pc bpc" id="L561" title="1 of 2 branches missed.">		if (!browserAvailable()) {</span>
+<span class="nc" id="L562">			return false;</span>
 		}
-<span class="fc" id="L573">		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, false);</span>
+<span class="fc" id="L564">		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, false);</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
