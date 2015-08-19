@@ -38,9 +38,13 @@ public class FitnesseMarkup {
 	 */
 	private static final String KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP = "!-<span keycode=\"{1}\">$'{'{0}'}'</span>-!";
 	/**
-	 * Constants representing selector separators [selector]@[atributte]$[value]
+	 * Constant representing the value separator in selector [selector]@[atributte]->[value]
 	 */
-	public static final String SELECTOR_VALUE_SEPARATOR = "$";
+	public static final String SELECTOR_VALUE_SEPARATOR = "->";
+	/**
+	 * Constant representing the negation flag in {@link #SELECTOR_VALUE_SEPARATOR}
+	 */
+	public static final String SELECTOR_VALUE_DENY_INDICATOR = "!";
 	/**
 	 * Constants representing selector separators [selector]@[atributte]$[value]
 	 */
@@ -60,11 +64,16 @@ public class FitnesseMarkup {
 	public boolean compare(Object expected, Object obtained) {
 		String cleanedExpected = clean(expected);
 		String cleanedObtained = clean(obtained);
+		boolean not = StringUtils.startsWith(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);
+		cleanedExpected = StringUtils.stripStart(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);
 		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP_PATTERN.matcher(cleanedExpected);
+		boolean result = false;
 		if (matcher.matches()) {
-			return cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));
+			result = cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));
+		} else {
+			result = StringUtils.equals(cleanedExpected, cleanedObtained);
 		}
-		return StringUtils.equals(cleanedExpected, cleanedObtained);
+		return not ? !result : result;
 	}
 
 	/**

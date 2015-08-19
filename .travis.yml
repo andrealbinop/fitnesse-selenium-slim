@@ -14,4 +14,4 @@ after_success:
   - gpg --import src/deploy/private.key && gpg --import src/deploy/public.key
   - mkdir -p src/site/markdown && cp README.md src/site/markdown/index.md
   - mvn dependency:get -Dartifact=com.github.andreptb:andreptb-component-parent:0.2.1:xml:mvn-settings
-  - mvn -s $M2_REPO/repository/com/github/andreptb/andreptb-component-parent/0.2.1/andreptb-component-parent-0.2.1-mvn-settings.xml -DskipTests -Dmaven.install.skip -DstagingDescription=$TRAVIS_COMMIT deploy site-deploy
+  - mvn -s $M2_REPO/repository/com/github/andreptb/andreptb-component-parent/0.2.1/andreptb-component-parent-0.2.1-mvn-settings.xml -DskipTests -Dmaven.install.skip -DstagingDescription=$TRAVIS_COMMIT -Dgithub.global.oauth2Token=$GH_TOKEN deploy site-deploy

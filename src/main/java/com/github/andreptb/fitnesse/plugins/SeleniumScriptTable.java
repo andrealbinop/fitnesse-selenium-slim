@@ -108,18 +108,18 @@ public class SeleniumScriptTable extends ScriptTable {
 	@Override
 	protected List<SlimAssertion> checkAction(int row) {
 		List<SlimAssertion> assertions = super.checkAction(row);
-		injectResultToCheckInAction(row, assertions);
+		injectResultToCheckInAction(row, assertions, false);
 		return assertions;
 	}
 
 	@Override
 	protected List<SlimAssertion> checkNotAction(int row) {
 		List<SlimAssertion> assertions = super.checkNotAction(row);
-		injectResultToCheckInAction(row, assertions);
+		injectResultToCheckInAction(row, assertions, true);
 		return assertions;
 	}
 
-	private void injectResultToCheckInAction(int row, List<SlimAssertion> assertions) {
+	private void injectResultToCheckInAction(int row, List<SlimAssertion> assertions, boolean not) {
 		String contentToCheck = this.fitnesseMarkup.clean(this.table.getCellContents(this.table.getColumnCountInRow(row) - 1, row));
 		if (CollectionUtils.isEmpty(assertions) || StringUtils.isBlank(contentToCheck)) {
 			return;
@@ -128,7 +128,7 @@ public class SeleniumScriptTable extends ScriptTable {
 		try {
 			Object field = FieldUtils.getField(instruction.getClass(), SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true).get(instruction);
 			if (field instanceof Object[] && ArrayUtils.getLength(field) > NumberUtils.INTEGER_ZERO) {
-				((Object[]) field)[NumberUtils.INTEGER_ZERO] += FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + contentToCheck;
+				((Object[]) field)[NumberUtils.INTEGER_ZERO] += FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + (not ? FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR : StringUtils.EMPTY) + contentToCheck;
 
 			}
 		} catch (ReflectiveOperationException e) {

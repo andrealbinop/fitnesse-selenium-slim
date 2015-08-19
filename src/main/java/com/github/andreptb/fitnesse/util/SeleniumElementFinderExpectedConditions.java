@@ -211,10 +211,10 @@ class SeleniumElementFinderExpectedConditions {
 		@Override
 		public String apply(WebDriver input) {
 			String data = this.dataProvider.apply(this.condition.apply(input));
-			if (StringUtils.isNoneBlank(data, this.expectedData) && SeleniumElementFinderExpectedConditions.this.fitnesseMarkup.compare(this.expectedData, data)) {
+			if (StringUtils.isBlank(this.expectedData) || SeleniumElementFinderExpectedConditions.this.fitnesseMarkup.compare(this.expectedData, data)) {
 				return data;
 			}
-			return StringUtils.stripToNull(data);
+			return null;
 		}
 
 		public void disableDataCheck() {
