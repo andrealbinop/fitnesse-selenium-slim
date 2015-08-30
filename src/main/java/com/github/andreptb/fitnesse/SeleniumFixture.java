@@ -1,27 +1,26 @@
 
 package com.github.andreptb.fitnesse;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Iterator;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
+import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import com.github.andreptb.fitnesse.selenium.DropdownOptionSelector;
+import com.github.andreptb.fitnesse.selenium.WebElementManipulator;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 import com.github.andreptb.fitnesse.util.FixtureWebDriverProvider;
-import com.github.andreptb.fitnesse.util.SeleniumElementFinder;
-
-import fitnesse.ContextConfigurator;
 
 /**
  * Slim fixture to execute Selenium commands, see README.md for more information.
@@ -29,9 +28,30 @@ import fitnesse.ContextConfigurator;
 public class SeleniumFixture {
 
 	/**
-	 * Constant representing the selector of the current element focused
+	 * HTML Value attribute, usually used on inputs
 	 */
-	private static final String CURRENT_ELEMENT_FOCUSED = StringUtils.EMPTY;
+	private static final String INPUT_TYPE_ATTRIBUTE = "type";
+	/**
+	 * HTML input type radio attribute constant
+	 */
+	private static final String INPUT_TYPE_RADIO = "radio";
+	/**
+	 * HTML input type checkbox attribute constant
+	 */
+	private static final String INPUT_TYPE_CHECKBOX = "checkbox";
+	/**
+	 * HTML input value attribute constant
+	 */
+	private static final String INPUT_VALUE_ATTRIBUTE = "value";
+
+	/**
+	 * <b>on</b> value constant, used by {@link #value(String)}
+	 */
+	private static final String ON_VALUE = "on";
+	/**
+	 * <b>off</b> value constant, used by {@link #value(String)}
+	 */
+	private static final String OFF_VALUE = "off";
 
 	/**
 	 * Selenium Web Driver, static so the same DRIVER instance can be used through multiple tables
@@ -42,18 +62,17 @@ public class SeleniumFixture {
 	 */
 	private static int WAIT_TIMEOUT = 20;
 	/**
-	 * Screenshot dir to save
-	 */
-	private static String SCREENSHOT_DIR = ContextConfigurator.DEFAULT_ROOT + "/files/screenshots";
-
-	/**
 	 * Utility to help creating WebDriver instances
 	 */
 	private FixtureWebDriverProvider driverProvider = new FixtureWebDriverProvider();
 	/**
 	 * Utility to help finding web elements with provided selector
 	 */
-	private SeleniumElementFinder elementFinder = new SeleniumElementFinder();
+	private WebElementManipulator elementManipulator = new WebElementManipulator();
+	/**
+	 * Utility to help selecting drop downs
+	 */
+	private DropdownOptionSelector dropdownOptionSelector = new DropdownOptionSelector();
 	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
@@ -168,10 +187,24 @@ public class SeleniumFixture {
 	 * @return current url defined in browser
 	 */
 	public String currentUrl() {
-		if (browserAvailable()) {
-			return SeleniumFixture.DRIVER.getCurrentUrl();
+		return currentUrl(StringUtils.EMPTY);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | check | current url | <i>url</i> | <i>url</i> |
+	 * </code>
+	 * </p>
+	 * To be used along slim check action. Will respect {@link #WAIT_TIMEOUT} before triggering failure. If using selenium table, please ignore this action.
+	 *
+	 * @return the current page title
+	 */
+	public String currentUrl(String expectedTitle) {
+		if (!browserAvailable()) {
+			return null;
 		}
-		return null;
+		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, expectedTitle, SeleniumFixture.WAIT_TIMEOUT, elementContext -> SeleniumFixture.DRIVER.getCurrentUrl());
 	}
 
 	/**
@@ -216,18 +249,20 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return false;
 		}
-		String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();
-		for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {
-			WebDriver window = SeleniumFixture.DRIVER.switchTo().window(windowId);
-			if (this.fitnesseMarkup.compare(locator, windowId) || this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {
-				return true;
+		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, StringUtils.EMPTY, SeleniumFixture.WAIT_TIMEOUT, context -> {
+			String currentWindow = SeleniumFixture.DRIVER.getWindowHandle();
+			for (String windowId : SeleniumFixture.DRIVER.getWindowHandles()) {
+				WebDriver window = SeleniumFixture.DRIVER.switchTo().window(windowId);
+				if (this.fitnesseMarkup.compare(locator, windowId) || this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {
+					return true;
+				}
 			}
-		}
-		// if title didn't match anything go back to current window
-		if (currentWindow != null) {
-			SeleniumFixture.DRIVER.switchTo().window(currentWindow);
-		}
-		return false;
+			// if title didn't match anything go back to current window
+			if (currentWindow != null) {
+				SeleniumFixture.DRIVER.switchTo().window(currentWindow);
+			}
+			return false;
+		});
 	}
 
 	/**
@@ -250,18 +285,67 @@ public class SeleniumFixture {
 	/**
 	 * <p>
 	 * <code>
+	 * | window maximize |
+	 * </code>
+	 * </p>
+	 * Resize currently selected window to take up the entire screen
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean windowMaximize() {
+		if (browserAvailable()) {
+			SeleniumFixture.DRIVER.manage().window().maximize();
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | window size |
+	 * </code>
+	 * </p>
+	 * 
+	 * @return windows size, in [width]x[height] format
+	 */
+	public String windowSize() {
+		if (browserAvailable()) {
+			Dimension dimension = SeleniumFixture.DRIVER.manage().window().getSize();
+			return String.format("%dx%d", dimension.getWidth(), dimension.getHeight());
+		}
+		return null;
+	}
+
+	/**
+	 * <p>
+	 * <code>
 	 * | check | title | <i>title</i> |
 	 * </code>
 	 * </p>
 	 * Current page title
 	 *
-	 * @return result Boolean result indication of assertion/operation
+	 * @return the current page title
 	 */
 	public String title() {
-		if (browserAvailable()) {
-			return SeleniumFixture.DRIVER.getTitle();
+		return title(StringUtils.EMPTY);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | check | title | <i>title</i> | <i>title</i> |
+	 * </code>
+	 * </p>
+	 * To be used along slim check action. Will respect {@link #WAIT_TIMEOUT} before triggering failure. If using selenium table, please ignore this action.
+	 *
+	 * @return the current page title
+	 */
+	public String title(String expectedTitle) {
+		if (!browserAvailable()) {
+			return null;
 		}
-		return null;
+		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, expectedTitle, SeleniumFixture.WAIT_TIMEOUT, elementContext -> SeleniumFixture.DRIVER.getTitle());
 	}
 
 	/**
@@ -300,12 +384,11 @@ public class SeleniumFixture {
 	public boolean quit() {
 		try {
 			SeleniumFixture.DRIVER.quit();
-			SeleniumFixture.DRIVER = null;
-			return true;
 		} catch (Throwable e) {
 			// quietly quit driver
 		}
-		return false;
+		SeleniumFixture.DRIVER = null;
+		return true;
 	}
 
 	/**
@@ -321,7 +404,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean type(String value) {
-		return typeIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);
+		return typeIn(value, StringUtils.EMPTY);
 	}
 
 	/**
@@ -338,16 +421,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean typeIn(String value, String locator) {
-		if (!browserAvailable()) {
-			return false;
-		}
-		WebElement element = this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
-		String cleanedValue = this.fitnesseMarkup.clean(value);
-		element.clear();
-		if (StringUtils.isNotBlank(cleanedValue)) {
-			element.sendKeys(cleanedValue);;
-		}
-		return true;
+		return sendKeysIn(value, locator, true);
 	}
 
 	/**
@@ -366,7 +440,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean sendKeys(String value) {
-		return sendKeysIn(value, SeleniumFixture.CURRENT_ELEMENT_FOCUSED);
+		return sendKeysIn(value, StringUtils.EMPTY);
 	}
 
 	/**
@@ -386,11 +460,24 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean sendKeysIn(String value, String locator) {
+		return sendKeysIn(value, locator, false);
+	}
+
+	private boolean sendKeysIn(String value, String locator, boolean clearBefore) {
 		if (!browserAvailable()) {
 			return false;
 		}
-		this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).sendKeys(this.fitnesseMarkup.clean(value));
-		return true;
+		String cleanedValue = this.fitnesseMarkup.clean(value);
+		return this.elementManipulator.manipulateInputable(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, elementContext -> {
+			WebElement element = elementContext.getElement();
+			if (clearBefore) {
+				element.clear();
+			}
+			if (StringUtils.isNotBlank(cleanedValue)) {
+				element.sendKeys(cleanedValue);
+			}
+			return true;
+		});
 	}
 
 	/**
@@ -404,7 +491,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click() {
-		return click(SeleniumFixture.CURRENT_ELEMENT_FOCUSED);
+		return click(StringUtils.EMPTY);
 	}
 
 	/**
@@ -419,11 +506,114 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-		if (browserAvailable()) {
-			this.elementFinder.findToInput(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT).click();
-			return true;
+		if (!browserAvailable()) {
+			return false;
 		}
-		return false;
+		return this.elementManipulator.manipulateInputable(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, elementContext -> {
+			elementContext.getElement().click();
+			return true;
+		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | select | <i>optionLocator</i> |
+	 * </code>
+	 * </p>
+	 * Select an option from the currently focused drop-down using an option locator.
+	 * Option locators provide different ways of specifying options of an HTML Select element (e.g. for selecting a specific option, or for asserting that the selected option satisfies a
+	 * specification). There are several forms of Select Option Locator.
+	 * <ul>
+	 * <li><b>label</b>=<i>labelPattern</i>: matches options based on their labels, i.e. the visible text. (This is the default.)</li>
+	 * <li><b>value</b>=<i>valuePattern</i>: matches options based on their values.</li>
+	 * <li><b>index</b>=<i>index</i>: matches an option based on its index (offset from zero).</li>
+	 * </ul>
+	 *
+	 * @param optionLocator option locator to be used for select action
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean select(String optionLocator) {
+		return selectIn(optionLocator, StringUtils.EMPTY);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | select | <i>optionLocator</i> | in | <i>locator</i> |
+	 * </code>
+	 * </p>
+	 * Select an option from a drop-down using an option locator.
+	 * Option locators provide different ways of specifying options of an HTML Select element (e.g. for selecting a specific option, or for asserting that the selected option satisfies a
+	 * specification). There are several forms of Select Option Locator.
+	 * <ul>
+	 * <li><b>label</b>=<i>labelPattern</i>: matches options based on their labels, i.e. the visible text. (This is the default.)</li>
+	 * <li><b>value</b>=<i>valuePattern</i>: matches options based on their values.</li>
+	 * <li><b>index</b>=<i>index</i>: matches an option based on its index (offset from zero).</li>
+	 * </ul>
+	 *
+	 * @param optionLocator option locator to be used for select action
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean selectIn(String optionLocator, String locator) {
+		if (!browserAvailable()) {
+			return false;
+		}
+		return this.elementManipulator.manipulateInputable(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, elementContext -> {
+			this.dropdownOptionSelector.select(elementContext.getElement(), optionLocator);
+			return true;
+		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | check | selected | <i>optionType</i> |
+	 * </code>
+	 * </p>
+	 * Gets option data for selected option for the currently focused select element. Can return three types of information depending of <i>optionType</i>:
+	 * <ul>
+	 * <li><b>label</b>: Gets option label (visible text) for selected option in the specified select element.</li>
+	 * <li><b>value</b>: Gets option value (value attribute) for selected option in the specified select element.</li>
+	 * <li><b>index</b>: Gets option index (option number, starting at 0) for selected option in the specified select element.</li>
+	 * </ul>
+	 *
+	 * @param optionLocator option locator to be used for select action
+	 * @param optionType can be label, value or index
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public String selected(String optionType) {
+		return selectedIn(optionType, StringUtils.EMPTY);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | check | selected | <i>optionType</i> | in | <i>locator</i> |
+	 * </code>
+	 * </p>
+	 * Gets option data for selected option in the specified select element. Can return three types of information depending of <i>optionType</i>:
+	 * <ul>
+	 * <li><b>label</b>: Gets option label (visible text) for selected option in the specified select element.</li>
+	 * <li><b>value</b>: Gets option value (value attribute) for selected option in the specified select element.</li>
+	 * <li><b>index</b>: Gets option index (option number, starting at 0) for selected option in the specified select element.</li>
+	 * </ul>
+	 *
+	 * @param optionType can be label, value or index
+	 * @param optionLocator option locator to be used for select action
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public String selectedIn(String optionType, String locator) {
+		if (!browserAvailable()) {
+			return null;
+		}
+		// value injection fix
+		String optionTypeOnly = StringUtils.substringBeforeLast(optionType, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);
+		String locatorWithValue = locator + StringUtils.substringAfter(optionType, optionTypeOnly);
+		return this.elementManipulator.manipulateInputable(SeleniumFixture.DRIVER, locatorWithValue, SeleniumFixture.WAIT_TIMEOUT, elementContext -> {
+			return this.dropdownOptionSelector.selected(elementContext.getElement(), optionTypeOnly);
+		});
 	}
 
 	/**
@@ -439,10 +629,17 @@ public class SeleniumFixture {
 	 * @return value associated with the locator
 	 */
 	public String value(String locator) {
-		if (browserAvailable()) {
-			return this.elementFinder.findValue(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
+		if (!browserAvailable()) {
+			return null;
 		}
-		return null;
+		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, elementContext -> {
+			WebElement element = elementContext.getElement();
+			String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);
+			if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {
+				return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;
+			}
+			return element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE);
+		});
 	}
 
 	/**
@@ -461,7 +658,7 @@ public class SeleniumFixture {
 		if (!browserAvailable()) {
 			return null;
 		}
-		return this.elementFinder.findAttribute(SeleniumFixture.DRIVER, attributeLocator, SeleniumFixture.WAIT_TIMEOUT);
+		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, attributeLocator, SeleniumFixture.WAIT_TIMEOUT, elementContext -> elementContext.getElement().getAttribute(elementContext.getAttribute()));
 	}
 
 	/**
@@ -477,10 +674,10 @@ public class SeleniumFixture {
 	 * @return text associated with the locator
 	 */
 	public String text(String locator) {
-		if (browserAvailable()) {
-			return this.elementFinder.findText(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT);
+		if (!browserAvailable()) {
+			return null;
 		}
-		return null;
+		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, elementContext -> elementContext.getElement().getText());
 	}
 
 	/**
@@ -499,29 +696,9 @@ public class SeleniumFixture {
 			return null;
 		}
 		if (SeleniumFixture.DRIVER instanceof TakesScreenshot) {
-			File src = ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE);
-			File dest = new File(SeleniumFixture.SCREENSHOT_DIR, src.getName());
-			FileUtils.moveFile(src, dest);
-			return dest.getAbsolutePath();
+			return ((TakesScreenshot) SeleniumFixture.DRIVER).getScreenshotAs(OutputType.FILE).getAbsolutePath();
 		}
 		return null;
-	}
-
-	/**
-	 * <p>
-	 * <code>
-	 * | set screenshot dir | <i>dir</i> |
-	 * </code>
-	 * </p>
-	 * Takes screenshot from current browser state and returns to be previewed in test result page.
-	 * This method can be removed when <a href="https://github.com/unclebob/fitnesse/pull/755">this issue</a> is resolved
-	 *
-	 * @param dest directory to save screenshot
-	 * @return result Boolean result indication of assertion/operation
-	 */
-	public boolean setScreenshotDir(String dest) {
-		SeleniumFixture.SCREENSHOT_DIR = FilenameUtils.normalize(this.fitnesseMarkup.clean(dest));
-		return true;
 	}
 
 	/**
@@ -538,10 +715,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean present(String locator) {
-		if (!browserAvailable()) {
-			return false;
-		}
-		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, true);
+		return presentOrAbsent(locator, true);
 	}
 
 	/**
@@ -558,9 +732,24 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean notPresent(String locator) {
+		return presentOrAbsent(locator, false);
+	}
+
+	private boolean presentOrAbsent(String locator, boolean ensurePresent) {
 		if (!browserAvailable()) {
 			return false;
 		}
-		return this.elementFinder.presentOrAbsent(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, false);
+		try {
+			return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, locator, SeleniumFixture.WAIT_TIMEOUT, elementContext -> {
+				WebElement element = elementContext.getElement();
+				String attribute = elementContext.getAttribute();
+				if (StringUtils.isBlank(attribute) || StringUtils.isNotBlank(element.getAttribute(attribute))) {
+					return ensurePresent;
+				}
+				return !ensurePresent;
+			});
+		} catch (TimeoutException | NotFoundException e) {
+			return !ensurePresent;
+		}
 	}
 }

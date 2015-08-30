@@ -1,0 +1,4 @@
+| selenium |
+| open | http://www.roboform.com/filling-test-custom-fields |
+| ensure | window maximize |
+| show | window size |

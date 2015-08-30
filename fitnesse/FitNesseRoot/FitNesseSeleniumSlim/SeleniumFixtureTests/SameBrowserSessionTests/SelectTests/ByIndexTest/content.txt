@@ -1,0 +1,7 @@
+| selenium |
+| open | http://www.roboform.com/filling-test-custom-fields |
+| check | selected | index | in | name=ttl_select | 0 |
+| ensure | select | index=1 | in | name=ttl_select |
+| check | selected | index | 1 |
+| ensure | select | index=2 |
+| check | selected | index | 2 |

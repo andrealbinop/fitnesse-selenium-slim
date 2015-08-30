@@ -1,0 +1,7 @@
+| selenium |
+| open | http://www.roboform.com/filling-test-custom-fields |
+| check | selected | value | in | name=ttl_select | Mr |
+| ensure | select | Mrs | in | name=ttl_select |
+| check | selected | value | Mrs |
+| ensure | select | label=Dr |
+| check | selected | value | Dr |

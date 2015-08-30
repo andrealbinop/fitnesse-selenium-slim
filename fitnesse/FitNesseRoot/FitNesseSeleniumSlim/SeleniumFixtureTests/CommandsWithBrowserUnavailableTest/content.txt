@@ -7,7 +7,6 @@
 | check | title | null |
 | check | current url | null |
 | reject | close |
-| reject | quit |
 | reject | type | some text |
 | reject | send keys | some text |
 | reject | click |

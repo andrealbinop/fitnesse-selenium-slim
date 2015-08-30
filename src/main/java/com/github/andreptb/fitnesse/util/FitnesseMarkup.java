@@ -1,14 +1,21 @@
 
 package com.github.andreptb.fitnesse.util;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+
+import fitnesse.ContextConfigurator;
+import fitnesse.FitNesseContext;
+import fitnesse.testsystems.TestPage;
 
 /**
  * General utilities to process FitNesse markup syntax so can be used by Selenium Fixture
@@ -16,13 +23,33 @@ import org.apache.commons.lang.math.NumberUtils;
 public class FitnesseMarkup {
 
 	/**
-	 * Markup which presents image preview and download link
-	 */
-	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}\" target='_blank'><img src=\"{0}\" height=\"200\"></img</a>";
-	/**
 	 * Constant of FitnesseRoot files dir (relative path)
 	 */
-	private static final String FITNESSE_ROOT_FILES_DIR = "/files/";
+	private static final String FITNESSE_TESTRESULTS_DIR = "files/" + FitNesseContext.testResultsDirectoryName;
+	/**
+	 * Constant of screenshots dir
+	 */
+	private static final String SCREENSHOT_DIR = "screenshots";
+	/**
+	 * Markup which presents image preview and download link
+	 */
+	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}{1}/{2}\" target='_blank'><img src=\"{0}{1}/{2}\" height=\"200\"></img</a>";
+	/**
+	 * Variable name that holds fitnesse root dir
+	 */
+	private static final String FITNESSE_ROOTPATH_VARIABLE = "FITNESSE_ROOTPATH";
+	/**
+	 * Variable name that holds FitNesse context root
+	 */
+	private static final String FITNESSE_CONTEXTROOT_VARIABLE = "ContextRoot";
+	/**
+	 * Running page path variable
+	 */
+	private static final String PAGE_PATH_VARIABLE = "RUNNING_PAGE_PATH";
+	/**
+	 * Running page path name variable
+	 */
+	private static final String PAGE_NAME_VARIABLE = "RUNNING_PAGE_NAME";
 	/**
 	 * @see #compare(Object, Object)
 	 */
@@ -111,17 +138,21 @@ public class FitnesseMarkup {
 	 * Usually used by fixtures that wants to return a image link for the test result.s
 	 *
 	 * @param img File containing the image
+	 * @param testPage
 	 * @return Image link
+	 * @throws IOException
 	 */
-	public String imgLink(Object img) {
-		String cleanedImg = FilenameUtils.normalize(clean(img), true);
-		if (StringUtils.isBlank(cleanedImg)) {
+	public String imgLink(Object img, TestPage testPage) throws IOException {
+		File src = FileUtils.getFile(clean(img));
+		if (!src.exists()) {
 			return null;
 		}
-		if (StringUtils.containsIgnoreCase(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR)) {
-			cleanedImg = FitnesseMarkup.FITNESSE_ROOT_FILES_DIR + StringUtils.substringAfter(cleanedImg, FitnesseMarkup.FITNESSE_ROOT_FILES_DIR);
-		}
-		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, cleanedImg);
+		String rootPath = FilenameUtils.concat(testPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH_VARIABLE), testPage.getVariable(ContextConfigurator.DEFAULT_ROOT));
+		String runningPage = testPage.getVariable(FitnesseMarkup.PAGE_PATH_VARIABLE) + "." + testPage.getVariable(FitnesseMarkup.PAGE_NAME_VARIABLE);
+		String destFilename = FilenameUtils.concat(runningPage, FilenameUtils.concat(FitnesseMarkup.SCREENSHOT_DIR, src.getName()));
+		File dest = FileUtils.getFile(rootPath, FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, destFilename);
+		FileUtils.moveFile(src, dest);
+		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, testPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT_VARIABLE), FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, FilenameUtils.normalize(destFilename, true));
 	}
 
 	/**

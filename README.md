@@ -17,7 +17,7 @@ Take a look at [this](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/BasicUsageSampl
 <dependency>
   <groupId>com.github.andreptb</groupId>
   <artifactId>fitnesse-selenium-slim</artifactId>
-  <version>0.5.1</version>
+  <version>0.6.0</version>
 </dependency>
 ```
 
@@ -47,18 +47,9 @@ This plugin provides a screenshot feature, showing the screenshot preview (and l
 | show | screenshot |
 ```
 
-Note that if **[RootPath or FitNesseRoot](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.CommandLineArguments)** arguments are changed, you must configure [SeleniumFixture&apos;s](/fitnesse-selenium-slim/src/main/java/com/github/andreptb/fitnesse/SeleniumFixture.java) screenshot dir with the following action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SuiteSetUp](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SameBrowserSessionTests/SuiteSetUp/content.txt)):
-
-```
-| selenium |
-| set screenshot dir | ${FITNESSE_ROOTPATH}/${FitNesseRoot}/files/testResults/screenshots |
-```
-
-**Important:** At this time the screenshot feature won&apos;t work with a non-default [context root](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.AdministeringFitNesse.ConfigurationFile). It will be supported when [this version is released](https://github.com/unclebob/fitnesse/issues?q=is%3Aopen+is%3Aissue+milestone%3A%22Next+release%22).
-
 #### Wait behavior
 
-Every action that searches for elements within the page (**text**, **value**, **click**, **attribute**, **present** and **not present**) will try to find the element until specified timeout configuration is reached. You can change the timeout configuration with the following:
+Every action that searches for elements within the page (**text**, **value**, **selecte**, **selected**, **click**, **attribute**, **present** and **not present**) will try to find the element until specified timeout configuration is reached. You can change the timeout configuration with the following:
 
 ```
 | selenium |

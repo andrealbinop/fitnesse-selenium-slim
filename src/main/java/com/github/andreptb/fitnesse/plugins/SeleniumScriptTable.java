@@ -1,6 +1,8 @@
 
 package com.github.andreptb.fitnesse.plugins;
 
+import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -9,6 +11,7 @@ import java.util.logging.Logger;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 
@@ -124,12 +127,15 @@ public class SeleniumScriptTable extends ScriptTable {
 		if (CollectionUtils.isEmpty(assertions) || StringUtils.isBlank(contentToCheck)) {
 			return;
 		}
+		String valueToAppend = FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + (not ? FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR : StringUtils.EMPTY) + contentToCheck;
 		Instruction instruction = SlimAssertion.getInstructions(assertions).get(NumberUtils.INTEGER_ZERO);
 		try {
-			Object field = FieldUtils.getField(instruction.getClass(), SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true).get(instruction);
-			if (field instanceof Object[] && ArrayUtils.getLength(field) > NumberUtils.INTEGER_ZERO) {
-				((Object[]) field)[NumberUtils.INTEGER_ZERO] += FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + (not ? FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR : StringUtils.EMPTY) + contentToCheck;
-
+			Field field = FieldUtils.getField(instruction.getClass(), SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true);
+			Object args = field.get(instruction);
+			if (args instanceof Object[] && ArrayUtils.getLength(args) > NumberUtils.INTEGER_ZERO) {
+				((Object[]) args)[NumberUtils.INTEGER_ZERO] += valueToAppend;
+			} else {
+				FieldUtils.writeField(field, instruction, new Object[] { valueToAppend });
 			}
 		} catch (ReflectiveOperationException e) {
 			SeleniumScriptTable.LOGGER.log(Level.WARNING, "Failed to inject check value using reflection", e);
@@ -155,12 +161,16 @@ public class SeleniumScriptTable extends ScriptTable {
 
 		@Override
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
-			String imgLink = SeleniumScriptTable.this.fitnesseMarkup.imgLink(actual);
-			if (StringUtils.isBlank(imgLink)) {
-				return SlimTestResult.fail("failed to generate screenshot preview");
+			try {
+				String imgLink = SeleniumScriptTable.this.fitnesseMarkup.imgLink(actual, getTestContext().getPageToTest());
+				if (StringUtils.isBlank(imgLink)) {
+					return SlimTestResult.fail("failed to generate screenshot preview");
+				}
+				SeleniumScriptTable.this.table.substitute(getCol(), getRow(), imgLink);
+				return SlimTestResult.plain();
+			} catch (IOException e) {
+				return SlimTestResult.fail("IO error while generating screenshot link\n" + ExceptionUtils.getStackTrace(e));
 			}
-			SeleniumScriptTable.this.table.substitute(getCol(), getRow(), imgLink);
-			return SlimTestResult.plain();
 		}
 	}
 }

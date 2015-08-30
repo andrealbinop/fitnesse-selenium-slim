@@ -17,4 +17,4 @@ fitnesse/FitNesseRoot/properties
 fitnesse/FitNesseRoot/updateDoNotCopyOverList
 fitnesse/FitNesseRoot/updateList
 *.log
-deploy/private.key
+src/deploy/private.key
