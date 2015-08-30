@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>WebElementManipulator.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.selenium</a> &gt; <span class="el_source">WebElementManipulator.java</span></div><h1>WebElementManipulator.java</h1><pre class="source lang-java linenums">
+package com.github.andreptb.fitnesse.selenium;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Function;
+
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
+import org.openqa.selenium.By;
+import org.openqa.selenium.SearchContext;
+import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+
+/**
+ * Utility class to parse locators and find elements
+ */
+<span class="fc" id="L24">public class WebElementManipulator {</span>
+
+	/**
+	 * Locator selector typeIn separator constant
+	 */
+	public static final String SELECTOR_TYPE_SEPARATOR = &quot;=&quot;;
+	/**
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
+	 */
+<span class="fc" id="L33">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+
+	/**
+	 * enum mapping selector identifier with selector implementation ({@link By} implementations).
+	 */
+<span class="pc" id="L38">	enum SelectorType {</span>
+<span class="fc" id="L39">		id(By.ById.class),</span>
+<span class="fc" id="L40">		name(By.ByName.class),</span>
+<span class="fc" id="L41">		css(By.ByCssSelector.class),</span>
+<span class="fc" id="L42">		xpath(By.ByXPath.class),</span>
+<span class="fc" id="L43">		link(By.ByLinkText.class);</span>
+
+		private Class&lt;? extends By&gt; byClass;
+
+<span class="fc" id="L47">		SelectorType(Class&lt;? extends By&gt; byClass) {</span>
+<span class="fc" id="L48">			this.byClass = byClass;</span>
+<span class="fc" id="L49">		}</span>
+	}
+
+	public &lt;T&gt; T manipulateInputable(WebDriver driver, String locator, int timeoutInSeconds, Function&lt;WebElementContext, T&gt; callback) {
+<span class="fc" id="L53">		return manipulate(driver, locator, timeoutInSeconds, context -&gt; {</span>
+<span class="fc" id="L54">			WebElement element = context.getElement();</span>
+<span class="pc bpc" id="L55" title="2 of 4 branches missed.">			if (element.isDisplayed() &amp;&amp; element.isEnabled()) {</span>
+<span class="fc" id="L56">				return callback.apply(context);</span>
+			}
+<span class="nc" id="L58">			return null;</span>
+		});
+	}
+
+	public &lt;T&gt; T manipulate(WebDriver driver, String locator, int timeoutInSeconds, Function&lt;WebElementContext, T&gt; callback) {
+<span class="fc" id="L63">		WebElementContext context = parse(locator);</span>
+		try {
+<span class="fc" id="L65">			return manipulate(driver, timeoutInSeconds, input -&gt; retrieve(input, context, true, callback));</span>
+<span class="fc" id="L66">		} catch (TimeoutException e) {</span>
+			// returns even if expected value differs, fitnesse will fail.
+<span class="fc" id="L68">			return retrieve(driver, context, false, callback);</span>
+		}
+	}
+
+	private &lt;T&gt; T retrieve(WebDriver driver, WebElementContext context, boolean considerExpectedValue, Function&lt;WebElementContext, T&gt; callback) {
+<span class="fc" id="L73">		context.setElement(driver.findElement(context.getLocator()));</span>
+<span class="fc" id="L74">		T result = callback.apply(context);</span>
+<span class="fc" id="L75">		String expectedValue = context.getExpectedValue();</span>
+<span class="fc bfc" id="L76" title="All 4 branches covered.">		if (StringUtils.isBlank(expectedValue) || this.fitnesseMarkup.compare(expectedValue, result)) {</span>
+<span class="fc" id="L77">			return result;</span>
+		}
+<span class="fc" id="L79">		return null;</span>
+	}
+
+	/**
+	 * Tries to get the return from {@link ExpectedCondition} waiting until configured timeout time
+	 *
+	 * @param driver instance of {@link WebDriver}
+	 * @param timeoutInSeconds time to wait for element
+	 * @param condition instance of {@link ExpectedCondition}
+	 * @param &lt;T&gt; return type of elementFound
+	 * @return elementFound instance of whatever {@link ExpectedCondition} returned
+	 * @throws TimeoutException if timeoutInSeconds is exceeded
+	 */
+	private &lt;T&gt; T manipulate(WebDriver driver, int timeoutInSeconds, ExpectedCondition&lt;T&gt; condition) {
+<span class="fc" id="L93">		WebDriverWait wait = new WebDriverWait(driver, timeoutInSeconds);</span>
+<span class="fc" id="L94">		return wait.until(condition);</span>
+	}
+
+	/**
+	 * Parses locator to an instance of {@link Triple}, which by itself contains {@link By} instance and an optional attribute selector. Tries to emulate Selenium IDE searching methods:
+	 * &lt;ul&gt;
+	 * &lt;li&gt;By id: 'id=&amp;lt;id&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By name: 'name=&amp;lt;name&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By css selector: 'css=#&amp;lt;id&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By link text selector: 'link=#&amp;lt;linktext&amp;gt;'&lt;/li&gt;
+	 * &lt;li&gt;By xpath selector: 'div[@id=&amp;lt;id&amp;gt;]'&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 * Just like SeleniumIDE, attribute name is parsed from selector when element locator is followed by an @ sign and then the name of the attribute. For Example:
+	 * &lt;ul&gt;
+	 * &lt;li&gt;'id=&amp;lt;id&amp;gt;@&amp;lt;attributeName&amp;gt;'&lt;/li&gt;
+	 * &lt;/ul&gt;
+	 *
+	 * @param locator to be parsed
+	 * @return parsedLocator instance of {@link Triple}, containing {@link By} selector, attribute name and value to check
+	 */
+	private WebElementContext parse(String locator) {
+<span class="fc" id="L115">		String selector = this.fitnesseMarkup.clean(locator);</span>
+<span class="fc" id="L116">		String valueToCheck = StringUtils.substringAfterLast(locator, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);</span>
+<span class="fc" id="L117">		String attribute = StringUtils.substringBeforeLast(StringUtils.substringAfterLast(selector, FitnesseMarkup.SELECTOR_ATTRIBUTE_SEPARATOR), FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);</span>
+<span class="fc" id="L118">		boolean emptyAttribute = true;</span>
+<span class="fc bfc" id="L119" title="All 4 branches covered.">		if (emptyAttribute = !StringUtils.isAlphanumeric(attribute)) {</span>
+<span class="fc" id="L120">			attribute = null;</span>
+		}
+<span class="fc" id="L122">		By by = parseBy(selector, emptyAttribute);</span>
+<span class="fc" id="L123">		WebElementContext context = new WebElementContext();</span>
+<span class="fc" id="L124">		context.setLocator(by);</span>
+<span class="fc" id="L125">		context.setAttribute(attribute);</span>
+<span class="fc" id="L126">		context.setExpectedValue(valueToCheck);</span>
+<span class="fc" id="L127">		return context;</span>
+	}
+
+	private By parseBy(String selector, boolean emptyAttribute) {
+<span class="fc bfc" id="L131" title="All 2 branches covered.">		String cleanedSelector = StringUtils.substringBeforeLast(selector, emptyAttribute ? FitnesseMarkup.SELECTOR_VALUE_SEPARATOR : FitnesseMarkup.SELECTOR_ATTRIBUTE_SEPARATOR);</span>
+<span class="fc bfc" id="L132" title="All 2 branches covered.">		if (StringUtils.isBlank(cleanedSelector)) {</span>
+<span class="fc" id="L133">			return new ByFocus();</span>
+		}
+<span class="fc" id="L135">		String selectorPrefix = StringUtils.substringBefore(cleanedSelector, WebElementManipulator.SELECTOR_TYPE_SEPARATOR);</span>
+<span class="fc" id="L136">		SelectorType selectorType = EnumUtils.getEnum(SelectorType.class, selectorPrefix);</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">		if (selectorType == null) {</span>
+<span class="fc" id="L138">			selectorType = SelectorType.xpath;</span>
+		}
+		try {
+<span class="fc" id="L141">			return selectorType.byClass.getConstructor(String.class).newInstance(StringUtils.removeStart(cleanedSelector, selectorType + WebElementManipulator.SELECTOR_TYPE_SEPARATOR));</span>
+<span class="nc" id="L142">		} catch (ReflectiveOperationException e) {</span>
+<span class="nc" id="L143">			throw new IllegalStateException(&quot;Unexpected failure instantiating selector: &quot; + selectorPrefix, e);</span>
+		}
+	}
+
+	/**
+	 * {@link By} implementation that returns the currently focused element
+	 */
+<span class="fc" id="L150">	static class ByFocus extends By {</span>
+
+		@Override
+		public List&lt;WebElement&gt; findElements(SearchContext context) {
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">			if (context instanceof WebDriver) {</span>
+<span class="fc" id="L155">				return Arrays.asList(((WebDriver) context).switchTo().activeElement());</span>
+			}
+<span class="nc" id="L157">			return null;</span>
+		}
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

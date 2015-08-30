@@ -1,18 +1,13 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumPluginFeatureFactory,0,39,0,2,0,8,0,4,0,3
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumScriptTable.ShowScreenshotExpectation,3,29,1,1,1,7,1,2,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumScriptTable,21,155,4,6,6,26,5,10,1,9
-fitnesse-selenium-slim,com.github.andreptb.fitnesse,SeleniumFixture,62,344,27,31,25,80,28,28,2,25
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumScriptTable.ShowScreenshotExpectation,12,36,0,2,2,8,0,3,0,2
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumScriptTable,6,197,2,10,2,33,2,14,0,10
+fitnesse-selenium-slim,com.github.andreptb.fitnesse,SeleniumFixture,28,592,14,64,11,124,13,73,0,47
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,FixtureWebDriverProvider,9,108,2,10,1,23,2,8,0,4
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinder.SelectorType,5,83,0,0,0,10,1,3,1,3
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,FitnesseMarkup,2,127,2,6,1,25,2,8,0,6
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinder,34,217,0,10,6,33,1,15,1,10
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.new ExpectedCondition() {...},0,31,0,2,0,6,0,3,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.new Function() {...},2,14,2,2,1,4,2,2,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.new Function() {...},0,9,0,0,0,3,0,2,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.ElementDataExpectedCondition,4,53,1,3,2,9,2,3,1,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.new Function() {...},0,29,0,6,0,6,0,5,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.new Function() {...},0,8,0,0,0,3,0,2,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.new ExpectedCondition() {...},0,32,0,2,0,7,0,3,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions.new Function() {...},0,36,0,2,0,6,0,3,0,2
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,SeleniumElementFinderExpectedConditions,0,85,0,2,0,10,0,9,0,8
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,FitnesseMarkup,2,199,1,9,0,34,1,10,0,6
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebElementManipulator,16,197,2,16,3,39,2,16,0,9
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebElementManipulator.ByFocus,2,17,1,1,1,3,1,2,0,2
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebElementManipulator.SelectorType,5,71,0,0,0,9,1,3,1,3
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebElementContext,0,31,0,0,0,13,0,9,0,9
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,DropdownOptionSelector,0,58,0,0,0,9,0,4,0,4
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,DropdownOptionSelector.OptionSelectorType,9,80,0,0,0,8,2,8,2,8
