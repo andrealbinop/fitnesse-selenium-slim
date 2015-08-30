@@ -198,13 +198,14 @@ public class SeleniumFixture {
 	 * </p>
 	 * To be used along slim check action. Will respect {@link #WAIT_TIMEOUT} before triggering failure. If using selenium table, please ignore this action.
 	 *
+	 * @param expectedUrl that we'll wait for
 	 * @return the current page title
 	 */
-	public String currentUrl(String expectedTitle) {
+	public String currentUrl(String expectedUrl) {
 		if (!browserAvailable()) {
 			return null;
 		}
-		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, expectedTitle, SeleniumFixture.WAIT_TIMEOUT, elementContext -> SeleniumFixture.DRIVER.getCurrentUrl());
+		return this.elementManipulator.manipulate(SeleniumFixture.DRIVER, expectedUrl, SeleniumFixture.WAIT_TIMEOUT, elementContext -> SeleniumFixture.DRIVER.getCurrentUrl());
 	}
 
 	/**
@@ -306,7 +307,7 @@ public class SeleniumFixture {
 	 * | window size |
 	 * </code>
 	 * </p>
-	 * 
+	 *
 	 * @return windows size, in [width]x[height] format
 	 */
 	public String windowSize() {
@@ -339,6 +340,7 @@ public class SeleniumFixture {
 	 * </p>
 	 * To be used along slim check action. Will respect {@link #WAIT_TIMEOUT} before triggering failure. If using selenium table, please ignore this action.
 	 *
+	 * @param expectedTitle that we'll wait for
 	 * @return the current page title
 	 */
 	public String title(String expectedTitle) {
@@ -579,7 +581,6 @@ public class SeleniumFixture {
 	 * <li><b>index</b>: Gets option index (option number, starting at 0) for selected option in the specified select element.</li>
 	 * </ul>
 	 *
-	 * @param optionLocator option locator to be used for select action
 	 * @param optionType can be label, value or index
 	 * @return result Boolean result indication of assertion/operation
 	 */
@@ -601,7 +602,7 @@ public class SeleniumFixture {
 	 * </ul>
 	 *
 	 * @param optionType can be label, value or index
-	 * @param optionLocator option locator to be used for select action
+	 * @param locator an element locator
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public String selectedIn(String optionType, String locator) {

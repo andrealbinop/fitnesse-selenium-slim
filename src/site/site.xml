@@ -1,8 +1,8 @@
   <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/DECORATION/1.6.0" xsi:schemaLocation="http://maven.apache.org/DECORATION/1.6.0 http://maven.apache.org/xsd/decoration-1.6.0.xsd">
     <body>
-      <menu name="Overview">
+      <links>
         <item name="README.md" href="https://github.com/andreptb/fitnesse-selenium-slim/blob/master/README.md" />
-      </menu>
+      </links>
       <menu name="Reports">
         <item name="Javadoc" href="apidocs/index.html" />
         <item name="Dependencies" href="dependencies.html" />

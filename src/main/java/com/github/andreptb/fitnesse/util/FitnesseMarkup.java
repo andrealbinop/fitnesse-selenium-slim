@@ -65,7 +65,7 @@ public class FitnesseMarkup {
 	 */
 	private static final String KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP = "!-<span keycode=\"{1}\">$'{'{0}'}'</span>-!";
 	/**
-	 * Constant representing the value separator in selector [selector]@[atributte]->[value]
+	 * Constant representing the value separator in selector [selector]@[atributte]-&gt;[value]
 	 */
 	public static final String SELECTOR_VALUE_SEPARATOR = "->";
 	/**
@@ -138,9 +138,9 @@ public class FitnesseMarkup {
 	 * Usually used by fixtures that wants to return a image link for the test result.s
 	 *
 	 * @param img File containing the image
-	 * @param testPage
+	 * @param testPage containing path information to save the screenshot and generate the link
 	 * @return Image link
-	 * @throws IOException
+	 * @throws IOException if file can't be copied to {@link #FITNESSE_TESTRESULTS_DIR}
 	 */
 	public String imgLink(Object img, TestPage testPage) throws IOException {
 		File src = FileUtils.getFile(clean(img));

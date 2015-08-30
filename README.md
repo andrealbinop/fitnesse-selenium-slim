@@ -49,7 +49,7 @@ This plugin provides a screenshot feature, showing the screenshot preview (and l
 
 #### Wait behavior
 
-Every action that searches for elements within the page (**text**, **value**, **selecte**, **selected**, **click**, **attribute**, **present** and **not present**) will try to find the element until specified timeout configuration is reached. You can change the timeout configuration with the following:
+Every actions that involves searching for elements within the page will respsect the specified timeout configuration before failing. You can change the timeout configuration with the following:
 
 ```
 | selenium |

@@ -49,7 +49,6 @@ public class WebElementManipulator {
 		}
 	}
 
-
 	public <T> T manipulateInputable(WebDriver driver, String locator, int timeoutInSeconds, Function<WebElementContext, T> callback) {
 		return manipulate(driver, locator, timeoutInSeconds, context -> {
 			WebElement element = context.getElement();

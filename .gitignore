@@ -18,3 +18,4 @@ fitnesse/FitNesseRoot/updateDoNotCopyOverList
 fitnesse/FitNesseRoot/updateList
 *.log
 src/deploy/private.key
+src/deploy/.creds
