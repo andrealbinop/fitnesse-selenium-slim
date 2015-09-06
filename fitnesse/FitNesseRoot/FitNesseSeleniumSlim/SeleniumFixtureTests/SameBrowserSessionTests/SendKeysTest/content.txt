@@ -1,10 +1,8 @@
 | selenium |
 | open | http://www.roboform.com/filling-test-all-fields |
-| show | screenshot |
 | send keys | mytitle${KEY_TAB} | in | name=01___title |
 | check | value | name=01___title | mytitle |
 | send keys | myname |
 | check | value | name=02frstname | myname |
 | send keys | ${KEY_HOME}preppended |
 | check | value | name=02frstname | preppendedmyname |
-| show | screenshot |

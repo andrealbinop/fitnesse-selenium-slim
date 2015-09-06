@@ -1,0 +1,14 @@
+Besides testing input file upload, this test also covers javascript running with "run script action".
+
+| scenario | set input file visibility | visibility |
+| run script | document.querySelector("span[flow-btn] input[type='file']").style.visibility = "@visibility"; |
+
+| selenium |
+| open | http://flowjs.github.io/ng-flow/ |
+| set input file visibility | visible |
+| ensure | type | fitnesse/plugins.properties | in | css=span[flow-btn] input[type='file'] |
+| set input file visibility | hidden |
+| run script | window.scrollTo(0,document.body.scrollHeight); |
+| check | text | css=div.transfer-box | =~/^plugins.properties.+/ |
+| check | attribute | aria-valuenow | in | css=div.transfer-box .progress-bar | 100 |
+| show | screenshot |

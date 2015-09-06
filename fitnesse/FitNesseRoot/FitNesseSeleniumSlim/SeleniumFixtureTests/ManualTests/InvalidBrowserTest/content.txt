@@ -1,0 +1,4 @@
+| selenium |
+| note | since test should throw an exception, must be tested manually |
+| start browser | invalid browser |
+| reject | browser available |

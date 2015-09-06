@@ -5,6 +5,6 @@
 | check | title | Google |
 | ensure | select window | https://saucelabs.com/login |
 | check | text | css=#login-section h1 | Welcome back. |
-| ensure | close |
+| ensure | close browser tab |
 | select window | =~/https://www.google.com.+/ |
 | ensure | present | id=lst-ib |

@@ -1,0 +1,39 @@
+!define WAIT_TIMEOUT {5}
+
+Since all actions should fail, this test must be ran manually. Besides each command should take at least ${WAIT_TIMEOUT} seconds to complete, not desirable for CI.
+
+The expected result of this test is the following:
+- ensure that each actions tries ${WAIT_TIMEOUT} seconds to complete before failing
+- ensure that check failures show the difference of expected and obtained values.
+- ensure that inputing elements throws the exception indicating the element to input was not found.
+
+| selenium |
+| start browser | ${BROWSER} | with | name='fitnesse-selenium-slim-tests' browserName='firefox' |
+| open | http://www.roboform.com/filling-test-custom-fields |
+| set wait timeout | ${WAIT_TIMEOUT} |
+| check | current window | invalidWindowId |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| check | title | invalidTitle |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| check | current url | http://invalidUrl |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| ensure | type | some text | in | name=invalidField |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| ensure | send keys | some text | in | name=invalidField |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| type | some text | in | name=field1 |
+| check not | value | name=field1 | some text |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| check | text | css=h1.mcs | invalid text |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| check | text | id=invalidField | whatever text |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| reject | present | name=01___title |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| ensure | select | index=1 | in | id=invalidField |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| check | selected | index | in | id=invalidField | 1 |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| check | selected | index | in | name=ttl_select | 10 |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| quit browser |

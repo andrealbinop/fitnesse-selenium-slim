@@ -1,16 +1,19 @@
 | selenium |
 | note | since the browser is not started, none of the commands below should work |
-| reject | open | http://google.com |
-| reject | open window | http://google.com |
-| reject | select window | http://google.com |
+| reject | open | http://www.roboform.com/filling-test-custom-fields |
+| reject | browser available |
+| reject | open window | http://www.roboform.com/filling-test-custom-fields |
+| reject | select window | http://www.roboform.com/filling-test-custom-fields |
 | check | current window | null |
 | check | title | null |
 | check | current url | null |
-| reject | close |
+| reject | close browser tab |
 | reject | type | some text |
 | reject | send keys | some text |
 | reject | click |
-| check | value | id=lst-ib | null |
-| check | text | id=lst-ib | null |
+| check | value | name=01___title | null |
+| check | text | name=01___title | null |
 | check | screenshot | null |
-| reject | present | id=lst-ib |
+| reject | present | name=01___title |
+| reject | select | index=1 | in | name=ttl_select |
+| check | selected | index | in | name=ttl_select | null |

@@ -1,9 +1,4 @@
 | selenium |
 | open | http://saucelabs.com/login |
 | ensure | present | id=username |
-| ensure | present | id=username@class |
-| note | should return  false if id=fieldNotOnThePage dont exist |
 | reject | present | id=fieldNotOnThePage |
-| reject | present | id=fieldNotOnThePage@class |
-| note | should return false if id=username@attributeNotOnField dont exist |
-| reject | present | id=username@attributeNotOnField |

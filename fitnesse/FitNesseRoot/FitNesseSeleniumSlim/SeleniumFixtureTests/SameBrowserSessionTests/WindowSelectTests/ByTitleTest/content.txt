@@ -6,6 +6,6 @@
 | note | tests selector with regex |
 | ensure | select window | =~/Sauce Labs.+/ |
 | check | text | css=#login-section h1 | Welcome back. |
-| ensure | close |
+| ensure | close browser tab |
 | select window | Google |
 | ensure | present | id=lst-ib |

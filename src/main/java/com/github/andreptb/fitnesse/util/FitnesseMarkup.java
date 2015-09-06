@@ -12,6 +12,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import fitnesse.ContextConfigurator;
 import fitnesse.FitNesseContext;
@@ -167,5 +168,10 @@ public class FitnesseMarkup {
 	public void registerKeyboardSpecialKey(String keyName, String keyValue) {
 		String generatedKeyName = MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP, StringUtils.upperCase(keyName));
 		System.setProperty(generatedKeyName, MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP, generatedKeyName, keyValue));
+	}
+
+	public Pair<String, String> swapValueToCheck(String stringWithValue, String stringToGetValue) {
+		String expectedValue = StringUtils.substringAfterLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);
+		return Pair.of(StringUtils.substringBeforeLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR), stringToGetValue + FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + expectedValue);
 	}
 }

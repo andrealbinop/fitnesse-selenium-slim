@@ -1,18 +1,18 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 env:
   global:
-    - secure: lk5sOGWmEGWHerSPY5QGjZPPTcNo3HokKpmiue7nAfgmwp2l/jvYQuvTCV639KcxegTzDfFR7nIheaw+tqHjudePnP4Py0yWEPduVZUI5Vbs6awyt8t7JcwTaWLQILTpSzjc4iXR6cTi/h+DUEjYRgxSbhPKk4IlBeRQ3FvTIAXoegZoTLjmBGR8b/Azs7DzU3fAntZnOK8PKRFj6U4ZsUJg6ESKLs0gPFMfgK7Q6STQ4T1qC1tlfCb2ToflILb2mcccwIGDtDSWQksnL4FS9EXTi0RaJ/DkWP1bctsvW9ACrvG0mjzZLSO0yQ5tua/Q0WgClU1C0bXikFOSPLBEP8Lec7Abhnd1P0xMEN/9lQ3JEj822eZayrqGpuxNPvGW5Mi6NESZyx4AJPNwwIAGwYibAV01bQj0dZLlvY8AcdbesYaQGf+opTaK0E6OoTxlzVverWDj/+O+OO4b0JvL+6GeP0ohhQkKhobW5Bh3gVbbLPX/VsIPoV66jAhFqLXA3h9OHILedorfh6UvkssOOzn/IuOJPKm0AhRnLSslNBTrvARDCOriz3wCs8DHF6IfCL9FILabkf3kqoVW8JbJ64PrPkGPxQoqxOF5jSDssjH7Fn6bCSX8yXluwt1cCUL42V8pLKng/1kHOOFSvVe57mcJM7jOQkdcZ5p9ediVYZ8=
-    - M2_REPO: ~/.m2 
-    - PARENT_POM_VERSION: 0.4.1
+  - M2_REPO: "~/.m2"
+  - PARENT_POM_VERSION: 0.5.0
+  - secure: M6R3YjHqMzdayjhLH/7rtbEoh1HNab53DmDZ536Ii+84wG/Xe/qxFcos+BkfHJweEx+3AnC6hZW8zli/65pX4XPQ2CvVzk6RF2veYWNqOtnCj6M/WICY6thRz3C+HFb2/mCsPu3bBxRt62qUt4YlGHXhpFasPNQFu7/LAgrht3cUbhzNJ5Zv9AjjWVOqHA/31onvqYEDiySDxuN6N1ArB01pev3lRpqJtUl94hScoGNABTLo66Fp2MerGyo6m5PyGi0AcFLVTqxHPakI5pkQFiOJCMS/LkU7LctRHR64c5fCvn95x4Dr/4HEEC2FNY7Ztt6mf53BXjbSm06t9FxddsrrMd3QMRLqXHyha10BVb9Kt15/Wy7uxMtM0FnTtXaRYYPZC/3S5NV9FqvtjEv68+FVSkS0Rwmu1UrruG09dIsszIeYlJWQagbA5VDL31DS5DVahsBGi0bFTXlEh1jgTIT0YKXcsWwzUy7u6vlPDFrc0zJAa8DBnZ1L1RIhggc+SR0uTlb7q94F6WoI1Cr+Z2HQD3hmB9UpMgq7+IgjANklu+m83+XeDjmJJKY/SfrXOsgiwYfl8SOHBpkNTawlo6pniFCQatP+C5BFhkznPHBZjSzMU6NBYJmXUpHh1bwdUv22t4rJQCVvlgn4i/9ctcweZk5hU36w6O4DxxEpXIU=
 
 before_install:
-  - openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv -in src/deploy/private.key.enc -out src/deploy/private.key -d
-  - gpg --import src/deploy/private.key && gpg --import src/deploy/public.key
-  - mvn dependency:get -Dartifact=com.github.andreptb:andreptb-component-parent:$PARENT_POM_VERSION:xml:mvn-settings
-  - cp $M2_REPO/repository/com/github/andreptb/andreptb-component-parent/$PARENT_POM_VERSION/andreptb-component-parent-$PARENT_POM_VERSION-mvn-settings.xml $M2_REPO/settings.xml
+- openssl aes-256-cbc -K $encrypted_46b0bb06b333_key -iv $encrypted_46b0bb06b333_iv -in src/deploy/private.key.enc -out src/deploy/private.key -d
+- gpg --import src/deploy/private.key && gpg --import src/deploy/public.key
+- mvn dependency:get -Dartifact=com.github.andreptb:andreptb-component-parent:$PARENT_POM_VERSION:xml:mvn-settings
+- cp $M2_REPO/repository/com/github/andreptb/andreptb-component-parent/$PARENT_POM_VERSION/andreptb-component-parent-$PARENT_POM_VERSION-mvn-settings.xml $M2_REPO/settings.xml
 install:
-  - mvn dependency:resolve dependency:resolve-plugins
+- mvn dependency:resolve dependency:resolve-plugins
 script:
-  - mvn deploy site-deploy
+- mvn deploy site-deploy

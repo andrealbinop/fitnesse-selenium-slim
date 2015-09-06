@@ -1,0 +1,25 @@
+Xebium tests disabled for ci, enable when running locally.
+
+|import|
+| note | com.xebia.incubator.xebium|
+
+|library|
+|jdbc fixture|
+
+
+| scenario | do jdbc stuff |
+| connect jdbc on | db | with url | jdbc:hsqldb:mem:testdb | and driver | org.hsqldb.jdbcDriver | and username | sa | and password | sa |
+| run in | db | the sql | CREATE TABLE USER (ID BIGINT IDENTITY, NAME VARCHAR(255) NOT NULL, PASSWORD VARCHAR(255) NOT NULL) |
+
+| scenario | do xebium stuff |
+| start browser | firefox | on url | http://www.google.com/ |
+| ensure | do | open | on | / |
+| ensure | do | type | on | id=lst-ib | with | Xebium |
+| ensure | do | click | on | name=btnG |
+| stop browser |
+
+| selenium |
+| open | http://www.roboform.com/filling-test-all-fields |
+| send keys | mytitle${KEY_TAB} | in | name=01___title |
+| do jdbc stuff |
+| note | do xebium stuff |
