@@ -12,6 +12,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.tuple.Pair;
 
 import fitnesse.ContextConfigurator;
 import fitnesse.FitNesseContext;
@@ -20,7 +21,7 @@ import fitnesse.testsystems.TestPage;
 /**
  * General utilities to process FitNesse markup syntax so can be used by Selenium Fixture
  */
-<span class="fc" id="L23">public class FitnesseMarkup {</span>
+<span class="fc" id="L24">public class FitnesseMarkup {</span>
 
 	/**
 	 * Constant of FitnesseRoot files dir (relative path)
@@ -53,7 +54,7 @@ import fitnesse.testsystems.TestPage;
 	/**
 	 * @see #compare(Object, Object)
 	 */
-<span class="fc" id="L56">	private static final Pattern FITNESSE_REGEX_MARKUP_PATTERN = Pattern.compile(&quot;^=~/(.+)/&quot;);</span>
+<span class="fc" id="L57">	private static final Pattern FITNESSE_REGEX_MARKUP_PATTERN = Pattern.compile(&quot;^=~/(.+)/&quot;);</span>
 
 	/**
 	 * Constant used to register selenium special keys as system properties
@@ -75,7 +76,7 @@ import fitnesse.testsystems.TestPage;
 	/**
 	 * Constants representing selector separators [selector]@[atributte]$[value]
 	 */
-<span class="fc" id="L78">	public static final String SELECTOR_ATTRIBUTE_SEPARATOR = &quot;@&quot;;</span>
+	public static final String SELECTOR_ATTRIBUTE_SEPARATOR = &quot;@&quot;;
 
 	/**
 	 * Compares two values emulating FitNesse comparisons:
@@ -89,18 +90,18 @@ import fitnesse.testsystems.TestPage;
 	 * @return comparisonResult
 	 */
 	public boolean compare(Object expected, Object obtained) {
-<span class="fc" id="L92">		String cleanedExpected = clean(expected);</span>
-<span class="fc" id="L93">		String cleanedObtained = clean(obtained);</span>
-<span class="fc" id="L94">		boolean not = StringUtils.startsWith(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
-<span class="fc" id="L95">		cleanedExpected = StringUtils.stripStart(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
-<span class="fc" id="L96">		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP_PATTERN.matcher(cleanedExpected);</span>
-<span class="fc" id="L97">		boolean result = false;</span>
-<span class="fc bfc" id="L98" title="All 2 branches covered.">		if (matcher.matches()) {</span>
-<span class="fc" id="L99">			result = cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));</span>
-<span class="fc" id="L100">		} else {</span>
-<span class="fc" id="L101">			result = StringUtils.equals(cleanedExpected, cleanedObtained);</span>
+<span class="fc" id="L93">		String cleanedExpected = clean(expected);</span>
+<span class="fc" id="L94">		String cleanedObtained = clean(obtained);</span>
+<span class="fc" id="L95">		boolean not = StringUtils.startsWith(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
+<span class="fc" id="L96">		cleanedExpected = StringUtils.stripStart(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
+<span class="fc" id="L97">		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP_PATTERN.matcher(cleanedExpected);</span>
+<span class="fc" id="L98">		boolean result = false;</span>
+<span class="fc bfc" id="L99" title="All 2 branches covered.">		if (matcher.matches()) {</span>
+<span class="fc" id="L100">			result = cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));</span>
+		} else {
+<span class="fc" id="L102">			result = StringUtils.equals(cleanedExpected, cleanedObtained);</span>
 		}
-<span class="pc bpc" id="L103" title="1 of 4 branches missed.">		return not ? !result : result;</span>
+<span class="pc bpc" id="L104" title="1 of 4 branches missed.">		return not ? !result : result;</span>
 	}
 
 	/**
@@ -117,20 +118,20 @@ import fitnesse.testsystems.TestPage;
 	 */
 	public String clean(Object symbol) {
 		// strips whitespace and accidental &quot;null&quot; string representation of null value
-<span class="fc" id="L120">		String strippedSymbol = StringUtils.remove(StringUtils.strip(ObjectUtils.toString(symbol)), &quot;null&quot;);</span>
-<span class="fc bfc" id="L121" title="All 2 branches covered.">		if (StringUtils.isBlank(strippedSymbol)) {</span>
-<span class="fc" id="L122">			return strippedSymbol;</span>
+<span class="fc" id="L121">		String strippedSymbol = StringUtils.remove(StringUtils.strip(ObjectUtils.toString(symbol)), &quot;null&quot;);</span>
+<span class="fc bfc" id="L122" title="All 2 branches covered.">		if (StringUtils.isBlank(strippedSymbol)) {</span>
+<span class="fc" id="L123">			return strippedSymbol;</span>
 		}
 		// transforms keyboard special keys markup
-<span class="fc" id="L125">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span keycode=\&quot;([^\&quot;]+)\&quot;[^/]+/span&gt;&quot;, &quot;$1&quot;);</span>
+<span class="fc" id="L126">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span keycode=\&quot;([^\&quot;]+)\&quot;[^/]+/span&gt;&quot;, &quot;$1&quot;);</span>
 		// removes undefined variable references
-<span class="fc" id="L127">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L128">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
 		// removes create wikipage markup
-<span class="fc" id="L129">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;a[^&gt;]+&gt;\\[\\?\\]&lt;/a&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L130">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;a[^&gt;]+&gt;\\[\\?\\]&lt;/a&gt;&quot;, StringUtils.EMPTY);</span>
 		// removes undefined variable references
-<span class="fc" id="L131">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L132">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
 		// removes html tags
-<span class="fc" id="L133">		return strippedSymbol.replaceAll(&quot;&lt;/?.[^&gt;]+&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L134">		return strippedSymbol.replaceAll(&quot;&lt;/?.[^&gt;]+&gt;&quot;, StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -143,16 +144,16 @@ import fitnesse.testsystems.TestPage;
 	 * @throws IOException if file can't be copied to {@link #FITNESSE_TESTRESULTS_DIR}
 	 */
 	public String imgLink(Object img, TestPage testPage) throws IOException {
-<span class="fc" id="L146">		File src = FileUtils.getFile(clean(img));</span>
-<span class="fc bfc" id="L147" title="All 2 branches covered.">		if (!src.exists()) {</span>
-<span class="fc" id="L148">			return null;</span>
+<span class="fc" id="L147">		File src = FileUtils.getFile(clean(img));</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">		if (!src.exists()) {</span>
+<span class="nc" id="L149">			return null;</span>
 		}
-<span class="fc" id="L150">		String rootPath = FilenameUtils.concat(testPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH_VARIABLE), testPage.getVariable(ContextConfigurator.DEFAULT_ROOT));</span>
-<span class="fc" id="L151">		String runningPage = testPage.getVariable(FitnesseMarkup.PAGE_PATH_VARIABLE) + &quot;.&quot; + testPage.getVariable(FitnesseMarkup.PAGE_NAME_VARIABLE);</span>
-<span class="fc" id="L152">		String destFilename = FilenameUtils.concat(runningPage, FilenameUtils.concat(FitnesseMarkup.SCREENSHOT_DIR, src.getName()));</span>
-<span class="fc" id="L153">		File dest = FileUtils.getFile(rootPath, FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, destFilename);</span>
-<span class="fc" id="L154">		FileUtils.moveFile(src, dest);</span>
-<span class="fc" id="L155">		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, testPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT_VARIABLE), FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, FilenameUtils.normalize(destFilename, true));</span>
+<span class="fc" id="L151">		String rootPath = FilenameUtils.concat(testPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH_VARIABLE), testPage.getVariable(ContextConfigurator.DEFAULT_ROOT));</span>
+<span class="fc" id="L152">		String runningPage = testPage.getVariable(FitnesseMarkup.PAGE_PATH_VARIABLE) + &quot;.&quot; + testPage.getVariable(FitnesseMarkup.PAGE_NAME_VARIABLE);</span>
+<span class="fc" id="L153">		String destFilename = FilenameUtils.concat(runningPage, FilenameUtils.concat(FitnesseMarkup.SCREENSHOT_DIR, src.getName()));</span>
+<span class="fc" id="L154">		File dest = FileUtils.getFile(rootPath, FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, destFilename);</span>
+<span class="fc" id="L155">		FileUtils.moveFile(src, dest);</span>
+<span class="fc" id="L156">		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, testPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT_VARIABLE), FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, FilenameUtils.normalize(destFilename, true));</span>
 	}
 
 	/**
@@ -165,8 +166,13 @@ import fitnesse.testsystems.TestPage;
 	 * @param keyValue Special keyboard key value
 	 */
 	public void registerKeyboardSpecialKey(String keyName, String keyValue) {
-<span class="fc" id="L168">		String generatedKeyName = MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP, StringUtils.upperCase(keyName));</span>
-<span class="fc" id="L169">		System.setProperty(generatedKeyName, MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP, generatedKeyName, keyValue));</span>
-<span class="fc" id="L170">	}</span>
+<span class="fc" id="L169">		String generatedKeyName = MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP, StringUtils.upperCase(keyName));</span>
+<span class="fc" id="L170">		System.setProperty(generatedKeyName, MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP, generatedKeyName, keyValue));</span>
+<span class="fc" id="L171">	}</span>
+
+	public Pair&lt;String, String&gt; swapValueToCheck(String stringWithValue, String stringToGetValue) {
+<span class="fc" id="L174">		String expectedValue = StringUtils.substringAfterLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);</span>
+<span class="fc" id="L175">		return Pair.of(StringUtils.substringBeforeLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR), stringToGetValue + FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + expectedValue);</span>
+	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

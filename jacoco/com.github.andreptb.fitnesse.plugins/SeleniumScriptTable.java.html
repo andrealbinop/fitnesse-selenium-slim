@@ -163,8 +163,8 @@ public class SeleniumScriptTable extends ScriptTable {
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
 			try {
 <span class="fc" id="L165">				String imgLink = SeleniumScriptTable.this.fitnesseMarkup.imgLink(actual, getTestContext().getPageToTest());</span>
-<span class="fc bfc" id="L166" title="All 2 branches covered.">				if (StringUtils.isBlank(imgLink)) {</span>
-<span class="fc" id="L167">					return SlimTestResult.fail(&quot;failed to generate screenshot preview&quot;);</span>
+<span class="pc bpc" id="L166" title="1 of 2 branches missed.">				if (StringUtils.isBlank(imgLink)) {</span>
+<span class="nc" id="L167">					return SlimTestResult.fail(&quot;failed to generate screenshot preview&quot;);</span>
 				}
 <span class="fc" id="L169">				SeleniumScriptTable.this.table.substitute(getCol(), getRow(), imgLink);</span>
 <span class="fc" id="L170">				return SlimTestResult.plain();</span>

@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SelectWebElementHelper.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.selenium</a> &gt; <span class="el_source">SelectWebElementHelper.java</span></div><h1>SelectWebElementHelper.java</h1><pre class="source lang-java linenums">
+package com.github.andreptb.fitnesse.selenium;
+
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang3.EnumUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.openqa.selenium.support.ui.Select;
+
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+
+/**
+ * Utility class designed to wrap infrastructure code necessary to operate with selenium {@link Select} API.
+ */
+<span class="fc" id="L19">public class SelectWebElementHelper {</span>
+
+	/**
+	 * HTML input value attribute constant
+	 */
+	private static final String INPUT_VALUE_ATTRIBUTE = &quot;value&quot;;
+	/**
+	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
+	 */
+<span class="fc" id="L28">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+
+	/**
+	 * enum mapping option locator identifier.
+	 */
+<span class="pc" id="L33">	private enum OptionSelectorType {</span>
+		/**
+		 * Label selector, will look for the text of the option element
+		 */
+<span class="fc" id="L37">		label((select, value) -&gt; select.selectByVisibleText(value), select -&gt; select.getFirstSelectedOption().getText()),</span>
+		/**
+		 * Value selector, will look for the value attribute of the option element
+		 */
+<span class="pc" id="L41">		value((select, value) -&gt; select.selectByValue(value), select -&gt; select.getFirstSelectedOption().getAttribute(SelectWebElementHelper.INPUT_VALUE_ATTRIBUTE)),</span>
+		/**
+		 * Value selector, will look for the index of the desired option element
+		 */
+<span class="fc" id="L45">		index((select, value) -&gt; select.selectByIndex(NumberUtils.toInt(value)), select -&gt; select.getOptions().indexOf(select.getFirstSelectedOption()));</span>
+
+		/**
+		 * Function that selects a value in a {@link Select} element
+		 */
+		private BiConsumer&lt;Select, String&gt; selector;
+		/**
+		 * Function that retrieves a value from a {@link Select} element
+		 */
+		private Function&lt;Select, Object&gt; retriever;
+
+<span class="fc" id="L56">		private OptionSelectorType(BiConsumer&lt;Select, String&gt; selector, Function&lt;Select, Object&gt; retriever) {</span>
+<span class="fc" id="L57">			this.selector = selector;</span>
+<span class="fc" id="L58">			this.retriever = retriever;</span>
+<span class="fc" id="L59">		}</span>
+	}
+
+	/**
+	 * Selects a option of a select element.
+	 *
+	 * @param driverHelper API that will be used for selenium task execution
+	 * @param optionLocator expected to be [type]=value, see {@link OptionSelectorType} for possible types.
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
+<span class="fc" id="L71">		String cleanedOptionLocator = this.fitnesseMarkup.clean(optionLocator);</span>
+<span class="fc" id="L72">		OptionSelectorType option = parseOptionType(cleanedOptionLocator);</span>
+<span class="fc" id="L73">		return driverHelper.whenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L74">			option.selector.accept(new Select(driver.findElement(parsedLocator.getBy())), StringUtils.removeStart(cleanedOptionLocator, option + SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR));</span>
+<span class="fc" id="L75">		});</span>
+	}
+
+	/**
+	 * Retrieves information from the current selected value in a select element.
+	 *
+	 * @param driverHelper API that will be used for selenium task execution
+	 * @param optionType see {@link OptionSelectorType} for possible types.
+	 * @param locator an element locator
+	 * @return the information from the current selected element
+	 */
+	public String selected(WebDriverHelper driverHelper, String optionType, String locator) {
+		// value injection fix
+<span class="fc" id="L88">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionType, locator);</span>
+<span class="fc" id="L89">		OptionSelectorType option = parseOptionType(this.fitnesseMarkup.clean(optionTypeAndLocatorWithExpectedValue.getLeft()));</span>
+<span class="fc" id="L90">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getRight(), (driver, parsedLocator) -&gt; this.fitnesseMarkup.clean(option.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));</span>
+	}
+
+	private OptionSelectorType parseOptionType(String optionType) {
+<span class="fc" id="L94">		return Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, StringUtils.substringBefore(optionType, SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR))).orElse(OptionSelectorType.label);</span>
+	}
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
