@@ -29,7 +29,7 @@ import fitnesse.testsystems.slim.tables.SlimAssertion;
 import fitnesse.testsystems.slim.tables.SlimExpectation;
 
 /**
- * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and such
+ * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and provide extra information to the fixture, allowing wait behavior for check and ensure actions
  */
 public class SeleniumScriptTable extends ScriptTable {
 
@@ -50,6 +50,7 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * SeleniumFixture screenshot action
 	 */
 	private static final String SCREENSHOT_FIXTURE_ACTION = "screenshot";
+
 	/**
 	 * Fixture package to auto-import package
 	 */
@@ -158,7 +159,6 @@ public class SeleniumScriptTable extends ScriptTable {
 		 * @param expected Not used
 		 * @return testResult Always SlimTestResult#plain()
 		 */
-
 		@Override
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
 			try {

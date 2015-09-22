@@ -1,24 +1,23 @@
 
 package com.github.andreptb.fitnesse;
 
-import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Iterator;
 import java.util.Objects;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.Dimension;
+import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebElement;
 
@@ -87,10 +86,10 @@ public class SeleniumFixture {
 	 * @see #startBrowserWith(String, String)
 	 * @param browser The browser to be used
 	 * @return result Boolean result indication of assertion/operation
-	 * @throws MalformedURLException if the remote driver has a malformed URL
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
+	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
-	public boolean startBrowser(String browser) throws ReflectiveOperationException, MalformedURLException {
+	public boolean startBrowser(String browser) throws ReflectiveOperationException, IOException {
 		return startBrowserWith(browser, null);
 	}
 
@@ -109,11 +108,55 @@ public class SeleniumFixture {
 	 * @param browser The browser to be used
 	 * @param capabilities Usually used to configure remote driver, but some local driver also uses. For example: name='some test' platform='LINUX' version='xx'
 	 * @return result Boolean result indication of assertion/operation
-	 * @throws MalformedURLException if the remote driver has a malformed URL
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
+	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
-	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, MalformedURLException {
-		return SeleniumFixture.WEB_DRIVER.connect(browser, capabilities);
+	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, IOException {
+		return startBrowserWithAndPreferences(browser, capabilities, null);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | start browser | <i>browser</i> | with preferences | <i>browser preferences</i> |
+	 * </code>
+	 * </p>
+	 * Registers the DRIVER to further execute selenium commands. Preferences should be informed in the following format:
+	 * <p>
+	 * name='some test' platform='LINUX' version='xx'
+	 * </p>
+	 * This format was used instead of regular json format since FitNesse uses brackets for variables. Quotes between values must be used
+	 *
+	 * @param browser The browser to be used
+	 * @param browserPreferences Allows profile configuration for some browser. At this moment supports Chrome and Firefox drivers (local and remote)
+	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
+	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
+	 */
+	public boolean startBrowserWithPreferences(String browser, String browserPreferences) throws ReflectiveOperationException, IOException {
+		return startBrowserWithAndPreferences(browser, null, browserPreferences);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | start browser | <i>browser</i> | with | <i>capabilities</i> | and preferences | <i>browser preferences</i> |
+	 * </code>
+	 * </p>
+	 * Registers the DRIVER to further execute selenium commands. Capabilities as well as browser preferences should be informed in the following format:
+	 * <p>
+	 * key1='value1' key2='value2' key3='value3'
+	 * </p>
+	 * This format was used instead of regular json format since FitNesse uses brackets for variables. Quotes between values must be used
+	 *
+	 * @param browser The browser to be used
+	 * @param capabilities Usually used to configure remote driver, but some local driver also uses. For example: name='some test' platform='LINUX' version='xx'
+	 * @param browserPreferences Allows profile configuration for some browser. At this moment supports Chrome and Firefox drivers (local and remote)
+	 * @return result Boolean result indication of assertion/operation
+	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
+	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
+	 */
+	public boolean startBrowserWithAndPreferences(String browser, String capabilities, String browserPreferences) throws ReflectiveOperationException, IOException {
+		return SeleniumFixture.WEB_DRIVER.connect(browser, capabilities, browserPreferences);
 	}
 
 	/**
@@ -124,7 +167,7 @@ public class SeleniumFixture {
 	 * </p>
 	 * Returns if browser is available and can be used
 	 *
-	 * @return browserStarted
+	 * @return if browser is available to receive commands
 	 */
 	public boolean browserAvailable() {
 		return SeleniumFixture.WEB_DRIVER.isBrowserAvailable();
@@ -187,7 +230,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-		return SeleniumFixture.WEB_DRIVER.whenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
 			driver.get(this.fitnesseMarkup.clean(url));
 			return true;
 		});
@@ -234,7 +277,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean openWindow(String url) {
-		return SeleniumFixture.WEB_DRIVER.whenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
 			if (CollectionUtils.isEmpty(driver.getWindowHandles())) {
 				return open(url);
 			}
@@ -259,7 +302,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectWindow(String locator) {
-		return SeleniumFixture.WEB_DRIVER.whenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
 			String currentWindow = driver.getWindowHandle();
 			for (String windowId : driver.getWindowHandles()) {
 				WebDriver window = driver.switchTo().window(windowId);
@@ -315,7 +358,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean windowMaximize() {
-		return SeleniumFixture.WEB_DRIVER.whenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
 			driver.manage().window().maximize();
 			return true;
 		});
@@ -377,7 +420,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean closeBrowserTab() {
-		return SeleniumFixture.WEB_DRIVER.whenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
 			driver.close();
 			Iterator<String> currentWindows = driver.getWindowHandles().iterator();
 			if (currentWindows.hasNext()) {
@@ -399,15 +442,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean quitBrowser() {
-		try {
-			SeleniumFixture.WEB_DRIVER.whenAvailable(driver -> {
-				driver.quit();
-				return true;
-			});
-		} catch (WebDriverException e) {
-			// quits quietly
-		}
-		return true;
+		return SeleniumFixture.WEB_DRIVER.quit();
 	}
 
 	/**
@@ -483,9 +518,9 @@ public class SeleniumFixture {
 	}
 
 	private boolean sendKeysIn(String value, String locator, boolean clearBefore) {
-		return SeleniumFixture.WEB_DRIVER.whenAvailable(locator, (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> {
 			WebElement element = driver.findElement(parsedLocator.getBy());
-			String cleanedValue = setupInputIfTypeFile(element, this.fitnesseMarkup.clean(value));
+			String cleanedValue = setupInputIfTypeFile(driver, element, this.fitnesseMarkup.clean(value));
 			if (clearBefore) {
 				element.clear();
 			}
@@ -495,14 +530,24 @@ public class SeleniumFixture {
 		});
 	}
 
-	private String setupInputIfTypeFile(WebElement element, String value) {
+	/**
+	 * When send keys is being executed in a input file=type {@link LocalFileDetector} must be configured for remote drivers. Additionally,
+	 * the file path is expanded to be absolute
+	 *
+	 * @param driver used to run commands
+	 * @param element receiving keys
+	 * @param value to be set to input file type
+	 * @return value expanded to absolute path if for input file type.
+	 */
+	private String setupInputIfTypeFile(WebDriver driver, WebElement element, String value) {
 		if (!StringUtils.equals(element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE), SeleniumFixture.INPUT_TYPE_FILE_VALUE)) {
 			return value;
 		}
-		if (element instanceof RemoteWebElement) {
+		// set file detector for remote web elements. Local FirefoxDriver uses RemoteWebElement and
+		if (element instanceof RemoteWebElement && !ClassUtils.isAssignable(driver.getClass(), FirefoxDriver.class)) {
 			((RemoteWebElement) element).setFileDetector(new LocalFileDetector());
 		}
-		return new File(FilenameUtils.normalize(this.fitnesseMarkup.clean(value))).getAbsolutePath();
+		return this.fitnesseMarkup.cleanFile(value).getAbsolutePath();
 	}
 
 	/**
@@ -531,7 +576,13 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-		return SeleniumFixture.WEB_DRIVER.whenAvailable(locator, (driver, parsedLocator) -> driver.findElement(parsedLocator.getBy()).click());
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> {
+			WebElement element = driver.findElement(parsedLocator.getBy());
+			if (!element.isEnabled()) {
+				throw new InvalidElementStateException("Element found but is disabled: " + element);
+			}
+			element.click();
+		});
 	}
 
 	/**
@@ -732,7 +783,7 @@ public class SeleniumFixture {
 
 	private boolean presentOrAbsent(String locator, boolean ensurePresent) {
 		try {
-			return SeleniumFixture.WEB_DRIVER.whenAvailable(locator, (driver, parsedLocator) -> driver.findElement(parsedLocator.getBy())) ? ensurePresent : !ensurePresent;
+			return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> driver.findElement(parsedLocator.getBy())) ? ensurePresent : !ensurePresent;
 		} catch (NotFoundException e) {
 			return !ensurePresent;
 		}
@@ -759,5 +810,35 @@ public class SeleniumFixture {
 			}
 			return null;
 		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | stop test on first failure | true |
+	 * </code>
+	 * </p>
+	 *
+	 * @param shouldStop If true, the test will stop if a failure occurs in any action
+	 */
+	public void stopTestOnFirstFailure(boolean shouldStop) {
+		SeleniumFixture.WEB_DRIVER.setStopTestOnFirstFailure(shouldStop);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | ensure | file exists | <i>file</i> |
+	 * </code>
+	 * </p>
+	 * Checks if a file exists in the local filesystem. Will respect wait timeout until file is available
+	 * <p>
+	 * <b>Important:</b> If you're using remote browsers such as Selenium Grid or SauceLabs, this action probably won't be useful, unless you have access to the node's remote file system.
+	 * </p>
+	 *
+	 * @return if the informed file exists on the filesystem
+	 */
+	public boolean fileExists(String file) {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> this.fitnesseMarkup.cleanFile(file).exists() ? true : null);
 	}
 }

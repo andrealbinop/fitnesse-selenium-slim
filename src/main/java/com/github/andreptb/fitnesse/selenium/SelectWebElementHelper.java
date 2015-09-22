@@ -70,7 +70,7 @@ public class SelectWebElementHelper {
 	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
 		String cleanedOptionLocator = this.fitnesseMarkup.clean(optionLocator);
 		OptionSelectorType option = parseOptionType(cleanedOptionLocator);
-		return driverHelper.whenAvailable(locator, (driver, parsedLocator) -> {
+		return driverHelper.doWhenAvailable(locator, (driver, parsedLocator) -> {
 			option.selector.accept(new Select(driver.findElement(parsedLocator.getBy())), StringUtils.removeStart(cleanedOptionLocator, option + SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR));
 		});
 	}

@@ -6,9 +6,11 @@ The expected result of this test is the following:
 - ensure that each actions tries ${WAIT_TIMEOUT} seconds to complete before failing
 - ensure that check failures show the difference of expected and obtained values.
 - ensure that inputing elements throws the exception indicating the element to input was not found.
+- optionally test stop test on first failure
 
 | selenium |
-| start browser | ${BROWSER} | with | name='fitnesse-selenium-slim-tests' browserName='firefox' |
+| stop test on first failure | true |
+| start browser | ${BROWSER} | with | ${CAPABILITIES} |
 | open | http://www.roboform.com/filling-test-custom-fields |
 | set wait timeout | ${WAIT_TIMEOUT} |
 | check | current window | invalidWindowId |
@@ -35,5 +37,8 @@ The expected result of this test is the following:
 | check | selected | index | in | id=invalidField | 1 |
 | check | last command duration | ${WAIT_TIMEOUT} |
 | check | selected | index | in | name=ttl_select | 10 |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| run script | document.querySelector("input[type='submit']").disabled = 'disabled'; |
+| ensure | click | css=input[type='submit'] |
 | check | last command duration | ${WAIT_TIMEOUT} |
 | quit browser |

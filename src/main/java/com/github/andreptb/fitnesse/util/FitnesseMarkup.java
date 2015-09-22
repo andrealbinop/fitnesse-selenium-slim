@@ -4,6 +4,7 @@ package com.github.andreptb.fitnesse.util;
 import java.io.File;
 import java.io.IOException;
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -111,6 +112,7 @@ public class FitnesseMarkup {
 	 * <li>Extracts URL only from HTML generated links</li>
 	 * <li>Extracts text from HTML wiki page creation suggestion link</li>
 	 * <li>Strips undefined variable ocurrences on text</li>
+	 * <li>If value is associated with</li>
 	 * </ul>
 	 *
 	 * @param symbol to be cleaned
@@ -138,22 +140,37 @@ public class FitnesseMarkup {
 	 * Creates img markup to be viewed in test page.
 	 * Usually used by fixtures that wants to return a image link for the test result.s
 	 *
+	 * @see #fileAsTestResult(Object, String, TestPage)
 	 * @param img File containing the image
 	 * @param testPage containing path information to save the screenshot and generate the link
 	 * @return Image link
-	 * @throws IOException if file can't be copied to {@link #FITNESSE_TESTRESULTS_DIR}
+	 * @throws IOException if file can't be moved to {@link #FITNESSE_TESTRESULTS_DIR}
 	 */
 	public String imgLink(Object img, TestPage testPage) throws IOException {
-		File src = FileUtils.getFile(clean(img));
+		String dest = fileAsTestResult(img, FitnesseMarkup.SCREENSHOT_DIR, testPage);
+		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, testPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT_VARIABLE), FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, dest);
+	}
+
+	/**
+	 * Moves a file produced from the fixture to the test result dir so test result reports can be organized.
+	 *
+	 * @param file File produced from the fixture
+	 * @param dirInsideTestResult The subdirectory to save the file inside the test result dir
+	 * @param testPage containing path information to move the file
+	 * @return file new path
+	 * @throws IOException if file can't be moved to {@link #FITNESSE_TESTRESULTS_DIR}
+	 */
+	public String fileAsTestResult(Object file, String dirInsideTestResult, TestPage testPage) throws IOException {
+		File src = FileUtils.getFile(clean(file));
 		if (!src.exists()) {
 			return null;
 		}
 		String rootPath = FilenameUtils.concat(testPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH_VARIABLE), testPage.getVariable(ContextConfigurator.DEFAULT_ROOT));
 		String runningPage = testPage.getVariable(FitnesseMarkup.PAGE_PATH_VARIABLE) + "." + testPage.getVariable(FitnesseMarkup.PAGE_NAME_VARIABLE);
-		String destFilename = FilenameUtils.concat(runningPage, FilenameUtils.concat(FitnesseMarkup.SCREENSHOT_DIR, src.getName()));
+		String destFilename = FilenameUtils.concat(runningPage, FilenameUtils.concat(dirInsideTestResult, src.getName()));
 		File dest = FileUtils.getFile(rootPath, FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, destFilename);
 		FileUtils.moveFile(src, dest);
-		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, testPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT_VARIABLE), FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, FilenameUtils.normalize(destFilename, true));
+		return FilenameUtils.normalize(destFilename, true);
 	}
 
 	/**
@@ -173,5 +190,14 @@ public class FitnesseMarkup {
 	public Pair<String, String> swapValueToCheck(String stringWithValue, String stringToGetValue) {
 		String expectedValue = StringUtils.substringAfterLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);
 		return Pair.of(StringUtils.substringBeforeLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR), stringToGetValue + FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + expectedValue);
+	}
+
+	/**
+	 * @param value file path parts
+	 * @return normalized a file path, cleaning each path part and joining with current operating system separator
+	 */
+	public File cleanFile(Object... value) {
+		String[] cleanedValues = Arrays.stream(value).map(valueToClean -> FilenameUtils.normalize(clean(valueToClean))).toArray(size -> new String[value.length]);
+		return FileUtils.getFile(cleanedValues);
 	}
 }
