@@ -29,7 +29,7 @@ import fitnesse.testsystems.slim.tables.SlimAssertion;
 import fitnesse.testsystems.slim.tables.SlimExpectation;
 
 /**
- * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and such
+ * Selenium table, works just like ScriptTable, but adds extra features such as step screenshots and provide extra information to the fixture, allowing wait behavior for check and ensure actions
  */
 public class SeleniumScriptTable extends ScriptTable {
 
@@ -50,6 +50,7 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * SeleniumFixture screenshot action
 	 */
 	private static final String SCREENSHOT_FIXTURE_ACTION = &quot;screenshot&quot;;
+
 	/**
 	 * Fixture package to auto-import package
 	 */
@@ -62,20 +63,20 @@ public class SeleniumScriptTable extends ScriptTable {
 	/**
 	 * Utility to process FitNesse markup
 	 */
-<span class="fc" id="L65">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+<span class="fc" id="L66">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
 
 	public SeleniumScriptTable(Table table, String id, SlimTestContext testContext) {
-<span class="fc" id="L68">		super(table, id, testContext);</span>
-<span class="fc" id="L69">	}</span>
+<span class="fc" id="L69">		super(table, id, testContext);</span>
+<span class="fc" id="L70">	}</span>
 
 	@Override
 	protected String getTableType() {
-<span class="fc" id="L73">		return SeleniumScriptTable.TABLE_TYPE;</span>
+<span class="fc" id="L74">		return SeleniumScriptTable.TABLE_TYPE;</span>
 	}
 
 	@Override
 	protected String getTableKeyword() {
-<span class="fc" id="L78">		return SeleniumScriptTable.TABLE_KEYWORD;</span>
+<span class="fc" id="L79">		return SeleniumScriptTable.TABLE_KEYWORD;</span>
 	}
 
 	/**
@@ -83,18 +84,18 @@ public class SeleniumScriptTable extends ScriptTable {
 	 */
 	@Override
 	protected List&lt;SlimAssertion&gt; startActor() {
-<span class="fc" id="L86">		List&lt;SlimAssertion&gt; assertions = new ArrayList&lt;&gt;();</span>
-<span class="fc" id="L87">		assertions.add(makeAssertion(new ImportInstruction(ImportInstruction.INSTRUCTION, SeleniumScriptTable.SELENIUM_FIXTURE_PACKAGE_TO_IMPORT), SlimExpectation.NOOP_EXPECTATION));</span>
-<span class="fc" id="L88">		assertions.addAll(startActor(NumberUtils.INTEGER_ZERO, SeleniumFixture.class.getName(), NumberUtils.INTEGER_ZERO));</span>
-<span class="fc" id="L89">		return assertions;</span>
+<span class="fc" id="L87">		List&lt;SlimAssertion&gt; assertions = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L88">		assertions.add(makeAssertion(new ImportInstruction(ImportInstruction.INSTRUCTION, SeleniumScriptTable.SELENIUM_FIXTURE_PACKAGE_TO_IMPORT), SlimExpectation.NOOP_EXPECTATION));</span>
+<span class="fc" id="L89">		assertions.addAll(startActor(NumberUtils.INTEGER_ZERO, SeleniumFixture.class.getName(), NumberUtils.INTEGER_ZERO));</span>
+<span class="fc" id="L90">		return assertions;</span>
 	}
 
 	@Override
 	protected List&lt;SlimAssertion&gt; show(int row) {
-<span class="fc bfc" id="L94" title="All 2 branches covered.">		if (StringUtils.contains(this.table.getCellContents(NumberUtils.INTEGER_ONE, row), SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION)) {</span>
-<span class="fc" id="L95">			return showScreenshot(row);</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">		if (StringUtils.contains(this.table.getCellContents(NumberUtils.INTEGER_ONE, row), SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION)) {</span>
+<span class="fc" id="L96">			return showScreenshot(row);</span>
 		}
-<span class="fc" id="L97">		return super.show(row);</span>
+<span class="fc" id="L98">		return super.show(row);</span>
 	}
 
 	/**
@@ -104,52 +105,52 @@ public class SeleniumScriptTable extends ScriptTable {
 	 * @return asssertion Same collection passed as parameter, to reduce boilerplate code
 	 */
 	protected List&lt;SlimAssertion&gt; showScreenshot(int row) {
-<span class="fc" id="L107">		int lastCol = this.table.getColumnCountInRow(row) - NumberUtils.INTEGER_ONE;</span>
-<span class="fc" id="L108">		return invokeAction(NumberUtils.INTEGER_ONE, lastCol, row, new ShowScreenshotExpectation(NumberUtils.INTEGER_ONE, row));</span>
+<span class="fc" id="L108">		int lastCol = this.table.getColumnCountInRow(row) - NumberUtils.INTEGER_ONE;</span>
+<span class="fc" id="L109">		return invokeAction(NumberUtils.INTEGER_ONE, lastCol, row, new ShowScreenshotExpectation(NumberUtils.INTEGER_ONE, row));</span>
 	}
 
 	@Override
 	protected List&lt;SlimAssertion&gt; checkAction(int row) {
-<span class="fc" id="L113">		List&lt;SlimAssertion&gt; assertions = super.checkAction(row);</span>
-<span class="fc" id="L114">		injectResultToCheckInAction(row, assertions, false);</span>
-<span class="fc" id="L115">		return assertions;</span>
+<span class="fc" id="L114">		List&lt;SlimAssertion&gt; assertions = super.checkAction(row);</span>
+<span class="fc" id="L115">		injectResultToCheckInAction(row, assertions, false);</span>
+<span class="fc" id="L116">		return assertions;</span>
 	}
 
 	@Override
 	protected List&lt;SlimAssertion&gt; checkNotAction(int row) {
-<span class="fc" id="L120">		List&lt;SlimAssertion&gt; assertions = super.checkNotAction(row);</span>
-<span class="fc" id="L121">		injectResultToCheckInAction(row, assertions, true);</span>
-<span class="fc" id="L122">		return assertions;</span>
+<span class="fc" id="L121">		List&lt;SlimAssertion&gt; assertions = super.checkNotAction(row);</span>
+<span class="fc" id="L122">		injectResultToCheckInAction(row, assertions, true);</span>
+<span class="fc" id="L123">		return assertions;</span>
 	}
 
 	private void injectResultToCheckInAction(int row, List&lt;SlimAssertion&gt; assertions, boolean not) {
-<span class="fc" id="L126">		String contentToCheck = this.fitnesseMarkup.clean(this.table.getCellContents(this.table.getColumnCountInRow(row) - 1, row));</span>
-<span class="pc bpc" id="L127" title="1 of 4 branches missed.">		if (CollectionUtils.isEmpty(assertions) || StringUtils.isBlank(contentToCheck)) {</span>
-<span class="fc" id="L128">			return;</span>
+<span class="fc" id="L127">		String contentToCheck = this.fitnesseMarkup.clean(this.table.getCellContents(this.table.getColumnCountInRow(row) - 1, row));</span>
+<span class="pc bpc" id="L128" title="1 of 4 branches missed.">		if (CollectionUtils.isEmpty(assertions) || StringUtils.isBlank(contentToCheck)) {</span>
+<span class="fc" id="L129">			return;</span>
 		}
-<span class="fc bfc" id="L130" title="All 2 branches covered.">		String valueToAppend = FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + (not ? FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR : StringUtils.EMPTY) + contentToCheck;</span>
-<span class="fc" id="L131">		Instruction instruction = SlimAssertion.getInstructions(assertions).get(NumberUtils.INTEGER_ZERO);</span>
+<span class="fc bfc" id="L131" title="All 2 branches covered.">		String valueToAppend = FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + (not ? FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR : StringUtils.EMPTY) + contentToCheck;</span>
+<span class="fc" id="L132">		Instruction instruction = SlimAssertion.getInstructions(assertions).get(NumberUtils.INTEGER_ZERO);</span>
 		try {
-<span class="fc" id="L133">			Field field = FieldUtils.getField(instruction.getClass(), SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true);</span>
-<span class="fc" id="L134">			Object args = field.get(instruction);</span>
-<span class="pc bpc" id="L135" title="1 of 4 branches missed.">			if (args instanceof Object[] &amp;&amp; ArrayUtils.getLength(args) &gt; NumberUtils.INTEGER_ZERO) {</span>
-<span class="fc" id="L136">				((Object[]) args)[NumberUtils.INTEGER_ZERO] += valueToAppend;</span>
+<span class="fc" id="L134">			Field field = FieldUtils.getField(instruction.getClass(), SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true);</span>
+<span class="fc" id="L135">			Object args = field.get(instruction);</span>
+<span class="pc bpc" id="L136" title="1 of 4 branches missed.">			if (args instanceof Object[] &amp;&amp; ArrayUtils.getLength(args) &gt; NumberUtils.INTEGER_ZERO) {</span>
+<span class="fc" id="L137">				((Object[]) args)[NumberUtils.INTEGER_ZERO] += valueToAppend;</span>
 			} else {
-<span class="fc" id="L138">				FieldUtils.writeField(field, instruction, new Object[] { valueToAppend });</span>
+<span class="fc" id="L139">				FieldUtils.writeField(field, instruction, new Object[] { valueToAppend });</span>
 			}
-<span class="nc" id="L140">		} catch (ReflectiveOperationException e) {</span>
-<span class="nc" id="L141">			SeleniumScriptTable.LOGGER.log(Level.WARNING, &quot;Failed to inject check value using reflection&quot;, e);</span>
-<span class="fc" id="L142">		}</span>
-<span class="fc" id="L143">	}</span>
+<span class="nc" id="L141">		} catch (ReflectiveOperationException e) {</span>
+<span class="nc" id="L142">			SeleniumScriptTable.LOGGER.log(Level.WARNING, &quot;Failed to inject check value using reflection&quot;, e);</span>
+<span class="fc" id="L143">		}</span>
+<span class="fc" id="L144">	}</span>
 
 	/**
 	 * Expectation implementation to process screenshot of browser current state
 	 */
 	private class ShowScreenshotExpectation extends RowExpectation {
 
-<span class="fc" id="L150">		public ShowScreenshotExpectation(int col, int row) {</span>
-<span class="fc" id="L151">			super(col, row);</span>
-<span class="fc" id="L152">		}</span>
+<span class="fc" id="L151">		public ShowScreenshotExpectation(int col, int row) {</span>
+<span class="fc" id="L152">			super(col, row);</span>
+<span class="fc" id="L153">		}</span>
 
 		/**
 		 * Delegates screenshot markup to FitnesseMarkup and adds a new column to last action's row
@@ -158,7 +159,6 @@ public class SeleniumScriptTable extends ScriptTable {
 		 * @param expected Not used
 		 * @return testResult Always SlimTestResult#plain()
 		 */
-
 		@Override
 		protected SlimTestResult createEvaluationMessage(String actual, String expected) {
 			try {

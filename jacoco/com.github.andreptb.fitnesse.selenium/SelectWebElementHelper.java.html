@@ -70,7 +70,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
 <span class="fc" id="L71">		String cleanedOptionLocator = this.fitnesseMarkup.clean(optionLocator);</span>
 <span class="fc" id="L72">		OptionSelectorType option = parseOptionType(cleanedOptionLocator);</span>
-<span class="fc" id="L73">		return driverHelper.whenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L73">		return driverHelper.doWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
 <span class="fc" id="L74">			option.selector.accept(new Select(driver.findElement(parsedLocator.getBy())), StringUtils.removeStart(cleanedOptionLocator, option + SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR));</span>
 <span class="fc" id="L75">		});</span>
 	}
