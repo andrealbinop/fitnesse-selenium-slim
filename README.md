@@ -4,6 +4,16 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
 
 [FitNesse](https://github.com/unclebob/fitnesse) Selenium fixture in [slim format](http://www.fitnesse.org/FitNesse.UserGuide.WritingAcceptanceTests.SliM). Resembles [Xebium](http://xebia.github.io/Xebium/), but it&apos;s even more similar to [Selenium IDE Firefox Plugin](http://www.seleniumhq.org/projects/ide/). Also gets inspiration from [hsac-fitnesse-fixtures](https://github.com/fhoeben/hsac-fitnesse-fixtures) but doesn&apos;t try to &quot;simplify&quot; Selenium IDE development flow. This project is licensed under [MIT](LICENSE).
 
+* [Getting started](#getting-started)
+* [Installation](#installation)
+* [Testing and Building](#testing-and-building)
+* [Advanced](#advanced)
+  * [Screenshots](#screenshots)
+  * [Wait behavior](#wait-behavior)
+  * [Aborting test on first failure](#aborting-test-on-first-failure)
+  * [Browser downloads](#browser-downloads)
+
+
 ###  Getting started
 
 Take a look at [this](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/BasicUsageSample/content.txt) FitNesseRoot test. Furthermore, detailed information about the available fixture commands can be found  [here](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#browserAvailable--).
@@ -78,4 +88,4 @@ To address this, the action **[stop test on first failure](http://andreptb.githu
 This plugin applies default configurations for **Firefox** and **Chrome** to download files without opening confirmation dialogs.
 If you wish to change default download directory, you can use specific browser preferences, as described **[here (Firefox) ](http://stackoverflow.com/questions/25240468/change-firefox-default-download-settings-within-selenium)** and **[here (Chrome)](http://stackoverflow.com/questions/23530399/chrome-web-driver-download-files)**. Take a look at [this test](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/ManualTests/DownloadFileTest/content.txt) for a sample on how that can be achieved with **Firefox** and **Chrome**.
 
-However, as mentioned [here](http://stackoverflow.com/questions/12002324/waiting-for-file-to-download-on-selenium-grid) and [here](https://blog.codecentric.de/en/2010/07/file-downloads-with-selenium-mission-impossible/), accessing downloaded files proves to be a rather difficult task, especially when working with remote test providers such as [Selenium Grid](http://www.seleniumhq.org/projects/grid/) and [SauceLabs](https://saucelabs.com/). In those situations, probably some other technique must be used. If you're running selenium grid with **[Docker](https://www.docker.com/)**, you could create **[volumes](https://docs.docker.com/userguide/dockervolumes/)** to provide filesystem access between Selenium Node and FitNesse, or maybe ftp access.
+However, as mentioned [here](http://stackoverflow.com/questions/12002324/waiting-for-file-to-download-on-selenium-grid) and [here](https://blog.codecentric.de/en/2010/07/file-downloads-with-selenium-mission-impossible/), accessing downloaded files proves to be a rather difficult task, especially when working with remote test providers such as [Selenium Grid](http://www.seleniumhq.org/projects/grid/) and [SauceLabs](https://saucelabs.com/). In those situations, probably some other technique must be used. If you're running selenium grid with **[Docker](https://www.docker.com/)**, you could create **[volumes](https://docs.docker.com/userguide/dockervolumes/)** to provide filesystem access between Selenium Node and FitNesse.
