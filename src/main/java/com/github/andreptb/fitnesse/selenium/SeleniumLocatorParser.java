@@ -79,7 +79,7 @@ public class SeleniumLocatorParser {
 	/**
 	 * {@link By} implementation that returns the currently focused element
 	 */
-	private static class ByFocus extends By {
+	public static class ByFocus extends By {
 
 		@Override
 		public List<WebElement> findElements(SearchContext context) {

@@ -2,6 +2,7 @@
 package com.github.andreptb.fitnesse;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.Objects;
 
@@ -9,12 +10,15 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.openqa.selenium.Alert;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -22,6 +26,7 @@ import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebElement;
 
 import com.github.andreptb.fitnesse.selenium.SelectWebElementHelper;
+import com.github.andreptb.fitnesse.selenium.SeleniumLocatorParser.ByFocus;
 import com.github.andreptb.fitnesse.selenium.WebDriverHelper;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
@@ -60,6 +65,15 @@ public class SeleniumFixture {
 	 * <b>off</b> value constant, used by {@link #value(String)}
 	 */
 	private static final String OFF_VALUE = "off";
+
+	/**
+	 * <b>confirm</b> value constant, used by {@link #clickAlert(String)}
+	 */
+	private static final String CONFIRM_VALUE = "confirm";
+	/**
+	 * <b>cancel</b> value constant, used by {@link #clickAlert(String)}
+	 */
+	private static final String CANCEL_VALUE = "cancel";
 
 	/**
 	 * Instance that wraps {@link WebDriver} providing utility methods to manipulate elements and such. Attribute is static to keep state between table invocations
@@ -588,6 +602,33 @@ public class SeleniumFixture {
 	/**
 	 * <p>
 	 * <code>
+	 * | click alert | <i>confirm or cancel</i> |
+	 * </code>
+	 * </p>
+	 * Clicks on a link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
+	 *
+	 * @param confirmOrCancel Can have two possible values: "confirm" or "cancel"
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean clickAlert(String confirmOrCancel) {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
+			Alert alert = driver.switchTo().alert();
+			String cleanedConfirmOrCancel = this.fitnesseMarkup.clean(confirmOrCancel);
+			if (StringUtils.equals(cleanedConfirmOrCancel, SeleniumFixture.CONFIRM_VALUE)) {
+				alert.accept();
+			} else if (StringUtils.equals(cleanedConfirmOrCancel, SeleniumFixture.CANCEL_VALUE)) {
+				alert.dismiss();
+			} else {
+				String message = MessageFormat.format("'{0}' is an invalid value for clickAlert action, only '{1}' and '{2}' are allowed", cleanedConfirmOrCancel, SeleniumFixture.CONFIRM_VALUE, SeleniumFixture.CANCEL_VALUE);
+				throw new IllegalArgumentException(message);
+			}
+			return true;
+		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
 	 * | select | <i>optionLocator</i> |
 	 * </code>
 	 * </p>
@@ -717,14 +758,42 @@ public class SeleniumFixture {
 	 * | check | text | <i>locator</i> | <i>expectedValue</i> |
 	 * </code>
 	 * </p>
+	 * Gets the text of the current focused element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element,
+	 * which is the rendered text shown to the user.
+	 *
+	 * <p>If a dialog box is being presented on the page (such as an alert dialog), this action will return the dialog text</p>
+	 *
+	 * @return text associated with the locator
+	 */
+	public String text() {
+		return text(StringUtils.EMPTY);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | check | text | <i>locator</i> | <i>expectedValue</i> |
+	 * </code>
+	 * </p>
 	 * Gets the text of an element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element,
 	 * which is the rendered text shown to the user.
+	 *
 	 *
 	 * @param locator an element locator
 	 * @return text associated with the locator
 	 */
 	public String text(String locator) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> driver.findElement(parsedLocator.getBy()).getText());
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+			By by = parsedLocator.getBy();
+			try {
+				return driver.findElement(by).getText();
+			} catch (UnhandledAlertException e) {
+				if (by instanceof ByFocus) {
+					return driver.switchTo().alert().getText();
+				}
+				throw e;
+			}
+		});
 	}
 
 	/**

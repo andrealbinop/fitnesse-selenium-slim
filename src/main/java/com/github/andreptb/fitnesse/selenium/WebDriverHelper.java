@@ -18,6 +18,7 @@ import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
+import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
@@ -174,6 +175,7 @@ public class WebDriverHelper {
 			Instant startInstant = Instant.now();
 			WebDriverWait wait = new WebDriverWait(this.driver, this.timeoutInSeconds);
 			wait.ignoring(InvalidElementStateException.class);
+			wait.ignoring(UnhandledAlertException.class);
 			WebElementSelector locator = this.parser.parse(this.fitnesseMarkup.clean(from));
 			try {
 				return wait.until((ExpectedCondition<String>) waitingDriver -> evaluate(waitingDriver, locator, callback, false));
