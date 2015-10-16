@@ -6,7 +6,7 @@
 
 | selenium |
 | start browser | firefox |
-| open | http://www.google.com |
+| ensure | open | http://www.google.com |
 | type | selenium web browser | in | id=lst-ib |
 | check | value | id=lst-ib | selenium web browser |
 | show | screenshot |

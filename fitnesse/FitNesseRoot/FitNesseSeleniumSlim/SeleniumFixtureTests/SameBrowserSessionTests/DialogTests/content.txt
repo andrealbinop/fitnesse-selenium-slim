@@ -1,0 +1,3 @@
+Suite testing browser dialog (alert and confirm)
+
+!contents -R2 -g -p -f -h

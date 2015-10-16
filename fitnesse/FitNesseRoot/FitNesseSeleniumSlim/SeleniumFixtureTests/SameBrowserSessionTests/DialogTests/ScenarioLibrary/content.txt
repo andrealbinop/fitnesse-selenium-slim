@@ -1,0 +1,6 @@
+| scenario | open dialog | expectedTitle |
+| select frame | relative=top |
+| select frame | id=iframeResult |
+| click | css=button |
+| ensure | present | dialog |
+| check | text | @expectedTitle |

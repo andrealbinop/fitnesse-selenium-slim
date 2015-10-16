@@ -1,7 +1,7 @@
 | scenario | check text with variable
 
 | selenium |
-| open | http://saucelabs.com/login |
+| ensure | open | http://saucelabs.com/login |
 | check | text | css=#login-section h1 | Welcome back. |
 | note | use check text from variable |
 | $logintext= | text | css=#login-section h1 |

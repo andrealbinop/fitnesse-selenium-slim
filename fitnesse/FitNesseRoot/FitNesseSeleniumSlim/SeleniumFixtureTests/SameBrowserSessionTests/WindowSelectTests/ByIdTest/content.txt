@@ -1,5 +1,5 @@
 | selenium |
-| open | http://google.com |
+| ensure | open | http://google.com |
 | ensure | open window | https://saucelabs.com/login |
 | note | should still be in Google Window |
 | check | title | Google |

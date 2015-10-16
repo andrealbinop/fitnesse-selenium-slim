@@ -1,0 +1,9 @@
+| selenium |
+| ensure | open | http://www.w3schools.com/html/tryit.asp?filename=tryhtml_iframe_height_width |
+| ensure | select frame | id=iframeResult |
+| ensure | select frame | css=iframe |
+| check | text | css=h1 | This page is displayed in an iframe |
+| ensure | select frame | relative=parent |
+| ensure | present | css=iframe |
+| ensure | select frame | relative=parent |
+| ensure | present | id=tryitLeaderboard |

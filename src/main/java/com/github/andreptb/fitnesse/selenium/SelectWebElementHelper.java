@@ -5,9 +5,9 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.support.ui.Select;
 
@@ -68,10 +68,11 @@ public class SelectWebElementHelper {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
-		String cleanedOptionLocator = this.fitnesseMarkup.clean(optionLocator);
-		OptionSelectorType option = parseOptionType(cleanedOptionLocator);
-		return driverHelper.doWhenAvailable(locator, (driver, parsedLocator) -> {
-			option.selector.accept(new Select(driver.findElement(parsedLocator.getBy())), StringUtils.removeStart(cleanedOptionLocator, option + SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR));
+		Pair<String, String> optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);
+		Pair<OptionSelectorType, String> parsedOptionLocator = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey());
+		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -> {
+			parsedOptionLocator.getKey().selector.accept(new Select(driver.findElement(parsedLocator.getBy())), parsedOptionLocator.getValue());
+			return true;
 		});
 	}
 
@@ -79,18 +80,21 @@ public class SelectWebElementHelper {
 	 * Retrieves information from the current selected value in a select element.
 	 *
 	 * @param driverHelper API that will be used for selenium task execution
-	 * @param optionType see {@link OptionSelectorType} for possible types.
+	 * @param optionLocator see {@link OptionSelectorType} for possible types.
 	 * @param locator an element locator
 	 * @return the information from the current selected element
 	 */
-	public String selected(WebDriverHelper driverHelper, String optionType, String locator) {
-		// value injection fix
-		Pair<String, String> optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionType, locator);
-		OptionSelectorType option = parseOptionType(this.fitnesseMarkup.clean(optionTypeAndLocatorWithExpectedValue.getLeft()));
-		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getRight(), (driver, parsedLocator) -> this.fitnesseMarkup.clean(option.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));
+	public String selected(WebDriverHelper driverHelper, String optionLocator, String locator) {
+		Pair<String, String> optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);
+		OptionSelectorType optionRetriever = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey()).getKey();
+		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -> this.fitnesseMarkup.clean(optionRetriever.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));
 	}
 
-	private OptionSelectorType parseOptionType(String optionType) {
-		return Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, StringUtils.substringBefore(optionType, SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR))).orElse(OptionSelectorType.label);
+	private Pair<OptionSelectorType, String> parseOptionLocator(String optionLocator) {
+		Pair<String, String> keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(optionLocator, FitnesseMarkup.KEY_VALUE_SEPARATOR);
+		// if no type is informed value will be parsed as prefix
+		String prefix = keyValue.getKey();
+		String value = StringUtils.defaultIfBlank(keyValue.getValue(), prefix);
+		return Pair.of(Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, prefix)).orElse(OptionSelectorType.label), value);
 	}
 }

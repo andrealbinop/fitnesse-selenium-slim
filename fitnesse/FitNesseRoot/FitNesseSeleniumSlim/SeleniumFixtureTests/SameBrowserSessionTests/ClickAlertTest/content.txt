@@ -1,8 +1,0 @@
-| scenario | check text with variable
-
-| selenium |
-| open | http://www.w3schools.com/js/tryit.asp?filename=tryjs_confirm |
-| click | //button[text() = "Try it"] |
-| check | text | Press a button! |
-| click alert | confirm |
-| show | screenshot | 

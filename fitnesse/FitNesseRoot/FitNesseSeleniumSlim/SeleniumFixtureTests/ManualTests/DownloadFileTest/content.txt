@@ -4,7 +4,7 @@ Manual test to ensure file is downloaded. Only works with local browser, expecte
 | scenario | download file with | browser | and | preferences |
 | set wait timeout | 30 |
 | start browser | @browser | with preferences | @preferences |
-| open | http://github.com/andreptb/fitnesse-selenium-slim | 
+| ensure | open | http://github.com/andreptb/fitnesse-selenium-slim | 
 | ensure | click | link=Download ZIP |
 | ensure | file exists | /tmp/fitnesse-selenium-slim-tests-@browser/fitnesse-selenium-slim-master.zip |
 | quit browser |

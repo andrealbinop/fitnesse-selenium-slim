@@ -1,5 +1,5 @@
 | selenium |
-| open | http://saucelabs.com/login |
+| ensure | open | http://saucelabs.com/login |
 | type | someuser | in | name=username |
 | type | otheruser |
 | check | value | name=username | otheruser |

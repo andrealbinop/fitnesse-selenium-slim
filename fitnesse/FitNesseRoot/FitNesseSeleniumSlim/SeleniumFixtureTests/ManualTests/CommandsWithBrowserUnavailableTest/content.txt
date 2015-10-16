@@ -1,7 +1,8 @@
+Manual test to ensure test stops if any of the commands below runs without a proper driver connection
+
 | selenium |
 | note | since the browser is not started, none of the commands below should work |
 | reject | open | http://www.roboform.com/filling-test-custom-fields |
-| reject | browser available |
 | reject | open window | http://www.roboform.com/filling-test-custom-fields |
 | reject | select window | http://www.roboform.com/filling-test-custom-fields |
 | check | current window | null |

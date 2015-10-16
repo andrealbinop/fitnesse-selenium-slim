@@ -4,7 +4,7 @@ Besides testing input file upload, this test also covers javascript running with
 | run script | document.querySelector("span[flow-btn] input[type='file']").style.visibility = "@visibility"; |
 
 | selenium |
-| open | http://flowjs.github.io/ng-flow/ |
+| ensure | open | http://flowjs.github.io/ng-flow/ |
 | set input file visibility | visible |
 | ensure | type | fitnesse/plugins.properties | in | css=span[flow-btn] input[type='file'] |
 | set input file visibility | hidden |

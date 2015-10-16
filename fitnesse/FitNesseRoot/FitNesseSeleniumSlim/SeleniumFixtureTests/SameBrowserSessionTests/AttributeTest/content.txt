@@ -1,5 +1,5 @@
 | selenium |
-| open | http://saucelabs.com |
+| ensure | open | http://saucelabs.com |
 | check | attribute | class | in | id=signup | callout |
 | check | attribute | class | in | css=#signup | callout |
 | check | attribute | href | in | xpath=//li[@id='signinout']/a | !-https://saucelabs.com/login-! |

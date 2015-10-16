@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.WebDriver;
@@ -16,9 +17,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 public class SeleniumLocatorParser {
 
 	/**
-	 * Constant representing type separator [type]=[value]
+	 * Utility to process FitNesse markup
 	 */
-	public static final String SELECTOR_TYPE_SEPARATOR = "=";
+	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 
 	/**
 	 * enum mapping selector identifier with selector implementation ({@link By} implementations).
@@ -55,24 +56,26 @@ public class SeleniumLocatorParser {
 	 * @return instance of {@link WebElementSelector}
 	 */
 	public WebElementSelector parse(String locator) {
-		String elementSelector = StringUtils.substringBeforeLast(locator, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);
-		String valueToCheck = StringUtils.substringAfterLast(locator, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);
-		return new WebElementSelector(parseBy(elementSelector), valueToCheck);
+		Pair<String, String> elementAndValue = this.fitnesseMarkup.cleanAndParseKeyValue(locator, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);
+		return new WebElementSelector(elementAndValue.getKey(), parseBy(elementAndValue.getKey()), elementAndValue.getValue());
 	}
 
-	private By parseBy(String selector) {
-		if (StringUtils.isBlank(selector)) {
+	private By parseBy(String locator) {
+		if (StringUtils.isBlank(locator)) {
 			return new ByFocus();
 		}
-		String selectorPrefix = StringUtils.substringBefore(selector, SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR);
-		LocatorType selectorType = EnumUtils.getEnum(LocatorType.class, selectorPrefix);
+		Pair<String, String> prefixAndSelector = this.fitnesseMarkup.cleanAndParseKeyValue(locator, FitnesseMarkup.KEY_VALUE_SEPARATOR);
+		String prefix = prefixAndSelector.getKey();
+		String selector = prefixAndSelector.getValue();
+		LocatorType selectorType = EnumUtils.getEnum(LocatorType.class, prefix);
 		if (selectorType == null) {
+			selector = locator;
 			selectorType = LocatorType.xpath;
 		}
 		try {
-			return selectorType.byClass.getConstructor(String.class).newInstance(StringUtils.removeStart(selector, selectorType + SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR));
+			return selectorType.byClass.getConstructor(String.class).newInstance(selector);
 		} catch (ReflectiveOperationException e) {
-			throw new IllegalStateException("Unexpected failure instantiating selector: " + selectorPrefix, e);
+			throw new IllegalStateException("Unexpected failure instantiating selector: " + prefix, e);
 		}
 	}
 
@@ -92,12 +95,18 @@ public class SeleniumLocatorParser {
 
 	public static class WebElementSelector {
 
+		private String originalSelector;
 		private By by;
 		private String expectedValue;
 
-		private WebElementSelector(By by, String expectedValue) {
+		public WebElementSelector(String originalSelector, By by, String expectedValue) {
+			this.originalSelector = originalSelector;
 			this.by = by;
 			this.expectedValue = expectedValue;
+		}
+
+		public String getOriginalSelector() {
+			return this.originalSelector;
 		}
 
 		public By getBy() {
@@ -107,6 +116,7 @@ public class SeleniumLocatorParser {
 		public String getExpectedValue() {
 			return this.expectedValue;
 		}
+
 	}
 
 }

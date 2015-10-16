@@ -36,7 +36,7 @@
 
 	<properties>
 		<fitnesse.version>20150814</fitnesse.version>
-		<selenium.version>2.47.2</selenium.version>
+		<selenium.version>2.48.2</selenium.version>
 	</properties>
 
 	<dependencies>

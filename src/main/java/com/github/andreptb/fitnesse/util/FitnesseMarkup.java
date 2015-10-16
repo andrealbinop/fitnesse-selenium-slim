@@ -78,6 +78,10 @@ public class FitnesseMarkup {
 	 * Constants representing selector separators [selector]@[atributte]$[value]
 	 */
 	public static final String SELECTOR_ATTRIBUTE_SEPARATOR = "@";
+	/**
+	 * Constant representing type separator [type]=[value]
+	 */
+	public static final String KEY_VALUE_SEPARATOR = "=";
 
 	/**
 	 * Compares two values emulating FitNesse comparisons:
@@ -199,5 +203,21 @@ public class FitnesseMarkup {
 	public File cleanFile(Object... value) {
 		String[] cleanedValues = Arrays.stream(value).map(valueToClean -> FilenameUtils.normalize(clean(valueToClean))).toArray(size -> new String[value.length]);
 		return FileUtils.getFile(cleanedValues);
+	}
+
+	/**
+	 * Cleans and split the value in [key][separator][value] format.
+	 *
+	 * @param value to parse, should be in [key][separator][value]
+	 * @param separator to be used
+	 * @return instance of {@link Pair} containing key and value
+	 */
+	public Pair<String, String> cleanAndParseKeyValue(Object value, String separator) {
+		String cleanedValue = clean(value);
+		if (!StringUtils.contains(cleanedValue, separator)) {
+			return Pair.of(cleanedValue, StringUtils.EMPTY);
+		}
+		String key = StringUtils.substringBefore(cleanedValue, separator);
+		return Pair.of(key, StringUtils.removeStart(cleanedValue, key + separator));
 	}
 }

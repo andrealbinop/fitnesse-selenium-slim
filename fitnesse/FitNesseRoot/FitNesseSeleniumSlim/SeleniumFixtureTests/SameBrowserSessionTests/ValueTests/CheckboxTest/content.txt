@@ -1,5 +1,5 @@
 | selenium |
-| open | http://www.roboform.com/filling-test-custom-fields |
+| ensure | open | http://www.roboform.com/filling-test-custom-fields |
 | check | value | name=field6 | off |
 | click | name=field6 |
 | check | value | name=field6 | on |

@@ -1,0 +1,12 @@
+| selenium |
+| $previousFailureConfig= | stop test on first failure | true |
+| ensure | open | http://www.w3schools.com/js/tryit.asp?filename=tryjs_alert |
+| open dialog | I am an alert box! |
+| click |
+| reject | present | dialog |
+| show | screenshot |
+| open dialog | I am an alert box! |
+| click | dialog |
+| reject | present | dialog |
+| stop test on first failure | $previousFailureConfig |
+

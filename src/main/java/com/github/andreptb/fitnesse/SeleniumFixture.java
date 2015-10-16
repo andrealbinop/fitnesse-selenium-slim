@@ -2,31 +2,31 @@
 package com.github.andreptb.fitnesse;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.tuple.Pair;
-import org.openqa.selenium.Alert;
-import org.openqa.selenium.By;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebElement;
 
+import com.github.andreptb.fitnesse.selenium.BrowserDialogHelper;
+import com.github.andreptb.fitnesse.selenium.FrameWebElementHelper;
 import com.github.andreptb.fitnesse.selenium.SelectWebElementHelper;
-import com.github.andreptb.fitnesse.selenium.SeleniumLocatorParser.ByFocus;
 import com.github.andreptb.fitnesse.selenium.WebDriverHelper;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
@@ -65,16 +65,6 @@ public class SeleniumFixture {
 	 * <b>off</b> value constant, used by {@link #value(String)}
 	 */
 	private static final String OFF_VALUE = "off";
-
-	/**
-	 * <b>confirm</b> value constant, used by {@link #clickAlert(String)}
-	 */
-	private static final String CONFIRM_VALUE = "confirm";
-	/**
-	 * <b>cancel</b> value constant, used by {@link #clickAlert(String)}
-	 */
-	private static final String CANCEL_VALUE = "cancel";
-
 	/**
 	 * Instance that wraps {@link WebDriver} providing utility methods to manipulate elements and such. Attribute is static to keep state between table invocations
 	 */
@@ -84,6 +74,14 @@ public class SeleniumFixture {
 	 * Utility to help selecting drop downs
 	 */
 	private SelectWebElementHelper selectHelper = new SelectWebElementHelper();
+	/**
+	 * Utility to help selecting frames
+	 */
+	private FrameWebElementHelper frameHelper = new FrameWebElementHelper();
+	/**
+	 * Utility to help manipulating browser native dialogs (alert and confirm)
+	 */
+	private BrowserDialogHelper dialogHelper = new BrowserDialogHelper();
 	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
@@ -99,9 +97,9 @@ public class SeleniumFixture {
 	 *
 	 * @see #startBrowserWith(String, String)
 	 * @param browser The browser to be used
-	 * @return result Boolean result indication of assertion/operation
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
+	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean startBrowser(String browser) throws ReflectiveOperationException, IOException {
 		return startBrowserWith(browser, null);
@@ -121,9 +119,9 @@ public class SeleniumFixture {
 	 *
 	 * @param browser The browser to be used
 	 * @param capabilities Usually used to configure remote driver, but some local driver also uses. For example: name='some test' platform='LINUX' version='xx'
-	 * @return result Boolean result indication of assertion/operation
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
+	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, IOException {
 		return startBrowserWithAndPreferences(browser, capabilities, null);
@@ -143,6 +141,7 @@ public class SeleniumFixture {
 	 *
 	 * @param browser The browser to be used
 	 * @param browserPreferences Allows profile configuration for some browser. At this moment supports Chrome and Firefox drivers (local and remote)
+	 * @return result Boolean result indication of assertion/operation
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
@@ -170,21 +169,8 @@ public class SeleniumFixture {
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
 	public boolean startBrowserWithAndPreferences(String browser, String capabilities, String browserPreferences) throws ReflectiveOperationException, IOException {
-		return SeleniumFixture.WEB_DRIVER.connect(browser, capabilities, browserPreferences);
-	}
-
-	/**
-	 * <p>
-	 * <code>
-	 * | ensure | browser available |
-	 * </code>
-	 * </p>
-	 * Returns if browser is available and can be used
-	 *
-	 * @return if browser is available to receive commands
-	 */
-	public boolean browserAvailable() {
-		return SeleniumFixture.WEB_DRIVER.isBrowserAvailable();
+		SeleniumFixture.WEB_DRIVER.connect(browser, capabilities, browserPreferences);
+		return true;
 	}
 
 	/**
@@ -214,21 +200,6 @@ public class SeleniumFixture {
 	 * @return how much time the last command took to complete. Useful to ensure tests perfomance and such. Will be 0 if no commands were executed
 	 */
 	public long lastCommandDuration() {
-		return lastCommandDuration(StringUtils.EMPTY);
-	}
-
-	/**
-	 * <p>
-	 * <code>
-	 * | check | last command duration | &lt; <i>duration in seconds</i> | &lt; <i>duration in seconds</i> |
-	 * </code>
-	 * </p>
-	 * To be used along slim check action. If using selenium table, please ignore this action.
-	 *
-	 * @param expectedDuration parameter is ignored, necessary for compatibility with selenium table
-	 * @return how much time the last command took to complete. Useful to ensure tests perfomance and such. Will be 0 if no commands were executed
-	 */
-	public long lastCommandDuration(String expectedDuration) {
 		return SeleniumFixture.WEB_DRIVER.getLastActionDurationInSeconds();
 	}
 
@@ -244,8 +215,8 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
-			driver.get(this.fitnesseMarkup.clean(url));
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -> {
+			driver.get(parsedLocator.getOriginalSelector());
 			return true;
 		});
 	}
@@ -291,15 +262,14 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean openWindow(String url) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -> {
+			String parsedUrl = parsedLocator.getOriginalSelector();
 			if (CollectionUtils.isEmpty(driver.getWindowHandles())) {
-				return open(url);
+				open(parsedUrl);
+			} else if (driver instanceof JavascriptExecutor) {
+				((JavascriptExecutor) driver).executeScript("window.open(arguments[0])", this.fitnesseMarkup.clean(parsedUrl));
 			}
-			if (driver instanceof JavascriptExecutor) {
-				((JavascriptExecutor) driver).executeScript("window.open(arguments[0])", this.fitnesseMarkup.clean(url));
-				return true;
-			}
-			return false;
+			return true;
 		});
 	}
 
@@ -316,11 +286,12 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectWindow(String locator) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+			String parsedWindowLocator = parsedLocator.getOriginalSelector();
 			String currentWindow = driver.getWindowHandle();
 			for (String windowId : driver.getWindowHandles()) {
 				WebDriver window = driver.switchTo().window(windowId);
-				if (this.fitnesseMarkup.compare(locator, windowId) || this.fitnesseMarkup.compare(locator, window.getTitle()) || this.fitnesseMarkup.compare(locator, window.getCurrentUrl())) {
+				if (this.fitnesseMarkup.compare(parsedWindowLocator, windowId) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getTitle()) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getCurrentUrl())) {
 					return true;
 				}
 			}
@@ -328,8 +299,25 @@ public class SeleniumFixture {
 			if (currentWindow != null) {
 				driver.switchTo().window(currentWindow);
 			}
-			return false;
+			throw new NoSuchElementException("No window found for locator: " + parsedWindowLocator);
 		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | select frame | <i>locator</i> |
+	 * </code>
+	 * </p>
+	 * Selects a frame within the current window. (You may invoke this command multiple times to select nested frames.) To select the parent frame, use "relative=parent" as a locator; to select the
+	 * top frame, use "relative=top". You can also select a frame by its 0-based index number; select the first frame with "index=0", or the third frame with "index=2".
+	 * Note that you can use all element locators such as <b>id</b>, <b>css</b>, <b>xpath</b> and so on
+	 *
+	 * @param locator an element locator
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean selectFrame(String locator) {
+		return this.frameHelper.select(SeleniumFixture.WEB_DRIVER, locator);
 	}
 
 	/**
@@ -372,7 +360,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean windowMaximize() {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
 			driver.manage().window().maximize();
 			return true;
 		});
@@ -388,7 +376,22 @@ public class SeleniumFixture {
 	 * @return windows size, in [width]x[height] format
 	 */
 	public String windowSize() {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(driver -> {
+		return windowSize(StringUtils.EMPTY);
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | window size |
+	 * </code>
+	 * </p>
+	 * To be used along slim check action. Will respect {@link #setWaitTimeout(int)} before triggering failure. If using selenium table, please ignore this action.
+	 *
+	 * @param expectedWindowSize Expected window size
+	 * @return windows size, in [width]x[height] format
+	 */
+	public String windowSize(String expectedWindowSize) {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedWindowSize, (driver, parsedLocator) -> {
 			Dimension dimension = driver.manage().window().getSize();
 			return String.format("%dx%d", dimension.getWidth(), dimension.getHeight());
 		});
@@ -434,7 +437,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean closeBrowserTab() {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
 			driver.close();
 			Iterator<String> currentWindows = driver.getWindowHandles().iterator();
 			if (currentWindows.hasNext()) {
@@ -456,7 +459,8 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean quitBrowser() {
-		return SeleniumFixture.WEB_DRIVER.quit();
+		SeleniumFixture.WEB_DRIVER.quit();
+		return true;
 	}
 
 	/**
@@ -532,15 +536,17 @@ public class SeleniumFixture {
 	}
 
 	private boolean sendKeysIn(String value, String locator, boolean clearBefore) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> {
+		Pair<String, String> valueAndLocator = this.fitnesseMarkup.swapValueToCheck(value, locator);
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(valueAndLocator.getValue(), (driver, parsedLocator) -> {
 			WebElement element = driver.findElement(parsedLocator.getBy());
-			String cleanedValue = setupInputIfTypeFile(driver, element, this.fitnesseMarkup.clean(value));
+			String cleanedValue = cleanValueToSend(driver, element, valueAndLocator.getKey());
 			if (clearBefore) {
 				element.clear();
 			}
 			if (StringUtils.isNotBlank(cleanedValue)) {
 				element.sendKeys(cleanedValue);
 			}
+			return true;
 		});
 	}
 
@@ -553,9 +559,9 @@ public class SeleniumFixture {
 	 * @param value to be set to input file type
 	 * @return value expanded to absolute path if for input file type.
 	 */
-	private String setupInputIfTypeFile(WebDriver driver, WebElement element, String value) {
+	private String cleanValueToSend(WebDriver driver, WebElement element, String value) {
 		if (!StringUtils.equals(element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE), SeleniumFixture.INPUT_TYPE_FILE_VALUE)) {
-			return value;
+			return this.fitnesseMarkup.clean(value);
 		}
 		// set file detector for remote web elements. Local FirefoxDriver uses RemoteWebElement and
 		if (element instanceof RemoteWebElement && !ClassUtils.isAssignable(driver.getClass(), FirefoxDriver.class)) {
@@ -590,38 +596,15 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+			if (this.dialogHelper.click(driver, parsedLocator)) {
+				return true;
+			}
 			WebElement element = driver.findElement(parsedLocator.getBy());
 			if (!element.isEnabled()) {
 				throw new InvalidElementStateException("Element found but is disabled: " + element);
 			}
 			element.click();
-		});
-	}
-
-	/**
-	 * <p>
-	 * <code>
-	 * | click alert | <i>confirm or cancel</i> |
-	 * </code>
-	 * </p>
-	 * Clicks on a link, button, checkbox or radio button. If the click action causes a new page to load (like a link usually does), call waitForPageToLoad.
-	 *
-	 * @param confirmOrCancel Can have two possible values: "confirm" or "cancel"
-	 * @return result Boolean result indication of assertion/operation
-	 */
-	public boolean clickAlert(String confirmOrCancel) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> {
-			Alert alert = driver.switchTo().alert();
-			String cleanedConfirmOrCancel = this.fitnesseMarkup.clean(confirmOrCancel);
-			if (StringUtils.equals(cleanedConfirmOrCancel, SeleniumFixture.CONFIRM_VALUE)) {
-				alert.accept();
-			} else if (StringUtils.equals(cleanedConfirmOrCancel, SeleniumFixture.CANCEL_VALUE)) {
-				alert.dismiss();
-			} else {
-				String message = MessageFormat.format("'{0}' is an invalid value for clickAlert action, only '{1}' and '{2}' are allowed", cleanedConfirmOrCancel, SeleniumFixture.CONFIRM_VALUE, SeleniumFixture.CANCEL_VALUE);
-				throw new IllegalArgumentException(message);
-			}
 			return true;
 		});
 	}
@@ -685,7 +668,7 @@ public class SeleniumFixture {
 	 * </ul>
 	 *
 	 * @param optionType can be label, value or index
-	 * @return result Boolean result indication of assertion/operation
+	 * @return the appropriate information associated with the select
 	 */
 	public String selected(String optionType) {
 		return selectedIn(optionType, StringUtils.EMPTY);
@@ -706,7 +689,7 @@ public class SeleniumFixture {
 	 *
 	 * @param optionType can be label, value or index
 	 * @param locator an element locator
-	 * @return result Boolean result indication of assertion/operation
+	 * @return the appropriate information associated with the select
 	 */
 	public String selectedIn(String optionType, String locator) {
 		return this.selectHelper.selected(SeleniumFixture.WEB_DRIVER, optionType, locator);
@@ -758,10 +741,12 @@ public class SeleniumFixture {
 	 * | check | text | <i>locator</i> | <i>expectedValue</i> |
 	 * </code>
 	 * </p>
-	 * Gets the text of the current focused element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element,
+	 * Gets the text of the current focused element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers)
+	 * of the element,
 	 * which is the rendered text shown to the user.
-	 *
-	 * <p>If a dialog box is being presented on the page (such as an alert dialog), this action will return the dialog text</p>
+	 * <p>
+	 * If a dialog box is being presented on the page (such as an alert dialog), this action will return the dialog text
+	 * </p>
 	 *
 	 * @return text associated with the locator
 	 */
@@ -778,21 +763,14 @@ public class SeleniumFixture {
 	 * Gets the text of an element. This works for any element that contains text. This command uses either the textContent (Mozilla-like browsers) or the innerText (IE-like browsers) of the element,
 	 * which is the rendered text shown to the user.
 	 *
-	 *
 	 * @param locator an element locator
 	 * @return text associated with the locator
 	 */
 	public String text(String locator) {
 		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
-			By by = parsedLocator.getBy();
-			try {
-				return driver.findElement(by).getText();
-			} catch (UnhandledAlertException e) {
-				if (by instanceof ByFocus) {
-					return driver.switchTo().alert().getText();
-				}
-				throw e;
-			}
+			return Optional.ofNullable(this.dialogHelper.text(driver, parsedLocator)).orElseGet(() -> {
+				return driver.findElement(parsedLocator.getBy()).getText();
+			});
 		});
 	}
 
@@ -808,7 +786,7 @@ public class SeleniumFixture {
 	 * @throws IOException if something goes wrong while manipulating screenshot file
 	 */
 	public String screenshot() throws IOException {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
 			if (driver instanceof TakesScreenshot) {
 				return ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE).getAbsolutePath();
 			}
@@ -822,40 +800,50 @@ public class SeleniumFixture {
 	 * | ensure | present | <i>locator</i> |
 	 * </code>
 	 * </p>
-	 * Verifies that the specified element is somewhere on the page.
-	 * There's a little difference from SeleniumIDE version, this method also supports attributes, if the selector is something like "id=&lt;id&gt;@&lt;attributeName&gt;",
+	 * <p>
+	 * <code>
+	 * | reject | present | <i>locator</i> |
+	 * </code>
+	 * </p>
+	 * Verifies that the specified element is somewhere on the page (or not).
+	 * There's a few differences from SeleniumIDE version, this method also supports attributes, if the selector is something like "id=&lt;id&gt;@&lt;attributeName&gt;",
 	 * this method will return true if the attribute exists on the element with any value.
+	 * <p>
+	 * <b>Note</b>: Wait behavior won't work properly without selenium table
 	 *
 	 * @param locator an element locator
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean present(String locator) {
-		return presentOrAbsent(locator, true);
-	}
-
-	/**
-	 * <p>
-	 * <code>
-	 * | ensure | not present | <i>locator</i> |
-	 * </code>
-	 * </p>
-	 * Verifies that the specified element is not somewhere on the page.
-	 * There's a little difference from SeleniumIDE version, this method also supports attributes, if the selector is something like "id=&lt;id&gt;@&lt;attributeName&gt;",
-	 * this method will return true if the attribute don't exists on the element with any value.
-	 *
-	 * @param locator an element locator
-	 * @return result Boolean result indication of assertion/operation
-	 */
-	public boolean notPresent(String locator) {
-		return presentOrAbsent(locator, false);
-	}
-
-	private boolean presentOrAbsent(String locator, boolean ensurePresent) {
+		MutableBoolean result = new MutableBoolean();
 		try {
-			return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> driver.findElement(parsedLocator.getBy())) ? ensurePresent : !ensurePresent;
-		} catch (NotFoundException e) {
-			return !ensurePresent;
+			testPresent(locator, result);
+		} catch (InvalidElementStateException | NotFoundException e) {
+			return !result.getValue();
 		}
+		return result.getValue();
+	}
+
+	private void testPresent(String locator, MutableBoolean resultHolder) {
+		SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+			String expectedValue = parsedLocator.getExpectedValue();
+			boolean ensuring = StringUtils.isBlank(expectedValue) || Boolean.valueOf(expectedValue);
+			resultHolder.setValue(ensuring);
+			try {
+				if (!this.dialogHelper.present(driver, parsedLocator)) {
+					driver.findElement(parsedLocator.getBy());
+				}
+				if (!ensuring) {
+					throw new InvalidElementStateException("Element shouldn't be present");
+				}
+			} catch (NotFoundException e) {
+				if (ensuring) {
+					throw e;
+				}
+			}
+			// return expected value itself to disable value comparation. Flow uses exception to test result
+			return expectedValue;
+		});
 	}
 
 	/**
@@ -873,9 +861,9 @@ public class SeleniumFixture {
 	 * @return of the javascript snippet that ran
 	 */
 	public String runScript(String script) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(driver -> {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(script, (driver, parsedLocator) -> {
 			if (driver instanceof JavascriptExecutor) {
-				return Objects.toString(((JavascriptExecutor) driver).executeScript(this.fitnesseMarkup.clean(script)), null);
+				return Objects.toString(((JavascriptExecutor) driver).executeScript(parsedLocator.getOriginalSelector()), null);
 			}
 			return null;
 		});
@@ -889,9 +877,12 @@ public class SeleniumFixture {
 	 * </p>
 	 *
 	 * @param shouldStop If true, the test will stop if a failure occurs in any action
+	 * @return previous configuration value
 	 */
-	public void stopTestOnFirstFailure(boolean shouldStop) {
+	public boolean stopTestOnFirstFailure(boolean shouldStop) {
+		boolean previousConfig = SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure();
 		SeleniumFixture.WEB_DRIVER.setStopTestOnFirstFailure(shouldStop);
+		return previousConfig;
 	}
 
 	/**
@@ -905,9 +896,10 @@ public class SeleniumFixture {
 	 * <b>Important:</b> If you're using remote browsers such as Selenium Grid or SauceLabs, this action probably won't be useful, unless you have access to the node's remote file system.
 	 * </p>
 	 *
+	 * @param file Path of the file to check if exists
 	 * @return if the informed file exists on the filesystem
 	 */
 	public boolean fileExists(String file) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(driver -> this.fitnesseMarkup.cleanFile(file).exists() ? true : null);
+		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -> this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists()));
 	}
 }

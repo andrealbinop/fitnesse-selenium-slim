@@ -1,4 +1,4 @@
 | selenium |
-| open | http://saucelabs.com/login |
+| ensure | open | http://saucelabs.com/login |
 | type | foobar | in | css=#username |
 | check | value | css=#username | foobar |

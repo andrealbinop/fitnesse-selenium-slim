@@ -19,7 +19,7 @@ Xebium tests disabled for ci, enable when running locally.
 | stop browser |
 
 | selenium |
-| open | http://www.roboform.com/filling-test-all-fields |
+| ensure | open | http://www.roboform.com/filling-test-all-fields |
 | send keys | mytitle${KEY_TAB} | in | name=01___title |
 | do jdbc stuff |
 | note | do xebium stuff |

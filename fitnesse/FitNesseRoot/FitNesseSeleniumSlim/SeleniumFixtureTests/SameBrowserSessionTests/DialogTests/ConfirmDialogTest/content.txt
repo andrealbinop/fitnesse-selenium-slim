@@ -1,0 +1,23 @@
+
+
+| selenium |
+| $previousFailureConfig= | stop test on first failure | true |
+| ensure | open | http://www.w3schools.com/js/tryit.asp?filename=tryjs_confirm |
+| select frame | id=iframeResult |
+| open dialog | Press a button! |
+| click |
+| reject | present | dialog |
+| check | text | id=demo | You pressed OK! |
+| open dialog | Press a button! |
+| click | dialog |
+| reject | present | dialog |
+| check | text | id=demo | You pressed OK! |
+| open dialog | Press a button! |
+| click | dialog=confirm |
+| reject | present | dialog |
+| check | text | id=demo | You pressed OK! |
+| open dialog | Press a button! |
+| click | dialog=cancel |
+| reject | present | dialog |
+| check | text | id=demo | You pressed Cancel! |
+| stop test on first failure | $previousFailureConfig |

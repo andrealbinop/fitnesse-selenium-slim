@@ -1,4 +1,4 @@
 | selenium |
-| open | https://saucelabs.com |
+| ensure | open | https://saucelabs.com |
 | check | title | Sauce Labs: Selenium Testing, Mobile Testing, JS Unit Testing and More |
 | check | current url | !-https://saucelabs.com/-! |

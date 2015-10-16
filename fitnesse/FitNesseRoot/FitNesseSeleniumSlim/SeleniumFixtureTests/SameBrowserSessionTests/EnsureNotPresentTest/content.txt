@@ -1,4 +1,0 @@
-| selenium |
-| open | http://saucelabs.com/login |
-| ensure | not present | id=fieldNotOnThePage |
-| reject | not present | id=username |

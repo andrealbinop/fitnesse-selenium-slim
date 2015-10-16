@@ -7,23 +7,22 @@ import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Objects;
-import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedCondition;
+import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.reflections.Reflections;
 
@@ -65,13 +64,12 @@ public class WebDriverHelper {
 	 * @param browser to be initialized. Can be a remote driver URL
 	 * @param capabilities string. Should follow a key/value format
 	 * @param preferences string. Should follow a key/value format
-	 * @return webDriver instance
 	 * @throws ReflectiveOperationException if remote driver class cannot be instantiated
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
-	public boolean connect(String browser, String capabilities, String preferences) throws ReflectiveOperationException, IOException {
+	public void connect(String browser, String capabilities, String preferences) throws ReflectiveOperationException, IOException {
 		WebDriver driver = null;
-		String cleanedBrowser = StringUtils.deleteWhitespace(this.fitnesseMarkup.clean(browser));
+		String cleanedBrowser = StringUtils.deleteWhitespace(this.parser.parse(browser).getOriginalSelector());
 		Capabilities parsedCapabilities = this.capabilitiesHelper.parse(cleanedBrowser, this.fitnesseMarkup.clean(capabilities), this.fitnesseMarkup.clean(preferences));
 		if (StringUtils.startsWithIgnoreCase(cleanedBrowser, WebDriverHelper.HTTP_PREFIX)) {
 			driver = new RemoteWebDriver(new URL(cleanedBrowser), parsedCapabilities);
@@ -85,73 +83,27 @@ public class WebDriverHelper {
 			}
 		}
 		if (driver == null) {
-			throw new WebDriverException(MessageFormat.format("No suitable implementation found for {0} with capabilites: [{1}]", browser, capabilities));
+			throw new StopTestWithWebDriverException(MessageFormat.format("No suitable implementation found for {0} with capabilites: [{1}]", browser, capabilities));
 		}
 		quit();
 		this.driver = driver;
-		return true;
 	}
 
 	/**
 	 * Quietly quits the browser
-	 *
-	 * @return result Boolean result indication of assertion/operation
 	 */
-	public boolean quit() {
+	public void quit() {
 		try {
 			this.driver.quit();
 		} catch (Exception e) {
 			// quits quietly
 		}
-		return true;
-	}
-
-	/**
-	 * Invokes the callback ensuring the provision of a suitable driver to run selenium commands.
-	 *
-	 * @see #getWhenAvailable(String, BiFunction)
-	 * @param consumer The callback to be invoked
-	 * @return true if the callback runs successfully, false if browser is unavailable or callback fails to run
-	 */
-	public boolean doWhenAvailable(Function<WebDriver, Object> consumer) {
-		return Boolean.valueOf(getWhenAvailable(consumer));
-	}
-
-	/**
-	 * Invokes the callback ensuring the provision of a suitable driver to run selenium commands and
-	 * the parsed selector.
-	 * Will respect {@link #timeoutInSeconds} before returning negatively.
-	 *
-	 * @see #getWhenAvailable(String, BiFunction)
-	 * @param from selenium selector received by the fixture
-	 * @param consumer The callback to be invoked
-	 * @return true if the callback runs successfully, false if browser is unavailable or callback fails to run
-	 */
-	public boolean doWhenAvailable(String from, BiConsumer<WebDriver, WebElementSelector> consumer) {
-		return Boolean.valueOf(getWhenAvailable(from, (driver, locator) -> {
-			consumer.accept(driver, locator);
-			return true;
-		}));
-	}
-
-	/**
-	 * Invokes the callback ensuring the provision of a suitable driver to run selenium commands and
-	 * the parsed selector.
-	 * Will respect {@link #timeoutInSeconds} before returning negatively.
-	 *
-	 * @see #getWhenAvailable(String, BiFunction)
-	 * @param function The callback to be invoked
-	 * @return the value returned from the callback
-	 */
-	public String getWhenAvailable(Function<WebDriver, Object> function) {
-		return getWhenAvailable(StringUtils.EMPTY, (waitingDriver, locator) -> function.apply(waitingDriver));
 	}
 
 	/**
 	 * Core function designed to provide callbacks with selenium context necessary to evaluate commands. Applies
 	 * the following rules:
 	 * <ul>
-	 * <li>Returns null if the browser is unavailable, see {@link #isBrowserAvailable()}</li>
 	 * <li>Builds the context and passes the control to the callback (see {@link SeleniumLocatorParser#parse(String)})</li>
 	 * <li>If the callback is unable to find a {@link WebElement} to run commmands, or fails for any other reason, the callback will be reinvoked until a positive return happens or
 	 * {@link #getTimeoutInSeconds()} is reached</li>
@@ -161,42 +113,53 @@ public class WebDriverHelper {
 	 * returned</li>
 	 * </ul>
 	 *
-	 * @see #evaluate(WebDriver, WebElementSelector, BiFunction, boolean)
+	 * @param <T> return type from callback
 	 * @param from selenium selector received by the fixture@param from
 	 * @param callback The callback to be invoked with {@link WebElementSelector} and {@link WebDriver}
-	 * @return the value returned from the retriever
+	 * @return the value returned from the callback
+	 * @throws StopTestWithWebDriverException if {@link #isBrowserAvailable()} returns false or if {@link #getStopTestOnFirstFailure()} is true and any failure occurs
 	 */
-	public String getWhenAvailable(String from, BiFunction<WebDriver, WebElementSelector, Object> callback) {
+	public <T> T getWhenAvailable(String from, BiFunction<WebDriver, WebElementSelector, T> callback) {
 		this.lastActionDurationInSeconds = NumberUtils.LONG_ZERO;
 		if (!isBrowserAvailable()) {
-			return null;
+			throw new StopTestWithWebDriverException("No browser instance available, please check if 'start browser' command completed successfuly");
 		}
+		MutableObject<T> result = new MutableObject<>();
 		try {
 			Instant startInstant = Instant.now();
 			WebDriverWait wait = new WebDriverWait(this.driver, this.timeoutInSeconds);
 			wait.ignoring(InvalidElementStateException.class);
 			wait.ignoring(UnhandledAlertException.class);
+			wait.ignoring(UnexpectedTagNameException.class);
 			WebElementSelector locator = this.parser.parse(this.fitnesseMarkup.clean(from));
 			try {
-				return wait.until((ExpectedCondition<String>) waitingDriver -> evaluate(waitingDriver, locator, callback, false));
+				wait.until((ExpectedCondition<String>) waitingDriver -> {
+					evaluate(waitingDriver, locator, callback, false, result);
+					return Objects.toString(result.getValue());
+				});
 			} catch (TimeoutException e) {
-				return evaluate(this.driver, locator, callback, true);
+				if (this.stopTestOnFirstFailure) {
+					throw e;
+				}
+				evaluate(this.driver, locator, callback, true, result);
 			} finally {
 				this.lastActionDurationInSeconds = Duration.between(startInstant, Instant.now()).getSeconds();
 			}
 		} catch (RuntimeException e) {
 			if (this.stopTestOnFirstFailure) {
-				throw new StopTestCausedBySeleniumActionException(e);
+				throw new StopTestWithWebDriverException(e);
 			}
 			throw e;
 		}
+		return result.getValue();
 	}
 
-	private String evaluate(WebDriver driver, WebElementSelector locator, BiFunction<WebDriver, WebElementSelector, Object> retriever, boolean disableValueCheck) {
-		Object result = retriever.apply(driver, locator);
+	private <T> void evaluate(WebDriver driver, WebElementSelector locator, BiFunction<WebDriver, WebElementSelector, T> callback, boolean disableValueCheck, MutableObject<T> resultHolder) {
+		T result = callback.apply(driver, locator);
+		resultHolder.setValue(result);
 		String expectedValue = locator.getExpectedValue();
 		if (disableValueCheck || StringUtils.isBlank(expectedValue) || this.fitnesseMarkup.compare(expectedValue, result)) {
-			return Objects.toString(result, null);
+			return;
 		}
 		throw new NoSuchElementException(MessageFormat.format("Element with unexpected value [Expected: {0}, Obtained: {1}]", expectedValue, result));
 	}
@@ -231,6 +194,10 @@ public class WebDriverHelper {
 		this.stopTestOnFirstFailure = stopTestOnFirstFailure;
 	}
 
+	public boolean getStopTestOnFirstFailure() {
+		return this.stopTestOnFirstFailure;
+	}
+
 	/**
 	 * @return Seconds the last action took to complete
 	 */
@@ -242,11 +209,16 @@ public class WebDriverHelper {
 	 * {@link Exception} class so test can be stopped. See <a href="http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.SlimProtocol">FitNesse reference guide
 	 * (Aborting a test) section</a>.
 	 */
-	static class StopTestCausedBySeleniumActionException extends RuntimeException {
+	public static class StopTestWithWebDriverException extends RuntimeException {
 
-		private StopTestCausedBySeleniumActionException(Throwable cause) {
+		private StopTestWithWebDriverException(Throwable cause) {
 			super(cause);
 		}
+
+		public StopTestWithWebDriverException(String message) {
+			super(message);
+		}
+
 	}
 
 }

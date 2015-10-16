@@ -1,0 +1,3 @@
+Simple attribute value tests are not necessary since they are used by almost everytest to check input values and such.  
+
+!contents -R2 -g -p -f -h

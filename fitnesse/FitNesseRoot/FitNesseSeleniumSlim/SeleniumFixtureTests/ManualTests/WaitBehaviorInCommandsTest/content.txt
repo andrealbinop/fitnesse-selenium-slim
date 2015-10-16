@@ -9,9 +9,9 @@ The expected result of this test is the following:
 - optionally test stop test on first failure
 
 | selenium |
-| stop test on first failure | true |
+| note | stop test on first failure | true |
 | start browser | ${BROWSER} | with | ${CAPABILITIES} |
-| open | http://www.roboform.com/filling-test-custom-fields |
+| ensure | open | http://www.roboform.com/filling-test-custom-fields |
 | set wait timeout | ${WAIT_TIMEOUT} |
 | check | current window | invalidWindowId |
 | check | last command duration | ${WAIT_TIMEOUT} |
@@ -31,6 +31,8 @@ The expected result of this test is the following:
 | check | text | id=invalidField | whatever text |
 | check | last command duration | ${WAIT_TIMEOUT} |
 | reject | present | name=01___title |
+| check | last command duration | ${WAIT_TIMEOUT} |
+| ensure | present | name=invalidField |
 | check | last command duration | ${WAIT_TIMEOUT} |
 | ensure | select | index=1 | in | id=invalidField |
 | check | last command duration | ${WAIT_TIMEOUT} |

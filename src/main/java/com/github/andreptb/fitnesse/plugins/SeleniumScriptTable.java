@@ -2,18 +2,20 @@
 package com.github.andreptb.fitnesse.plugins;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
 
 import com.github.andreptb.fitnesse.SeleniumFixture;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
@@ -56,6 +58,10 @@ public class SeleniumScriptTable extends ScriptTable {
 	 */
 	private static final String SELENIUM_FIXTURE_PACKAGE_TO_IMPORT = "com.github.andreptb.fitnesse";
 
+	/**
+	 * Constant to reference {@link CallInstruction} args private field
+	 */
+	private static final String CALL_INSTRUCTION_METHODNAME_FIELD = "methodName";
 	/**
 	 * Constant to reference {@link CallInstruction} args private field
 	 */
@@ -110,6 +116,20 @@ public class SeleniumScriptTable extends ScriptTable {
 	}
 
 	@Override
+	protected List<SlimAssertion> ensure(int row) {
+		List<SlimAssertion> assertions = super.ensure(row);
+		injectValueInFirstArg(assertions, false, true);
+		return assertions;
+	}
+
+	@Override
+	protected List<SlimAssertion> reject(int row) {
+		List<SlimAssertion> assertions = super.reject(row);
+		injectValueInFirstArg(assertions, false, false);
+		return assertions;
+	}
+
+	@Override
 	protected List<SlimAssertion> checkAction(int row) {
 		List<SlimAssertion> assertions = super.checkAction(row);
 		injectResultToCheckInAction(row, assertions, false);
@@ -128,18 +148,29 @@ public class SeleniumScriptTable extends ScriptTable {
 		if (CollectionUtils.isEmpty(assertions) || StringUtils.isBlank(contentToCheck)) {
 			return;
 		}
-		String valueToAppend = FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + (not ? FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR : StringUtils.EMPTY) + contentToCheck;
+		injectValueInFirstArg(assertions, not, contentToCheck);
+	}
+
+	private void injectValueInFirstArg(List<SlimAssertion> assertions, boolean not, Object contentToCheck) {
 		Instruction instruction = SlimAssertion.getInstructions(assertions).get(NumberUtils.INTEGER_ZERO);
 		try {
-			Field field = FieldUtils.getField(instruction.getClass(), SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true);
-			Object args = field.get(instruction);
+			String valueToInject = FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + (not ? FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR : StringUtils.EMPTY) + contentToCheck;
+			Object args = FieldUtils.readField(instruction, SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, true);
+			Object[] argsToInject;
 			if (args instanceof Object[] && ArrayUtils.getLength(args) > NumberUtils.INTEGER_ZERO) {
-				((Object[]) args)[NumberUtils.INTEGER_ZERO] += valueToAppend;
+				argsToInject = (Object[]) args;
+				argsToInject[NumberUtils.INTEGER_ZERO] += valueToInject;
 			} else {
-				FieldUtils.writeField(field, instruction, new Object[] { valueToAppend });
+				argsToInject = ArrayUtils.toArray(valueToInject);
 			}
-		} catch (ReflectiveOperationException e) {
-			SeleniumScriptTable.LOGGER.log(Level.WARNING, "Failed to inject check value using reflection", e);
+			String methodName = Objects.toString(FieldUtils.readField(instruction, SeleniumScriptTable.CALL_INSTRUCTION_METHODNAME_FIELD, true));
+			if (Objects.isNull(MethodUtils.getAccessibleMethod(SeleniumFixture.class, Objects.toString(methodName), ClassUtils.toClass(argsToInject)))) {
+				SeleniumScriptTable.LOGGER.fine("Method for instruction not found on SeleniumFixture, injection aborted: " + instruction);
+				return;
+			}
+			FieldUtils.writeField(instruction, SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, argsToInject);
+		} catch (IllegalArgumentException | ReflectiveOperationException e) {
+			SeleniumScriptTable.LOGGER.log(Level.FINE, "Failed to inject check value using reflection", e);
 		}
 	}
 

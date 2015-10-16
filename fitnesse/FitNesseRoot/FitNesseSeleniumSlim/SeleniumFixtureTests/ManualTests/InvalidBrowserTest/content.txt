@@ -1,4 +1,5 @@
+Since test should throw an exception, must be tested manually. Subsequent actions after a failed start browser should not be executed
+
 | selenium |
-| note | since test should throw an exception, must be tested manually |
 | start browser | invalid browser |
-| reject | browser available |
+| show | screenshot |
