@@ -5,9 +5,9 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.EnumUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.support.ui.Select;
 
@@ -68,30 +68,34 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
-<span class="fc" id="L71">		String cleanedOptionLocator = this.fitnesseMarkup.clean(optionLocator);</span>
-<span class="fc" id="L72">		OptionSelectorType option = parseOptionType(cleanedOptionLocator);</span>
-<span class="fc" id="L73">		return driverHelper.doWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L74">			option.selector.accept(new Select(driver.findElement(parsedLocator.getBy())), StringUtils.removeStart(cleanedOptionLocator, option + SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR));</span>
-<span class="fc" id="L75">		});</span>
+<span class="fc" id="L71">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
+<span class="fc" id="L72">		Pair&lt;OptionSelectorType, String&gt; parsedOptionLocator = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey());</span>
+<span class="fc" id="L73">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L74">			parsedOptionLocator.getKey().selector.accept(new Select(driver.findElement(parsedLocator.getBy())), parsedOptionLocator.getValue());</span>
+<span class="fc" id="L75">			return true;</span>
+		});
 	}
 
 	/**
 	 * Retrieves information from the current selected value in a select element.
 	 *
 	 * @param driverHelper API that will be used for selenium task execution
-	 * @param optionType see {@link OptionSelectorType} for possible types.
+	 * @param optionLocator see {@link OptionSelectorType} for possible types.
 	 * @param locator an element locator
 	 * @return the information from the current selected element
 	 */
-	public String selected(WebDriverHelper driverHelper, String optionType, String locator) {
-		// value injection fix
-<span class="fc" id="L88">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionType, locator);</span>
-<span class="fc" id="L89">		OptionSelectorType option = parseOptionType(this.fitnesseMarkup.clean(optionTypeAndLocatorWithExpectedValue.getLeft()));</span>
-<span class="fc" id="L90">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getRight(), (driver, parsedLocator) -&gt; this.fitnesseMarkup.clean(option.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));</span>
+	public String selected(WebDriverHelper driverHelper, String optionLocator, String locator) {
+<span class="fc" id="L88">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
+<span class="fc" id="L89">		OptionSelectorType optionRetriever = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey()).getKey();</span>
+<span class="fc" id="L90">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; this.fitnesseMarkup.clean(optionRetriever.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));</span>
 	}
 
-	private OptionSelectorType parseOptionType(String optionType) {
-<span class="fc" id="L94">		return Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, StringUtils.substringBefore(optionType, SeleniumLocatorParser.SELECTOR_TYPE_SEPARATOR))).orElse(OptionSelectorType.label);</span>
+	private Pair&lt;OptionSelectorType, String&gt; parseOptionLocator(String optionLocator) {
+<span class="fc" id="L94">		Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(optionLocator, FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
+		// if no type is informed value will be parsed as prefix
+<span class="fc" id="L96">		String prefix = keyValue.getKey();</span>
+<span class="fc" id="L97">		String value = StringUtils.defaultIfBlank(keyValue.getValue(), prefix);</span>
+<span class="fc" id="L98">		return Pair.of(Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, prefix)).orElse(OptionSelectorType.label), value);</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
