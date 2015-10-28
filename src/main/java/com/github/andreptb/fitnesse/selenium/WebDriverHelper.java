@@ -2,15 +2,20 @@
 package com.github.andreptb.fitnesse.selenium;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.openqa.selenium.Capabilities;
@@ -30,14 +35,16 @@ import com.github.andreptb.fitnesse.selenium.SeleniumLocatorParser.WebElementSel
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
 /**
- * Utility class that wraps {@link WebDriver} with
+ * Utility class that wraps {@link WebDriver} instances. Each {@link #connect(String, String, String)} call
+ * will associate a working instance of {@link WebDriver} and will be used until {@link #quit()} is used or another {@link #connect(String, String, String)}
  */
 public class WebDriverHelper {
 
 	private SeleniumLocatorParser parser = new SeleniumLocatorParser();
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 	private WebDriverCapabilitiesHelper capabilitiesHelper = new WebDriverCapabilitiesHelper();
-	private WebDriver driver;
+	private Map<Integer, WebDriver> driverCache = new LinkedHashMap<>();
+	private Integer currentDriverId;
 	/**
 	 * @see #setTimeoutInSeconds(int)
 	 */
@@ -55,7 +62,7 @@ public class WebDriverHelper {
 	/**
 	 * HTTP scheme prefix, to detect remote DRIVER
 	 */
-	private static final String HTTP_PREFIX = "http://";
+	private static final String HTTP_PREFIX = "http";
 
 	/**
 	 * Creates a {@link WebDriver} instance with desired browser and capabilities. Capabilities should follow a key/value format
@@ -68,6 +75,17 @@ public class WebDriverHelper {
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
 	public void connect(String browser, String capabilities, String preferences) throws ReflectiveOperationException, IOException {
+		int driverId = new HashCodeBuilder().append(browser).append(capabilities).append(preferences).toHashCode();
+		WebDriver driver = this.driverCache.get(driverId);
+		if (isBrowserAvailable(driver)) {
+			return;
+		}
+		quit(driverId);
+		this.driverCache.put(driverId, createDriverConnection(browser, capabilities, preferences));
+		this.currentDriverId = driverId;
+	}
+
+	private WebDriver createDriverConnection(String browser, String capabilities, String preferences) throws MalformedURLException, ReflectiveOperationException {
 		WebDriver driver = null;
 		String cleanedBrowser = StringUtils.deleteWhitespace(this.parser.parse(browser).getOriginalSelector());
 		Capabilities parsedCapabilities = this.capabilitiesHelper.parse(cleanedBrowser, this.fitnesseMarkup.clean(capabilities), this.fitnesseMarkup.clean(preferences));
@@ -83,21 +101,28 @@ public class WebDriverHelper {
 			}
 		}
 		if (driver == null) {
-			throw new StopTestWithWebDriverException(MessageFormat.format("No suitable implementation found for {0} with capabilites: [{1}]", browser, capabilities));
+			throw new StopTestWithWebDriverException(MessageFormat.format("No suitable implementation found for [{0}] with capabilites: [{1}]", browser, capabilities));
 		}
-		quit();
-		this.driver = driver;
+		return driver;
 	}
 
 	/**
-	 * Quietly quits the browser
+	 * Quietly quits the current browser instance
 	 */
 	public void quit() {
+		if (quit(this.currentDriverId) && MapUtils.isNotEmpty(this.driverCache)) {
+			this.currentDriverId = this.driverCache.keySet().stream().findFirst().get();
+		}
+	}
+
+	private boolean quit(Integer driverId) {
 		try {
-			this.driver.quit();
+			this.driverCache.remove(driverId).quit();
+			return true;
 		} catch (Exception e) {
 			// quits quietly
 		}
+		return false;
 	}
 
 	/**
@@ -126,8 +151,9 @@ public class WebDriverHelper {
 		}
 		MutableObject<T> result = new MutableObject<>();
 		try {
+			WebDriver driver = this.driverCache.get(this.currentDriverId);
 			Instant startInstant = Instant.now();
-			WebDriverWait wait = new WebDriverWait(this.driver, this.timeoutInSeconds);
+			WebDriverWait wait = new WebDriverWait(driver, this.timeoutInSeconds);
 			wait.ignoring(InvalidElementStateException.class);
 			wait.ignoring(UnhandledAlertException.class);
 			wait.ignoring(UnexpectedTagNameException.class);
@@ -141,7 +167,7 @@ public class WebDriverHelper {
 				if (this.stopTestOnFirstFailure) {
 					throw e;
 				}
-				evaluate(this.driver, locator, callback, true, result);
+				evaluate(driver, locator, callback, true, result);
 			} finally {
 				this.lastActionDurationInSeconds = Duration.between(startInstant, Instant.now()).getSeconds();
 			}
@@ -168,8 +194,12 @@ public class WebDriverHelper {
 	 * @return if browser is available and can be used
 	 */
 	public boolean isBrowserAvailable() {
+		return isBrowserAvailable(this.driverCache.get(this.currentDriverId));
+	}
+
+	private boolean isBrowserAvailable(WebDriver driver) {
 		// http://stackoverflow.com/questions/27616470/webdriver-how-to-check-if-browser-still-exists-or-still-open
-		String driverString = ObjectUtils.toString(this.driver);
+		String driverString = ObjectUtils.toString(driver);
 		return StringUtils.isNotBlank(driverString) && !StringUtils.containsIgnoreCase(driverString, "null");
 	}
 

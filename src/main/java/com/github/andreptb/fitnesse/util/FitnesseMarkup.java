@@ -84,6 +84,15 @@ public class FitnesseMarkup {
 	public static final String KEY_VALUE_SEPARATOR = "=";
 
 	/**
+	 * <b>on</b> value constant, see {@link #booleanToOnOrOff(Object)}
+	 */
+	private static final String ON_VALUE = "on";
+	/**
+	 * <b>off</b> value constant, see {@link #booleanToOnOrOff(Object)}
+	 */
+	private static final String OFF_VALUE = "off";
+
+	/**
 	 * Compares two values emulating FitNesse comparisons:
 	 * <p>
 	 * http://fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.ValueComparisons
@@ -219,5 +228,26 @@ public class FitnesseMarkup {
 		}
 		String key = StringUtils.substringBefore(cleanedValue, separator);
 		return Pair.of(key, StringUtils.removeStart(cleanedValue, key + separator));
+	}
+
+	/**
+	 * Cleans and converts <b>true</b> or <b>false</b> value to {@link #ON_VALUE} or {@link #OFF_VALUE}
+	 *
+	 * @param value to be converted
+	 * @return converted value, {@link #ON_VALUE} if value is <b>true</b> or {@link #ON_VALUE} itself
+	 */
+	public String booleanToOnOrOff(Object value) {
+		return onOrOffToBoolean(value) ? FitnesseMarkup.ON_VALUE : FitnesseMarkup.OFF_VALUE;
+	}
+
+	/**
+	 * Cleans and converts {@link #ON_VALUE} or {@link #OFF_VALUE} value to boolean.
+	 *
+	 * @param value to be converted
+	 * @return converted value, <b>true</b> if value is {@link #ON_VALUE}, <b>false</b> otherwise
+	 */
+	public boolean onOrOffToBoolean(Object value) {
+		String cleanedValue = clean(value);
+		return Boolean.valueOf(cleanedValue) || StringUtils.equalsIgnoreCase(cleanedValue, FitnesseMarkup.ON_VALUE);
 	}
 }

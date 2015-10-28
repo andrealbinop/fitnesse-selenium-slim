@@ -58,14 +58,6 @@ public class SeleniumFixture {
 	private static final String INPUT_VALUE_ATTRIBUTE = "value";
 
 	/**
-	 * <b>on</b> value constant, used by {@link #value(String)}
-	 */
-	private static final String ON_VALUE = "on";
-	/**
-	 * <b>off</b> value constant, used by {@link #value(String)}
-	 */
-	private static final String OFF_VALUE = "off";
-	/**
 	 * Instance that wraps {@link WebDriver} providing utility methods to manipulate elements and such. Attribute is static to keep state between table invocations
 	 */
 	private static WebDriverHelper WEB_DRIVER = new WebDriverHelper();
@@ -712,7 +704,7 @@ public class SeleniumFixture {
 			WebElement element = driver.findElement(parsedLocator.getBy());
 			String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);
 			if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {
-				return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;
+				return this.fitnesseMarkup.booleanToOnOrOff(element.isSelected());
 			}
 			return element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE);
 		});
@@ -876,13 +868,13 @@ public class SeleniumFixture {
 	 * </code>
 	 * </p>
 	 *
-	 * @param shouldStop If true, the test will stop if a failure occurs in any action
-	 * @return previous configuration value
+	 * @param shouldStop If <b>true</b> or <b>on</b>, the test will stop if a failure occurs in any action
+	 * @return previous configuration value. If enabled will return <b>on</b>, <b>off</b> otherwise.
 	 */
-	public boolean stopTestOnFirstFailure(boolean shouldStop) {
+	public String stopTestOnFirstFailure(String shouldStop) {
 		boolean previousConfig = SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure();
-		SeleniumFixture.WEB_DRIVER.setStopTestOnFirstFailure(shouldStop);
-		return previousConfig;
+		SeleniumFixture.WEB_DRIVER.setStopTestOnFirstFailure(this.fitnesseMarkup.onOrOffToBoolean(shouldStop));
+		return this.fitnesseMarkup.booleanToOnOrOff(previousConfig);
 	}
 
 	/**
