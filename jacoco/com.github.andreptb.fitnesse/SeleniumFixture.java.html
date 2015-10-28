@@ -58,34 +58,26 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	private static final String INPUT_VALUE_ATTRIBUTE = &quot;value&quot;;
 
 	/**
-	 * &lt;b&gt;on&lt;/b&gt; value constant, used by {@link #value(String)}
-	 */
-	private static final String ON_VALUE = &quot;on&quot;;
-	/**
-	 * &lt;b&gt;off&lt;/b&gt; value constant, used by {@link #value(String)}
-	 */
-	private static final String OFF_VALUE = &quot;off&quot;;
-	/**
 	 * Instance that wraps {@link WebDriver} providing utility methods to manipulate elements and such. Attribute is static to keep state between table invocations
 	 */
-<span class="fc" id="L71">	private static WebDriverHelper WEB_DRIVER = new WebDriverHelper();</span>
+<span class="fc" id="L63">	private static WebDriverHelper WEB_DRIVER = new WebDriverHelper();</span>
 
 	/**
 	 * Utility to help selecting drop downs
 	 */
-<span class="fc" id="L76">	private SelectWebElementHelper selectHelper = new SelectWebElementHelper();</span>
+<span class="fc" id="L68">	private SelectWebElementHelper selectHelper = new SelectWebElementHelper();</span>
 	/**
 	 * Utility to help selecting frames
 	 */
-<span class="fc" id="L80">	private FrameWebElementHelper frameHelper = new FrameWebElementHelper();</span>
+<span class="fc" id="L72">	private FrameWebElementHelper frameHelper = new FrameWebElementHelper();</span>
 	/**
 	 * Utility to help manipulating browser native dialogs (alert and confirm)
 	 */
-<span class="fc" id="L84">	private BrowserDialogHelper dialogHelper = new BrowserDialogHelper();</span>
+<span class="fc" id="L76">	private BrowserDialogHelper dialogHelper = new BrowserDialogHelper();</span>
 	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
-<span class="fc" id="L88">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+<span class="fc" id="L80">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
 
 	/**
 	 * &lt;p&gt;
@@ -102,7 +94,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean startBrowser(String browser) throws ReflectiveOperationException, IOException {
-<span class="nc" id="L105">		return startBrowserWith(browser, null);</span>
+<span class="nc" id="L97">		return startBrowserWith(browser, null);</span>
 	}
 
 	/**
@@ -124,7 +116,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean startBrowserWith(String browser, String capabilities) throws ReflectiveOperationException, IOException {
-<span class="fc" id="L127">		return startBrowserWithAndPreferences(browser, capabilities, null);</span>
+<span class="fc" id="L119">		return startBrowserWithAndPreferences(browser, capabilities, null);</span>
 	}
 
 	/**
@@ -146,7 +138,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
 	public boolean startBrowserWithPreferences(String browser, String browserPreferences) throws ReflectiveOperationException, IOException {
-<span class="nc" id="L149">		return startBrowserWithAndPreferences(browser, null, browserPreferences);</span>
+<span class="nc" id="L141">		return startBrowserWithAndPreferences(browser, null, browserPreferences);</span>
 	}
 
 	/**
@@ -169,8 +161,8 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
 	public boolean startBrowserWithAndPreferences(String browser, String capabilities, String browserPreferences) throws ReflectiveOperationException, IOException {
-<span class="fc" id="L172">		SeleniumFixture.WEB_DRIVER.connect(browser, capabilities, browserPreferences);</span>
-<span class="fc" id="L173">		return true;</span>
+<span class="fc" id="L164">		SeleniumFixture.WEB_DRIVER.connect(browser, capabilities, browserPreferences);</span>
+<span class="fc" id="L165">		return true;</span>
 	}
 
 	/**
@@ -185,9 +177,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return previous timeout value
 	 */
 	public int setWaitTimeout(int timeoutInSeconds) {
-<span class="fc" id="L188">		int previousTimeoutInSeconds = SeleniumFixture.WEB_DRIVER.getTimeoutInSeconds();</span>
-<span class="fc" id="L189">		SeleniumFixture.WEB_DRIVER.setTimeoutInSeconds(timeoutInSeconds);</span>
-<span class="fc" id="L190">		return previousTimeoutInSeconds;</span>
+<span class="fc" id="L180">		int previousTimeoutInSeconds = SeleniumFixture.WEB_DRIVER.getTimeoutInSeconds();</span>
+<span class="fc" id="L181">		SeleniumFixture.WEB_DRIVER.setTimeoutInSeconds(timeoutInSeconds);</span>
+<span class="fc" id="L182">		return previousTimeoutInSeconds;</span>
 	}
 
 	/**
@@ -200,7 +192,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return how much time the last command took to complete. Useful to ensure tests perfomance and such. Will be 0 if no commands were executed
 	 */
 	public long lastCommandDuration() {
-<span class="nc" id="L203">		return SeleniumFixture.WEB_DRIVER.getLastActionDurationInSeconds();</span>
+<span class="nc" id="L195">		return SeleniumFixture.WEB_DRIVER.getLastActionDurationInSeconds();</span>
 	}
 
 	/**
@@ -215,9 +207,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-<span class="fc" id="L218">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L219">			driver.get(parsedLocator.getOriginalSelector());</span>
-<span class="fc" id="L220">			return true;</span>
+<span class="fc" id="L210">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L211">			driver.get(parsedLocator.getOriginalSelector());</span>
+<span class="fc" id="L212">			return true;</span>
 		});
 	}
 
@@ -231,7 +223,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return current url defined in browser
 	 */
 	public String currentUrl() {
-<span class="fc" id="L234">		return currentUrl(StringUtils.EMPTY);</span>
+<span class="fc" id="L226">		return currentUrl(StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -246,7 +238,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the current page title
 	 */
 	public String currentUrl(String expectedUrl) {
-<span class="fc" id="L249">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedUrl, (driver, locator) -&gt; driver.getCurrentUrl());</span>
+<span class="fc" id="L241">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedUrl, (driver, locator) -&gt; driver.getCurrentUrl());</span>
 	}
 
 	/**
@@ -262,14 +254,14 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean openWindow(String url) {
-<span class="fc" id="L265">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L266">			String parsedUrl = parsedLocator.getOriginalSelector();</span>
-<span class="pc bpc" id="L267" title="1 of 2 branches missed.">			if (CollectionUtils.isEmpty(driver.getWindowHandles())) {</span>
-<span class="nc" id="L268">				open(parsedUrl);</span>
-<span class="pc bpc" id="L269" title="1 of 2 branches missed.">			} else if (driver instanceof JavascriptExecutor) {</span>
-<span class="fc" id="L270">				((JavascriptExecutor) driver).executeScript(&quot;window.open(arguments[0])&quot;, this.fitnesseMarkup.clean(parsedUrl));</span>
+<span class="fc" id="L257">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L258">			String parsedUrl = parsedLocator.getOriginalSelector();</span>
+<span class="pc bpc" id="L259" title="1 of 2 branches missed.">			if (CollectionUtils.isEmpty(driver.getWindowHandles())) {</span>
+<span class="nc" id="L260">				open(parsedUrl);</span>
+<span class="pc bpc" id="L261" title="1 of 2 branches missed.">			} else if (driver instanceof JavascriptExecutor) {</span>
+<span class="fc" id="L262">				((JavascriptExecutor) driver).executeScript(&quot;window.open(arguments[0])&quot;, this.fitnesseMarkup.clean(parsedUrl));</span>
 			}
-<span class="fc" id="L272">			return true;</span>
+<span class="fc" id="L264">			return true;</span>
 		});
 	}
 
@@ -286,20 +278,20 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectWindow(String locator) {
-<span class="fc" id="L289">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L290">			String parsedWindowLocator = parsedLocator.getOriginalSelector();</span>
-<span class="fc" id="L291">			String currentWindow = driver.getWindowHandle();</span>
-<span class="pc bpc" id="L292" title="1 of 2 branches missed.">			for (String windowId : driver.getWindowHandles()) {</span>
-<span class="fc" id="L293">				WebDriver window = driver.switchTo().window(windowId);</span>
-<span class="fc bfc" id="L294" title="All 6 branches covered.">				if (this.fitnesseMarkup.compare(parsedWindowLocator, windowId) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getTitle()) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getCurrentUrl())) {</span>
-<span class="fc" id="L295">					return true;</span>
+<span class="fc" id="L281">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L282">			String parsedWindowLocator = parsedLocator.getOriginalSelector();</span>
+<span class="fc" id="L283">			String currentWindow = driver.getWindowHandle();</span>
+<span class="pc bpc" id="L284" title="1 of 2 branches missed.">			for (String windowId : driver.getWindowHandles()) {</span>
+<span class="fc" id="L285">				WebDriver window = driver.switchTo().window(windowId);</span>
+<span class="fc bfc" id="L286" title="All 6 branches covered.">				if (this.fitnesseMarkup.compare(parsedWindowLocator, windowId) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getTitle()) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getCurrentUrl())) {</span>
+<span class="fc" id="L287">					return true;</span>
 				}
-<span class="fc" id="L297">			}</span>
+<span class="fc" id="L289">			}</span>
 			// if title didn't match anything go back to current window
-<span class="nc bnc" id="L299" title="All 2 branches missed.">			if (currentWindow != null) {</span>
-<span class="nc" id="L300">				driver.switchTo().window(currentWindow);</span>
+<span class="nc bnc" id="L291" title="All 2 branches missed.">			if (currentWindow != null) {</span>
+<span class="nc" id="L292">				driver.switchTo().window(currentWindow);</span>
 			}
-<span class="nc" id="L302">			throw new NoSuchElementException(&quot;No window found for locator: &quot; + parsedWindowLocator);</span>
+<span class="nc" id="L294">			throw new NoSuchElementException(&quot;No window found for locator: &quot; + parsedWindowLocator);</span>
 		});
 	}
 
@@ -317,7 +309,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectFrame(String locator) {
-<span class="fc" id="L320">		return this.frameHelper.select(SeleniumFixture.WEB_DRIVER, locator);</span>
+<span class="fc" id="L312">		return this.frameHelper.select(SeleniumFixture.WEB_DRIVER, locator);</span>
 	}
 
 	/**
@@ -331,7 +323,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return windowID
 	 */
 	public String currentWindow() {
-<span class="fc" id="L334">		return currentWindow(StringUtils.EMPTY);</span>
+<span class="fc" id="L326">		return currentWindow(StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -346,7 +338,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the current page title
 	 */
 	public String currentWindow(String expectedWindowHandle) {
-<span class="fc" id="L349">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedWindowHandle, (driver, locator) -&gt; driver.getWindowHandle());</span>
+<span class="fc" id="L341">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedWindowHandle, (driver, locator) -&gt; driver.getWindowHandle());</span>
 	}
 
 	/**
@@ -360,9 +352,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean windowMaximize() {
-<span class="fc" id="L363">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L364">			driver.manage().window().maximize();</span>
-<span class="fc" id="L365">			return true;</span>
+<span class="fc" id="L355">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L356">			driver.manage().window().maximize();</span>
+<span class="fc" id="L357">			return true;</span>
 		});
 	}
 
@@ -376,7 +368,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return windows size, in [width]x[height] format
 	 */
 	public String windowSize() {
-<span class="fc" id="L379">		return windowSize(StringUtils.EMPTY);</span>
+<span class="fc" id="L371">		return windowSize(StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -391,9 +383,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return windows size, in [width]x[height] format
 	 */
 	public String windowSize(String expectedWindowSize) {
-<span class="fc" id="L394">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedWindowSize, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L395">			Dimension dimension = driver.manage().window().getSize();</span>
-<span class="fc" id="L396">			return String.format(&quot;%dx%d&quot;, dimension.getWidth(), dimension.getHeight());</span>
+<span class="fc" id="L386">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedWindowSize, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L387">			Dimension dimension = driver.manage().window().getSize();</span>
+<span class="fc" id="L388">			return String.format(&quot;%dx%d&quot;, dimension.getWidth(), dimension.getHeight());</span>
 		});
 	}
 
@@ -408,7 +400,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the current page title
 	 */
 	public String title() {
-<span class="fc" id="L411">		return title(StringUtils.EMPTY);</span>
+<span class="fc" id="L403">		return title(StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -423,7 +415,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the current page title
 	 */
 	public String title(String expectedTitle) {
-<span class="fc" id="L426">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedTitle, (driver, locator) -&gt; driver.getTitle());</span>
+<span class="fc" id="L418">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedTitle, (driver, locator) -&gt; driver.getTitle());</span>
 	}
 
 	/**
@@ -437,14 +429,14 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean closeBrowserTab() {
-<span class="fc" id="L440">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L441">			driver.close();</span>
-<span class="fc" id="L442">			Iterator&lt;String&gt; currentWindows = driver.getWindowHandles().iterator();</span>
-<span class="pc bpc" id="L443" title="1 of 2 branches missed.">			if (currentWindows.hasNext()) {</span>
+<span class="fc" id="L432">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L433">			driver.close();</span>
+<span class="fc" id="L434">			Iterator&lt;String&gt; currentWindows = driver.getWindowHandles().iterator();</span>
+<span class="pc bpc" id="L435" title="1 of 2 branches missed.">			if (currentWindows.hasNext()) {</span>
 				// if there's still windows opened focus anyone that's still opened
-<span class="fc" id="L445">				driver.switchTo().window(currentWindows.next());</span>
+<span class="fc" id="L437">				driver.switchTo().window(currentWindows.next());</span>
 			}
-<span class="fc" id="L447">			return true;</span>
+<span class="fc" id="L439">			return true;</span>
 		});
 	}
 
@@ -459,8 +451,8 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean quitBrowser() {
-<span class="fc" id="L462">		SeleniumFixture.WEB_DRIVER.quit();</span>
-<span class="fc" id="L463">		return true;</span>
+<span class="fc" id="L454">		SeleniumFixture.WEB_DRIVER.quit();</span>
+<span class="fc" id="L455">		return true;</span>
 	}
 
 	/**
@@ -476,7 +468,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean type(String value) {
-<span class="fc" id="L479">		return typeIn(value, StringUtils.EMPTY);</span>
+<span class="fc" id="L471">		return typeIn(value, StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -493,7 +485,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean typeIn(String value, String locator) {
-<span class="fc" id="L496">		return sendKeysIn(value, locator, true);</span>
+<span class="fc" id="L488">		return sendKeysIn(value, locator, true);</span>
 	}
 
 	/**
@@ -512,7 +504,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean sendKeys(String value) {
-<span class="fc" id="L515">		return sendKeysIn(value, StringUtils.EMPTY);</span>
+<span class="fc" id="L507">		return sendKeysIn(value, StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -532,21 +524,21 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean sendKeysIn(String value, String locator) {
-<span class="fc" id="L535">		return sendKeysIn(value, locator, false);</span>
+<span class="fc" id="L527">		return sendKeysIn(value, locator, false);</span>
 	}
 
 	private boolean sendKeysIn(String value, String locator, boolean clearBefore) {
-<span class="fc" id="L539">		Pair&lt;String, String&gt; valueAndLocator = this.fitnesseMarkup.swapValueToCheck(value, locator);</span>
-<span class="fc" id="L540">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(valueAndLocator.getValue(), (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L541">			WebElement element = driver.findElement(parsedLocator.getBy());</span>
-<span class="fc" id="L542">			String cleanedValue = cleanValueToSend(driver, element, valueAndLocator.getKey());</span>
-<span class="fc bfc" id="L543" title="All 2 branches covered.">			if (clearBefore) {</span>
-<span class="fc" id="L544">				element.clear();</span>
+<span class="fc" id="L531">		Pair&lt;String, String&gt; valueAndLocator = this.fitnesseMarkup.swapValueToCheck(value, locator);</span>
+<span class="fc" id="L532">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(valueAndLocator.getValue(), (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L533">			WebElement element = driver.findElement(parsedLocator.getBy());</span>
+<span class="fc" id="L534">			String cleanedValue = cleanValueToSend(driver, element, valueAndLocator.getKey());</span>
+<span class="fc bfc" id="L535" title="All 2 branches covered.">			if (clearBefore) {</span>
+<span class="fc" id="L536">				element.clear();</span>
 			}
-<span class="pc bpc" id="L546" title="1 of 2 branches missed.">			if (StringUtils.isNotBlank(cleanedValue)) {</span>
-<span class="fc" id="L547">				element.sendKeys(cleanedValue);</span>
+<span class="pc bpc" id="L538" title="1 of 2 branches missed.">			if (StringUtils.isNotBlank(cleanedValue)) {</span>
+<span class="fc" id="L539">				element.sendKeys(cleanedValue);</span>
 			}
-<span class="fc" id="L549">			return true;</span>
+<span class="fc" id="L541">			return true;</span>
 		});
 	}
 
@@ -560,14 +552,14 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return value expanded to absolute path if for input file type.
 	 */
 	private String cleanValueToSend(WebDriver driver, WebElement element, String value) {
-<span class="fc bfc" id="L563" title="All 2 branches covered.">		if (!StringUtils.equals(element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE), SeleniumFixture.INPUT_TYPE_FILE_VALUE)) {</span>
-<span class="fc" id="L564">			return this.fitnesseMarkup.clean(value);</span>
+<span class="fc bfc" id="L555" title="All 2 branches covered.">		if (!StringUtils.equals(element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE), SeleniumFixture.INPUT_TYPE_FILE_VALUE)) {</span>
+<span class="fc" id="L556">			return this.fitnesseMarkup.clean(value);</span>
 		}
 		// set file detector for remote web elements. Local FirefoxDriver uses RemoteWebElement and
-<span class="pc bpc" id="L567" title="2 of 4 branches missed.">		if (element instanceof RemoteWebElement &amp;&amp; !ClassUtils.isAssignable(driver.getClass(), FirefoxDriver.class)) {</span>
-<span class="fc" id="L568">			((RemoteWebElement) element).setFileDetector(new LocalFileDetector());</span>
+<span class="pc bpc" id="L559" title="2 of 4 branches missed.">		if (element instanceof RemoteWebElement &amp;&amp; !ClassUtils.isAssignable(driver.getClass(), FirefoxDriver.class)) {</span>
+<span class="fc" id="L560">			((RemoteWebElement) element).setFileDetector(new LocalFileDetector());</span>
 		}
-<span class="fc" id="L570">		return this.fitnesseMarkup.cleanFile(value).getAbsolutePath();</span>
+<span class="fc" id="L562">		return this.fitnesseMarkup.cleanFile(value).getAbsolutePath();</span>
 	}
 
 	/**
@@ -581,7 +573,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click() {
-<span class="fc" id="L584">		return click(StringUtils.EMPTY);</span>
+<span class="fc" id="L576">		return click(StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -596,16 +588,16 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-<span class="fc" id="L599">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc bfc" id="L600" title="All 2 branches covered.">			if (this.dialogHelper.click(driver, parsedLocator)) {</span>
-<span class="fc" id="L601">				return true;</span>
+<span class="fc" id="L591">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc bfc" id="L592" title="All 2 branches covered.">			if (this.dialogHelper.click(driver, parsedLocator)) {</span>
+<span class="fc" id="L593">				return true;</span>
 			}
-<span class="fc" id="L603">			WebElement element = driver.findElement(parsedLocator.getBy());</span>
-<span class="pc bpc" id="L604" title="1 of 2 branches missed.">			if (!element.isEnabled()) {</span>
-<span class="nc" id="L605">				throw new InvalidElementStateException(&quot;Element found but is disabled: &quot; + element);</span>
+<span class="fc" id="L595">			WebElement element = driver.findElement(parsedLocator.getBy());</span>
+<span class="pc bpc" id="L596" title="1 of 2 branches missed.">			if (!element.isEnabled()) {</span>
+<span class="nc" id="L597">				throw new InvalidElementStateException(&quot;Element found but is disabled: &quot; + element);</span>
 			}
-<span class="fc" id="L607">			element.click();</span>
-<span class="fc" id="L608">			return true;</span>
+<span class="fc" id="L599">			element.click();</span>
+<span class="fc" id="L600">			return true;</span>
 		});
 	}
 
@@ -628,7 +620,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean select(String optionLocator) {
-<span class="fc" id="L631">		return selectIn(optionLocator, StringUtils.EMPTY);</span>
+<span class="fc" id="L623">		return selectIn(optionLocator, StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -651,7 +643,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectIn(String optionLocator, String locator) {
-<span class="fc" id="L654">		return this.selectHelper.select(SeleniumFixture.WEB_DRIVER, optionLocator, locator);</span>
+<span class="fc" id="L646">		return this.selectHelper.select(SeleniumFixture.WEB_DRIVER, optionLocator, locator);</span>
 	}
 
 	/**
@@ -671,7 +663,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the appropriate information associated with the select
 	 */
 	public String selected(String optionType) {
-<span class="fc" id="L674">		return selectedIn(optionType, StringUtils.EMPTY);</span>
+<span class="fc" id="L666">		return selectedIn(optionType, StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -692,7 +684,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the appropriate information associated with the select
 	 */
 	public String selectedIn(String optionType, String locator) {
-<span class="fc" id="L695">		return this.selectHelper.selected(SeleniumFixture.WEB_DRIVER, optionType, locator);</span>
+<span class="fc" id="L687">		return this.selectHelper.selected(SeleniumFixture.WEB_DRIVER, optionType, locator);</span>
 	}
 
 	/**
@@ -708,13 +700,13 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return value associated with the locator
 	 */
 	public String value(String locator) {
-<span class="fc" id="L711">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L712">			WebElement element = driver.findElement(parsedLocator.getBy());</span>
-<span class="fc" id="L713">			String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);</span>
-<span class="fc bfc" id="L714" title="All 4 branches covered.">			if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {</span>
-<span class="fc bfc" id="L715" title="All 2 branches covered.">				return element.isSelected() ? SeleniumFixture.ON_VALUE : SeleniumFixture.OFF_VALUE;</span>
+<span class="fc" id="L703">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L704">			WebElement element = driver.findElement(parsedLocator.getBy());</span>
+<span class="fc" id="L705">			String inputType = element.getAttribute(SeleniumFixture.INPUT_TYPE_ATTRIBUTE);</span>
+<span class="fc bfc" id="L706" title="All 4 branches covered.">			if (StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_CHECKBOX) || StringUtils.equals(inputType, SeleniumFixture.INPUT_TYPE_RADIO)) {</span>
+<span class="fc" id="L707">				return this.fitnesseMarkup.booleanToOnOrOff(element.isSelected());</span>
 			}
-<span class="fc" id="L717">			return element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE);</span>
+<span class="fc" id="L709">			return element.getAttribute(SeleniumFixture.INPUT_VALUE_ATTRIBUTE);</span>
 		});
 	}
 
@@ -731,8 +723,8 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return value associated with the locator
 	 */
 	public String attributeIn(String attributeName, String locator) {
-<span class="fc" id="L734">		Pair&lt;String, String&gt; attributeAndLocatorWithValue = this.fitnesseMarkup.swapValueToCheck(attributeName, locator);</span>
-<span class="fc" id="L735">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(attributeAndLocatorWithValue.getRight(), (driver, parsedLocator) -&gt; driver.findElement(parsedLocator.getBy()).getAttribute(this.fitnesseMarkup.clean(attributeAndLocatorWithValue.getLeft())));</span>
+<span class="fc" id="L726">		Pair&lt;String, String&gt; attributeAndLocatorWithValue = this.fitnesseMarkup.swapValueToCheck(attributeName, locator);</span>
+<span class="fc" id="L727">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(attributeAndLocatorWithValue.getRight(), (driver, parsedLocator) -&gt; driver.findElement(parsedLocator.getBy()).getAttribute(this.fitnesseMarkup.clean(attributeAndLocatorWithValue.getLeft())));</span>
 	}
 
 	/**
@@ -751,7 +743,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return text associated with the locator
 	 */
 	public String text() {
-<span class="fc" id="L754">		return text(StringUtils.EMPTY);</span>
+<span class="fc" id="L746">		return text(StringUtils.EMPTY);</span>
 	}
 
 	/**
@@ -767,9 +759,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return text associated with the locator
 	 */
 	public String text(String locator) {
-<span class="fc" id="L770">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L771">			return Optional.ofNullable(this.dialogHelper.text(driver, parsedLocator)).orElseGet(() -&gt; {</span>
-<span class="fc" id="L772">				return driver.findElement(parsedLocator.getBy()).getText();</span>
+<span class="fc" id="L762">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L763">			return Optional.ofNullable(this.dialogHelper.text(driver, parsedLocator)).orElseGet(() -&gt; {</span>
+<span class="fc" id="L764">				return driver.findElement(parsedLocator.getBy()).getText();</span>
 			});
 		});
 	}
@@ -786,11 +778,11 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @throws IOException if something goes wrong while manipulating screenshot file
 	 */
 	public String screenshot() throws IOException {
-<span class="fc" id="L789">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -&gt; {</span>
-<span class="pc bpc" id="L790" title="1 of 2 branches missed.">			if (driver instanceof TakesScreenshot) {</span>
-<span class="fc" id="L791">				return ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE).getAbsolutePath();</span>
+<span class="fc" id="L781">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -&gt; {</span>
+<span class="pc bpc" id="L782" title="1 of 2 branches missed.">			if (driver instanceof TakesScreenshot) {</span>
+<span class="fc" id="L783">				return ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE).getAbsolutePath();</span>
 			}
-<span class="nc" id="L793">			return null;</span>
+<span class="nc" id="L785">			return null;</span>
 		});
 	}
 
@@ -815,36 +807,36 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean present(String locator) {
-<span class="fc" id="L818">		MutableBoolean result = new MutableBoolean();</span>
+<span class="fc" id="L810">		MutableBoolean result = new MutableBoolean();</span>
 		try {
-<span class="fc" id="L820">			testPresent(locator, result);</span>
-<span class="nc" id="L821">		} catch (InvalidElementStateException | NotFoundException e) {</span>
-<span class="nc bnc" id="L822" title="All 2 branches missed.">			return !result.getValue();</span>
-<span class="fc" id="L823">		}</span>
-<span class="fc" id="L824">		return result.getValue();</span>
+<span class="fc" id="L812">			testPresent(locator, result);</span>
+<span class="nc" id="L813">		} catch (InvalidElementStateException | NotFoundException e) {</span>
+<span class="nc bnc" id="L814" title="All 2 branches missed.">			return !result.getValue();</span>
+<span class="fc" id="L815">		}</span>
+<span class="fc" id="L816">		return result.getValue();</span>
 	}
 
 	private void testPresent(String locator, MutableBoolean resultHolder) {
-<span class="fc" id="L828">		SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L829">			String expectedValue = parsedLocator.getExpectedValue();</span>
-<span class="pc bpc" id="L830" title="1 of 4 branches missed.">			boolean ensuring = StringUtils.isBlank(expectedValue) || Boolean.valueOf(expectedValue);</span>
-<span class="fc" id="L831">			resultHolder.setValue(ensuring);</span>
+<span class="fc" id="L820">		SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L821">			String expectedValue = parsedLocator.getExpectedValue();</span>
+<span class="pc bpc" id="L822" title="1 of 4 branches missed.">			boolean ensuring = StringUtils.isBlank(expectedValue) || Boolean.valueOf(expectedValue);</span>
+<span class="fc" id="L823">			resultHolder.setValue(ensuring);</span>
 			try {
-<span class="fc bfc" id="L833" title="All 2 branches covered.">				if (!this.dialogHelper.present(driver, parsedLocator)) {</span>
-<span class="fc" id="L834">					driver.findElement(parsedLocator.getBy());</span>
+<span class="fc bfc" id="L825" title="All 2 branches covered.">				if (!this.dialogHelper.present(driver, parsedLocator)) {</span>
+<span class="fc" id="L826">					driver.findElement(parsedLocator.getBy());</span>
 				}
-<span class="pc bpc" id="L836" title="1 of 2 branches missed.">				if (!ensuring) {</span>
-<span class="nc" id="L837">					throw new InvalidElementStateException(&quot;Element shouldn't be present&quot;);</span>
+<span class="pc bpc" id="L828" title="1 of 2 branches missed.">				if (!ensuring) {</span>
+<span class="nc" id="L829">					throw new InvalidElementStateException(&quot;Element shouldn't be present&quot;);</span>
 				}
-<span class="fc" id="L839">			} catch (NotFoundException e) {</span>
-<span class="pc bpc" id="L840" title="1 of 2 branches missed.">				if (ensuring) {</span>
-<span class="nc" id="L841">					throw e;</span>
+<span class="fc" id="L831">			} catch (NotFoundException e) {</span>
+<span class="pc bpc" id="L832" title="1 of 2 branches missed.">				if (ensuring) {</span>
+<span class="nc" id="L833">					throw e;</span>
 				}
-<span class="fc" id="L843">			}</span>
+<span class="fc" id="L835">			}</span>
 			// return expected value itself to disable value comparation. Flow uses exception to test result
-<span class="fc" id="L845">			return expectedValue;</span>
+<span class="fc" id="L837">			return expectedValue;</span>
 		});
-<span class="fc" id="L847">	}</span>
+<span class="fc" id="L839">	}</span>
 
 	/**
 	 * &lt;p&gt;
@@ -861,11 +853,11 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return of the javascript snippet that ran
 	 */
 	public String runScript(String script) {
-<span class="fc" id="L864">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(script, (driver, parsedLocator) -&gt; {</span>
-<span class="pc bpc" id="L865" title="1 of 2 branches missed.">			if (driver instanceof JavascriptExecutor) {</span>
-<span class="fc" id="L866">				return Objects.toString(((JavascriptExecutor) driver).executeScript(parsedLocator.getOriginalSelector()), null);</span>
+<span class="fc" id="L856">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(script, (driver, parsedLocator) -&gt; {</span>
+<span class="pc bpc" id="L857" title="1 of 2 branches missed.">			if (driver instanceof JavascriptExecutor) {</span>
+<span class="fc" id="L858">				return Objects.toString(((JavascriptExecutor) driver).executeScript(parsedLocator.getOriginalSelector()), null);</span>
 			}
-<span class="nc" id="L868">			return null;</span>
+<span class="nc" id="L860">			return null;</span>
 		});
 	}
 
@@ -876,13 +868,13 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * &lt;/code&gt;
 	 * &lt;/p&gt;
 	 *
-	 * @param shouldStop If true, the test will stop if a failure occurs in any action
-	 * @return previous configuration value
+	 * @param shouldStop If &lt;b&gt;true&lt;/b&gt; or &lt;b&gt;on&lt;/b&gt;, the test will stop if a failure occurs in any action
+	 * @return previous configuration value. If enabled will return &lt;b&gt;on&lt;/b&gt;, &lt;b&gt;off&lt;/b&gt; otherwise.
 	 */
-	public boolean stopTestOnFirstFailure(boolean shouldStop) {
-<span class="fc" id="L883">		boolean previousConfig = SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure();</span>
-<span class="fc" id="L884">		SeleniumFixture.WEB_DRIVER.setStopTestOnFirstFailure(shouldStop);</span>
-<span class="fc" id="L885">		return previousConfig;</span>
+	public String stopTestOnFirstFailure(String shouldStop) {
+<span class="fc" id="L875">		boolean previousConfig = SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure();</span>
+<span class="fc" id="L876">		SeleniumFixture.WEB_DRIVER.setStopTestOnFirstFailure(this.fitnesseMarkup.onOrOffToBoolean(shouldStop));</span>
+<span class="fc" id="L877">		return this.fitnesseMarkup.booleanToOnOrOff(previousConfig);</span>
 	}
 
 	/**
@@ -900,7 +892,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return if the informed file exists on the filesystem
 	 */
 	public boolean fileExists(String file) {
-<span class="nc" id="L903">		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -&gt; this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists()));</span>
+<span class="nc" id="L895">		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -&gt; this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists()));</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
