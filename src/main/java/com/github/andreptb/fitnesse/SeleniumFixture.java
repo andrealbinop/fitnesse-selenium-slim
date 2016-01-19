@@ -15,10 +15,11 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.NotFoundException;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriver.Window;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.LocalFileDetector;
@@ -216,6 +217,40 @@ public class SeleniumFixture {
 	/**
 	 * <p>
 	 * <code>
+	 * | refresh |
+	 * </code>
+	 * </p>
+	 * Simulates the user clicking the "Refresh" button on their browser.
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean refresh() {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
+			driver.navigate().refresh();
+			return true;
+		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | go back |
+	 * </code>
+	 * </p>
+	 * Simulates the user clicking the "back" button on their browser.
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean goBack() {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
+			driver.navigate().back();
+			return true;
+		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
 	 * | check | current url | <i>url</i> |
 	 * </code>
 	 * </p>
@@ -349,11 +384,32 @@ public class SeleniumFixture {
 	 * </p>
 	 * Resize currently selected window to take up the entire screen
 	 *
-	 * @return result Boolean result indication of assertion/operation
+	 * @return the window size after maximizing
 	 */
-	public boolean windowMaximize() {
+	public String windowMaximize() {
 		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
-			driver.manage().window().maximize();
+			Window window = driver.manage().window();
+			window.maximize();
+			return this.fitnesseMarkup.formatWidthAndHeight(window.getSize().getWidth(), window.getSize().getHeight());
+		});
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | set window size | <i>[width]x[height]</i> |
+	 * </code>
+	 * </p>
+	 * Set the size of the current window. This will change the outer window dimension, not just the view port, synonymous to window.resizeTo() in JS.
+	 *
+	 * @param widthAndHeight windows size, in [width]x[height] format
+	 * @return result Boolean result indication of assertion/operation
+	 * @throws IllegalArgumentException if widthAndHeight is malformed
+	 */
+	public boolean setWindowSize(String widthAndHeight) {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
+			Pair<Integer, Integer> parsedWidthAndHeight = this.fitnesseMarkup.parseWidthAndHeight(widthAndHeight);
+			driver.manage().window().setSize(new Dimension(parsedWidthAndHeight.getLeft(), parsedWidthAndHeight.getRight()));
 			return true;
 		});
 	}
@@ -810,7 +866,7 @@ public class SeleniumFixture {
 		MutableBoolean result = new MutableBoolean();
 		try {
 			testPresent(locator, result);
-		} catch (InvalidElementStateException | NotFoundException e) {
+		} catch (WebDriverException e) {
 			return !result.getValue();
 		}
 		return result.getValue();
@@ -828,7 +884,7 @@ public class SeleniumFixture {
 				if (!ensuring) {
 					throw new InvalidElementStateException("Element shouldn't be present");
 				}
-			} catch (NotFoundException e) {
+			} catch (WebDriverException e) {
 				if (ensuring) {
 					throw e;
 				}

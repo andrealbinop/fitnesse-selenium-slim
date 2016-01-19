@@ -1,5 +1,3 @@
-
-
 | selenium |
 | $previousFailureConfig= | stop test on first failure | true |
 | ensure | open | http://www.w3schools.com/js/tryit.asp?filename=tryjs_confirm |

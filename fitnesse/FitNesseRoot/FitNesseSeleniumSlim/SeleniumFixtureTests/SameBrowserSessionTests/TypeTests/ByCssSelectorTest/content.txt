@@ -1,4 +1,4 @@
 | selenium |
 | ensure | open | http://saucelabs.com/login |
-| type | bar | in | css=#username |
-| check | value | css=#username | bar |
+| type | bar | in | css=input[name="username"] |
+| check | value | css=input[name="username"] | bar |

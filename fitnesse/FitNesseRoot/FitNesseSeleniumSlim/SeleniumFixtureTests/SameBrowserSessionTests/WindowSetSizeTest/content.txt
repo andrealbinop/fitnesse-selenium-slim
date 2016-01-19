@@ -1,0 +1,6 @@
+| selenium |
+| open | http://www.roboform.com/filling-test-custom-fields |
+| $currentWindowSize= | window size |
+| set window size | 640x480 |
+| check | window size | 640x480 |
+| check not | window size | $currentWindowSize |

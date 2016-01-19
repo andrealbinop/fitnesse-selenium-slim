@@ -1,0 +1,6 @@
+| selenium |
+| ensure | open | http://google.com |
+| type | FitNesse${KEY_ENTER} | in | id=lst-ib | 
+| ensure | present | link=FitNesse |
+| go back |
+| reject | present | link=FitNesse |

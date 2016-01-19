@@ -1,11 +1,11 @@
 | selenium |
 | ensure | open | http://google.com |
-| ensure | open window | https://saucelabs.com/login |
+| ensure | open window | https://github.com/andreptb |
 | note | should still be in Google Window |
 | check | title | Google |
 | note | tests selector with regex |
-| ensure | select window | =~/Sauce Labs.+/ |
-| check | text | css=#login-section h1 | Welcome back. |
+| ensure | select window | https://github.com/andreptb |
+| check | text | css=.vcard-username | andreptb |
 | ensure | close browser tab |
 | select window | Google |
 | ensure | present | id=lst-ib |

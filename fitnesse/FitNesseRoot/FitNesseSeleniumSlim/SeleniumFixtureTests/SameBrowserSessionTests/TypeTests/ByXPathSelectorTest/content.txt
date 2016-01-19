@@ -1,5 +1,5 @@
 | selenium |
 | ensure | open | http://saucelabs.com/login |
-| type | foobarbar | in | //input[@id='username'] |
-| check | value | //input[@id='username'] | foobarbar |
-| check | value | xpath=//input[@id='username'] | foobarbar |
+| type | foobarbar | in | //input[@name='username'] |
+| check | value | //input[@name='username'] | foobarbar |
+| check | value | xpath=//input[@name='username'] | foobarbar |

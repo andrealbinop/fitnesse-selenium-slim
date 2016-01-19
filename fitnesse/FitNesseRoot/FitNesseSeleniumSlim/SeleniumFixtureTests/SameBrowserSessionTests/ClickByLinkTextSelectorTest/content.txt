@@ -1,5 +1,5 @@
 | selenium |
 | ensure | open | http://saucelabs.com/login |
-| click | link=Login with GitHub |
-| check | title | !-Sign in · GitHub-! |
+| click | link=Create an Account |
+| check | title | !-Sauce Labs: Sign Up for a Free Trial-! |
 | show | screenshot |

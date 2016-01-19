@@ -82,6 +82,12 @@ public class FitnesseMarkup {
 	 * Constant representing type separator [type]=[value]
 	 */
 	public static final String KEY_VALUE_SEPARATOR = "=";
+	/**
+	 * Constant representing [width]x[height] 'x' separator
+	 */
+	private static final String WIDTH_HEIGHT_SEPARATOR = "x";
+
+	private static final Pattern WIDTH_HEIGHT_PATTERN = Pattern.compile("(\\d{1,4})x(\\d{1,4})");
 
 	/**
 	 * <b>on</b> value constant, see {@link #booleanToOnOrOff(Object)}
@@ -249,5 +255,27 @@ public class FitnesseMarkup {
 	public boolean onOrOffToBoolean(Object value) {
 		String cleanedValue = clean(value);
 		return Boolean.valueOf(cleanedValue) || StringUtils.equalsIgnoreCase(cleanedValue, FitnesseMarkup.ON_VALUE);
+	}
+
+	/**
+	 * @param width Numeric value representing a width value
+	 * @param height Numeric value representing a height value
+	 * @return formatted width and height. If width=1024 and height=768, will output 1024x768
+	 */
+	public String formatWidthAndHeight(Object width, Object height) {
+		return width + FitnesseMarkup.WIDTH_HEIGHT_SEPARATOR + height;
+	}
+
+	/**
+	 * @param widthAndHeight {@link String} containing width and height, separated by {@link #WIDTH_HEIGHT_SEPARATOR}. Example: 1920x1080, 1280x720.
+	 * @return instance of {@link Pair} containing width in {@link Pair#getLeft()} and height in {@link Pair#getRight()}
+	 */
+	public Pair<Integer, Integer> parseWidthAndHeight(String widthAndHeight) {
+		String cleanedWidthAndHeight = clean(widthAndHeight);
+		Matcher matcher = FitnesseMarkup.WIDTH_HEIGHT_PATTERN.matcher(cleanedWidthAndHeight);
+		if(!matcher.matches()) {
+			throw new IllegalArgumentException("Invalid width and height format, should be something like [width pixels]x[height pixels]. Obtained: " + widthAndHeight);
+		}
+		return Pair.of(NumberUtils.toInt(matcher.group(1)), NumberUtils.toInt(matcher.group(2)));
 	}
 }

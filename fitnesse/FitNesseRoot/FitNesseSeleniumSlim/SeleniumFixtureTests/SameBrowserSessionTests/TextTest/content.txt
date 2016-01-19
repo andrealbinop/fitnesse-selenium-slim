@@ -1,10 +1,9 @@
 | scenario | check text with variable
 
 | selenium |
-| ensure | open | http://saucelabs.com/login |
-| check | text | css=#login-section h1 | Welcome back. |
+| ensure | open | https://github.com/andreptb |
+| check | text | css=.vcard-username | andreptb |
 | note | use check text from variable |
-| $logintext= | text | css=#login-section h1 |
-| check | text | css=#login-section h1 | $logintext |
-| check not | text | css=#login-section h1 | $invalidVariable |
-| show | screenshot |
+| $logintext= | text | css=.vcard-username |
+| check | text | css=.vcard-username | $logintext |
+| check not | text | css=.vcard-username | $invalidVariable |

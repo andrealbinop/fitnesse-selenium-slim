@@ -28,7 +28,7 @@ Take a look at [this](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/BasicUsageSampl
 <dependency>
   <groupId>com.github.andreptb</groupId>
   <artifactId>fitnesse-selenium-slim</artifactId>
-  <version>0.9.1</version>
+  <version>0.10.0</version>
 </dependency>
 ```
 
