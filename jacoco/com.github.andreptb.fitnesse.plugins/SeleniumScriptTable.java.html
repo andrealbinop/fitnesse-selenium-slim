@@ -98,10 +98,10 @@ public class SeleniumScriptTable extends ScriptTable {
 
 	@Override
 	protected List&lt;SlimAssertion&gt; show(int row) {
-<span class="fc bfc" id="L101" title="All 2 branches covered.">		if (StringUtils.contains(this.table.getCellContents(NumberUtils.INTEGER_ONE, row), SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION)) {</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">		if (StringUtils.contains(this.table.getCellContents(NumberUtils.INTEGER_ONE, row), SeleniumScriptTable.SCREENSHOT_FIXTURE_ACTION)) {</span>
 <span class="fc" id="L102">			return showScreenshot(row);</span>
 		}
-<span class="fc" id="L104">		return super.show(row);</span>
+<span class="nc" id="L104">		return super.show(row);</span>
 	}
 
 	/**

@@ -36,18 +36,18 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 	 */
 <span class="pc" id="L37">	private enum CapabilitiesAndPreferencesInjector {</span>
 <span class="fc" id="L38">		chrome((capabilities, preferences) -&gt; {</span>
-<span class="nc" id="L39">			ChromeOptions chromeOptions = new ChromeOptions();</span>
-<span class="nc" id="L40">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;disable-popup-blocking&quot;, Boolean.TRUE.toString(), preferences::getOrDefault, preferences::put);</span>
-<span class="nc" id="L41">			chromeOptions.setExperimentalOption(&quot;prefs&quot;, preferences);</span>
-<span class="nc" id="L42">			capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);</span>
-<span class="nc" id="L43">		}),</span>
+<span class="fc" id="L39">			ChromeOptions chromeOptions = new ChromeOptions();</span>
+<span class="fc" id="L40">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;disable-popup-blocking&quot;, Boolean.TRUE.toString(), preferences::getOrDefault, preferences::put);</span>
+<span class="fc" id="L41">			chromeOptions.setExperimentalOption(&quot;prefs&quot;, preferences);</span>
+<span class="fc" id="L42">			capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);</span>
+<span class="fc" id="L43">		}),</span>
 <span class="fc" id="L44">		firefox((capabilities, preferences) -&gt; {</span>
-<span class="fc" id="L45">			FirefoxProfile firefoxProfile = new FirefoxProfile();</span>
-<span class="pc" id="L46">			preferences.forEach((key, value) -&gt; firefoxProfile.setPreference(key, value));</span>
-<span class="fc" id="L47">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.download.folderList&quot;, 2, firefoxProfile::getIntegerPreference, firefoxProfile::setPreference);</span>
-<span class="fc" id="L48">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.helperApps.neverAsk.saveToDisk&quot;, WebDriverCapabilitiesHelper.FIREFOX_ALLOWED_DOWNLOAD_CONTENT_TYPES, firefoxProfile::getStringPreference, firefoxProfile::setPreference);</span>
-<span class="fc" id="L49">			capabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);</span>
-<span class="fc" id="L50">		}),</span>
+<span class="nc" id="L45">			FirefoxProfile firefoxProfile = new FirefoxProfile();</span>
+<span class="nc" id="L46">			preferences.forEach((key, value) -&gt; firefoxProfile.setPreference(key, value));</span>
+<span class="nc" id="L47">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.download.folderList&quot;, 2, firefoxProfile::getIntegerPreference, firefoxProfile::setPreference);</span>
+<span class="nc" id="L48">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.helperApps.neverAsk.saveToDisk&quot;, WebDriverCapabilitiesHelper.FIREFOX_ALLOWED_DOWNLOAD_CONTENT_TYPES, firefoxProfile::getStringPreference, firefoxProfile::setPreference);</span>
+<span class="nc" id="L49">			capabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);</span>
+<span class="nc" id="L50">		}),</span>
 <span class="fc" id="L51">		internetexplorer((capabilities, preferences) -&gt; {</span>
 <span class="nc" id="L52">			capabilities.setCapability(InternetExplorerDriver.INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS, true);</span>
 <span class="nc" id="L53">		});</span>
