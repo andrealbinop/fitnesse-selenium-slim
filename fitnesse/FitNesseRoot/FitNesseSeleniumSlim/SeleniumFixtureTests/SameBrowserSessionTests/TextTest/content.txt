@@ -1,5 +1,3 @@
-| scenario | check text with variable
-
 | selenium |
 | ensure | open | https://github.com/andreptb |
 | check | text | css=.vcard-username | andreptb |
@@ -7,3 +5,4 @@
 | $logintext= | text | css=.vcard-username |
 | check | text | css=.vcard-username | $logintext |
 | check not | text | css=.vcard-username | $invalidVariable |
+| show | screenshot |
