@@ -8,7 +8,7 @@
 		<version>0.5.0</version>
 	</parent>
 	<artifactId>fitnesse-selenium-slim</artifactId>
-	<version>1.0.1-SNAPSHOT</version>
+	<version>1.0.1</version>
 	<name>fitnesse-selenium-slim</name>
 	<description>FitNesse Selenium fixture in slim format. Allows running selenium commands similar to firefox IDE plugin.</description>
 	<url>https://github.com/andreptb/fitnesse-selenium-slim</url>

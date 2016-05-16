@@ -58,9 +58,9 @@ The following sections details some advanced features provided by this plugin.
 In some use cases, such as when you select an option that changes form fields in the page, if selenium can't select this option it wouldn't make sense to go on with the test.
 Since subsequent actions will respect **wait behavior**, this test would waste a lot of time executing actions even though it will fail for sure.
 
-To address this, the action **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-boolean-)** can be enabled. This will abort all actions that come after the action that failed. Note that this flag is kept across tests and suites, so if this functionality is needed, it's wise to configure it properly in each suite or test **SetUp**.
+To address this, the action **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** can be enabled. This will abort all actions that come after the action that failed. Note that this flag is kept across tests and suites, so if this functionality is needed, it's wise to configure it properly in each suite or test **SetUp**.
 
-Some situations will cause the test to be aborted even if **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-boolean-)** is **false**, such as using an action that requires the browser to be started (with **start browser**.
+Some situations will cause the test to be aborted even if **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** is **false**, such as using an action that requires the browser to be started (with **start browser**.
 
 #### Screenshots
 
@@ -74,7 +74,7 @@ This plugin provides a screenshot feature, showing the screenshot preview (and l
 **Known limitations:**
 
 * If a [dialog is present the screenshot action will fail, throwing UnhandledAlertException](https://code.google.com/p/selenium/issues/detail?id=4412).
-* If an action preceding the screenshot fails and **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-boolean-)** is enabled, screenshot action will also be aborted.  
+* If an action preceding the screenshot fails and **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** is enabled, screenshot action will also be aborted.  
 
 #### Wait behavior
 
@@ -87,7 +87,7 @@ Every actions that involves searching for elements within the page will respect 
 ```
 
 **Important:**
-* If **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-boolean-)** is disabled, **present** action will return false if timeout is reached and no element was found with the given selector.
+* If **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** is disabled, **present** action will return false if timeout is reached and no element was found with the given selector.
 * Wait behavior using [FitNesse Slim action](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.ScriptTable) such as **ensure**, **reject**, **check** and **check not** will only work properly if **selenium** table is used.
 
 

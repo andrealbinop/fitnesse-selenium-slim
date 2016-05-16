@@ -1,6 +1,6 @@
 | selenium |
-| ensure | open | http://google.com |
-| type | FitNesse${KEY_ENTER} | in | id=lst-ib | 
-| ensure | present | link=FitNesse |
+| ensure | open | http://github.com |
+| click | link=Sign up | 
+| ensure | present | id=user_login |
 | go back |
-| reject | present | link=FitNesse |
+| reject | present | id=user_login |
