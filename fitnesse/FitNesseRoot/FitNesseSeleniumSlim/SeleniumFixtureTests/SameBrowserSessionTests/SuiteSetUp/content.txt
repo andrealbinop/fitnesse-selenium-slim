@@ -1,6 +1,6 @@
 !define WAIT_TIMEOUT {5}
 
 | selenium |
-| start browser | ${BROWSER} | with | name='fitnesse-selenium-slim-tests' browserName='chrome' |
+| start browser | ${BROWSER} | with | name='fitnesse-selenium-slim-tests' browserName='firefox' |
 | note | changes timeout configuration for 5 seconds (default is 20) |
 | set wait timeout | ${WAIT_TIMEOUT} |

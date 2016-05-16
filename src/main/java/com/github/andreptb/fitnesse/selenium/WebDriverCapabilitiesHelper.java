@@ -43,8 +43,11 @@ public class WebDriverCapabilitiesHelper {
 		}),
 		firefox((capabilities, preferences) -> {
 			FirefoxProfile firefoxProfile = new FirefoxProfile();
+			firefoxProfile.setAcceptUntrustedCertificates(true);
 			preferences.forEach((key, value) -> firefoxProfile.setPreference(key, value));
 			CapabilitiesAndPreferencesInjector.applyIfUndefined("browser.download.folderList", 2, firefoxProfile::getIntegerPreference, firefoxProfile::setPreference);
+			CapabilitiesAndPreferencesInjector.applyIfUndefined("plugin.state.java", 2, firefoxProfile::getIntegerPreference, firefoxProfile::setPreference);
+			CapabilitiesAndPreferencesInjector.applyIfUndefined("security.enable_java", true, firefoxProfile::getBooleanPreference, firefoxProfile::setPreference);
 			CapabilitiesAndPreferencesInjector.applyIfUndefined("browser.helperApps.neverAsk.saveToDisk", WebDriverCapabilitiesHelper.FIREFOX_ALLOWED_DOWNLOAD_CONTENT_TYPES, firefoxProfile::getStringPreference, firefoxProfile::setPreference);
 			capabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);
 		}),

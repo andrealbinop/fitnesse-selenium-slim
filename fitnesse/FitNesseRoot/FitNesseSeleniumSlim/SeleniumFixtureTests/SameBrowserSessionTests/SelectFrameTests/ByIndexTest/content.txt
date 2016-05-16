@@ -1,7 +1,9 @@
 | selenium |
-| ensure | open | http://www.tidycars.co.uk/zocalo/webpages/test/nestedFrameTestContainer.html |
+| ensure | open | http://www.w3schools.com/html/tryit.asp?filename=tryhtml_iframe_height_width |
 | ensure | select frame | index=0 |
-| ensure | present | link=test framework |
-| ensure | select frame | relative=top |
-| ensure | select frame | index=1 |
-| ensure | present | id=target |
+| ensure | select frame | index=0 |
+| check | text | css=h1 | This page is displayed in an iframe |
+| ensure | select frame | relative=parent |
+| ensure | present | css=iframe |
+| ensure | select frame | relative=parent |
+| ensure | present | id=tryitLeaderboard |

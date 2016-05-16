@@ -1,4 +1,4 @@
 | selenium |
 | ensure | open | http://www.roboform.com/filling-test-custom-fields |
-| set window size | 640x480 |
+| set window size | 320x200 |
 | check not | window maximize | 640x480 |

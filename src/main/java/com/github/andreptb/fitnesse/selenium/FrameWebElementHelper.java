@@ -47,9 +47,7 @@ public class FrameWebElementHelper {
 		/**
 		 * Index selector, will look for the index of the desired frame
 		 */
-		index((driver, value) -> {
-			driver.switchTo().frame(NumberUtils.toInt(value));
-		});
+		index((driver, value) -> driver.switchTo().frame(NumberUtils.toInt(value)));
 
 		/**
 		 * Function that selects a value in a {@link Select} element

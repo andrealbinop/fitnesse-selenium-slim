@@ -948,6 +948,6 @@ public class SeleniumFixture {
 	 * @return if the informed file exists on the filesystem
 	 */
 	public boolean fileExists(String file) {
-		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -> this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists()));
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -> this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists());
 	}
 }

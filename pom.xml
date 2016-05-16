@@ -5,10 +5,10 @@
 	<parent>
 		<groupId>com.github.andreptb</groupId>
 		<artifactId>andreptb-component-parent</artifactId>
-        <version>0.5.0</version>
+		<version>0.5.0</version>
 	</parent>
 	<artifactId>fitnesse-selenium-slim</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<name>fitnesse-selenium-slim</name>
 	<description>FitNesse Selenium fixture in slim format. Allows running selenium commands similar to firefox IDE plugin.</description>
 	<url>https://github.com/andreptb/fitnesse-selenium-slim</url>
@@ -35,8 +35,8 @@
 	</scm>
 
 	<properties>
-		<fitnesse.version>20151230</fitnesse.version>
-		<selenium.version>2.50.1</selenium.version>
+		<fitnesse.version>20160515</fitnesse.version>
+		<selenium.version>2.53.0</selenium.version>
 	</properties>
 
 	<dependencies>
@@ -49,6 +49,11 @@
 			<groupId>org.seleniumhq.selenium</groupId>
 			<artifactId>selenium-java</artifactId>
 			<version>${selenium.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-lang3</artifactId>
+			<version>3.4</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-io</groupId>
