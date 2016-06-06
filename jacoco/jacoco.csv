@@ -2,7 +2,7 @@ GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumPluginFeatureFactory,0,39,0,2,0,8,0,4,0,3
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumScriptTable.ShowScreenshotExpectation,15,33,1,1,3,7,1,2,0,2
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.plugins,SeleniumScriptTable,10,248,4,10,4,44,4,16,0,13
-fitnesse-selenium-slim,com.github.andreptb.fitnesse,SeleniumFixture,86,712,15,35,13,131,18,77,5,65
+fitnesse-selenium-slim,com.github.andreptb.fitnesse,SeleniumFixture,89,707,16,34,14,130,19,76,5,65
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.util,FitnesseMarkup,16,336,4,16,2,51,4,22,0,16
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,FrameWebElementHelper.FrameRelativeSelectorType,0,38,0,0,0,3,0,4,0,4
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebDriverHelper.StopTestWithWebDriverException,8,0,0,0,4,0,2,0,2,0
@@ -10,12 +10,12 @@ fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,BrowserDialogHelper
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,SeleniumLocatorParser.WebElementSelector,0,21,0,0,0,8,0,4,0,4
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,FrameWebElementHelper,0,52,0,2,0,11,0,4,0,3
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebDriverHelper,102,302,14,16,16,62,12,18,1,14
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebDriverCapabilitiesHelper.CapabilitiesAndPreferencesInjector,56,89,1,1,9,15,5,5,4,5
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebDriverCapabilitiesHelper.CapabilitiesAndPreferencesInjector,43,133,1,1,8,19,5,5,4,5
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,SeleniumLocatorParser.ByFocus,2,17,1,1,1,3,1,2,0,2
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,SeleniumLocatorParser.LocatorType,5,71,0,0,0,9,1,3,1,3
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,BrowserDialogHelper.DialogIdentifier,0,58,0,0,0,5,0,4,0,4
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,SeleniumLocatorParser,14,79,0,4,2,15,0,5,0,3
-fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,FrameWebElementHelper.FrameSelectorType,5,64,1,3,0,14,2,6,1,5
+fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,FrameWebElementHelper.FrameSelectorType,5,64,1,3,0,12,2,6,1,5
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,SelectWebElementHelper.OptionSelectorType,9,80,0,0,0,8,2,8,2,8
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,WebDriverCapabilitiesHelper,0,87,2,6,0,22,2,6,0,4
 fitnesse-selenium-slim,com.github.andreptb.fitnesse.selenium,SelectWebElementHelper,0,110,0,0,0,15,0,6,0,6

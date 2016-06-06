@@ -36,34 +36,37 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 	 */
 <span class="pc" id="L37">	private enum CapabilitiesAndPreferencesInjector {</span>
 <span class="fc" id="L38">		chrome((capabilities, preferences) -&gt; {</span>
-<span class="fc" id="L39">			ChromeOptions chromeOptions = new ChromeOptions();</span>
-<span class="fc" id="L40">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;disable-popup-blocking&quot;, Boolean.TRUE.toString(), preferences::getOrDefault, preferences::put);</span>
-<span class="fc" id="L41">			chromeOptions.setExperimentalOption(&quot;prefs&quot;, preferences);</span>
-<span class="fc" id="L42">			capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);</span>
-<span class="fc" id="L43">		}),</span>
+<span class="nc" id="L39">			ChromeOptions chromeOptions = new ChromeOptions();</span>
+<span class="nc" id="L40">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;disable-popup-blocking&quot;, Boolean.TRUE.toString(), preferences::getOrDefault, preferences::put);</span>
+<span class="nc" id="L41">			chromeOptions.setExperimentalOption(&quot;prefs&quot;, preferences);</span>
+<span class="nc" id="L42">			capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);</span>
+<span class="nc" id="L43">		}),</span>
 <span class="fc" id="L44">		firefox((capabilities, preferences) -&gt; {</span>
-<span class="nc" id="L45">			FirefoxProfile firefoxProfile = new FirefoxProfile();</span>
-<span class="nc" id="L46">			preferences.forEach((key, value) -&gt; firefoxProfile.setPreference(key, value));</span>
-<span class="nc" id="L47">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.download.folderList&quot;, 2, firefoxProfile::getIntegerPreference, firefoxProfile::setPreference);</span>
-<span class="nc" id="L48">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.helperApps.neverAsk.saveToDisk&quot;, WebDriverCapabilitiesHelper.FIREFOX_ALLOWED_DOWNLOAD_CONTENT_TYPES, firefoxProfile::getStringPreference, firefoxProfile::setPreference);</span>
-<span class="nc" id="L49">			capabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);</span>
-<span class="nc" id="L50">		}),</span>
-<span class="fc" id="L51">		internetexplorer((capabilities, preferences) -&gt; {</span>
-<span class="nc" id="L52">			capabilities.setCapability(InternetExplorerDriver.INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS, true);</span>
-<span class="nc" id="L53">		});</span>
+<span class="fc" id="L45">			FirefoxProfile firefoxProfile = new FirefoxProfile();</span>
+<span class="fc" id="L46">			firefoxProfile.setAcceptUntrustedCertificates(true);</span>
+<span class="pc" id="L47">			preferences.forEach((key, value) -&gt; firefoxProfile.setPreference(key, value));</span>
+<span class="fc" id="L48">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.download.folderList&quot;, 2, firefoxProfile::getIntegerPreference, firefoxProfile::setPreference);</span>
+<span class="fc" id="L49">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;plugin.state.java&quot;, 2, firefoxProfile::getIntegerPreference, firefoxProfile::setPreference);</span>
+<span class="fc" id="L50">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;security.enable_java&quot;, true, firefoxProfile::getBooleanPreference, firefoxProfile::setPreference);</span>
+<span class="fc" id="L51">			CapabilitiesAndPreferencesInjector.applyIfUndefined(&quot;browser.helperApps.neverAsk.saveToDisk&quot;, WebDriverCapabilitiesHelper.FIREFOX_ALLOWED_DOWNLOAD_CONTENT_TYPES, firefoxProfile::getStringPreference, firefoxProfile::setPreference);</span>
+<span class="fc" id="L52">			capabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);</span>
+<span class="fc" id="L53">		}),</span>
+<span class="fc" id="L54">		internetexplorer((capabilities, preferences) -&gt; {</span>
+<span class="nc" id="L55">			capabilities.setCapability(InternetExplorerDriver.INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS, true);</span>
+<span class="nc" id="L56">		});</span>
 
 		private BiConsumer&lt;DesiredCapabilities, Map&lt;String, String&gt;&gt; injector;
 
-<span class="fc" id="L57">		private CapabilitiesAndPreferencesInjector(BiConsumer&lt;DesiredCapabilities, Map&lt;String, String&gt;&gt; injector) {</span>
-<span class="fc" id="L58">			this.injector = injector;</span>
-<span class="fc" id="L59">		}</span>
+<span class="fc" id="L60">		private CapabilitiesAndPreferencesInjector(BiConsumer&lt;DesiredCapabilities, Map&lt;String, String&gt;&gt; injector) {</span>
+<span class="fc" id="L61">			this.injector = injector;</span>
+<span class="fc" id="L62">		}</span>
 
 		private static &lt;K, V&gt; void applyIfUndefined(K key, V defaultValue, BiFunction&lt;K, V, V&gt; configProvider, BiConsumer&lt;K, V&gt; configApplier) {
-<span class="pc bpc" id="L62" title="1 of 2 branches missed.">			if (StringUtils.isBlank(Objects.toString(defaultValue, null))) {</span>
-<span class="nc" id="L63">				return;</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">			if (StringUtils.isBlank(Objects.toString(defaultValue, null))) {</span>
+<span class="nc" id="L66">				return;</span>
 			}
-<span class="fc" id="L65">			configApplier.accept(key, configProvider.apply(key, defaultValue));</span>
-<span class="fc" id="L66">		}</span>
+<span class="fc" id="L68">			configApplier.accept(key, configProvider.apply(key, defaultValue));</span>
+<span class="fc" id="L69">		}</span>
 	}
 
 	/**
@@ -83,30 +86,30 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 	 * @return capabilitiesInstance which is an instanceof {@link Capabilities}
 	 */
 	public DesiredCapabilities parse(String browser, String capabilities, String preferences) {
-<span class="fc" id="L86">		DesiredCapabilities desiredCapabilities = new DesiredCapabilities();</span>
-<span class="fc" id="L87">		parseFromString(capabilities, desiredCapabilities::setCapability);</span>
-<span class="fc" id="L88">		Map&lt;String, String&gt; parsedPreferences = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L89">		parseFromString(capabilities, desiredCapabilities::setCapability);</span>
-<span class="fc" id="L90">		parseFromString(preferences, parsedPreferences::put);</span>
-<span class="fc" id="L91">		CapabilitiesAndPreferencesInjector entry = Optional.ofNullable(EnumUtils.getEnum(CapabilitiesAndPreferencesInjector.class, browser))</span>
-<span class="fc" id="L92">			.orElse(EnumUtils.getEnum(CapabilitiesAndPreferencesInjector.class, StringUtils.deleteWhitespace(desiredCapabilities.getBrowserName())));</span>
-<span class="pc bpc" id="L93" title="1 of 2 branches missed.">		if (entry != null) {</span>
-<span class="fc" id="L94">			entry.injector.accept(desiredCapabilities, parsedPreferences);</span>
+<span class="fc" id="L89">		DesiredCapabilities desiredCapabilities = new DesiredCapabilities();</span>
+<span class="fc" id="L90">		parseFromString(capabilities, desiredCapabilities::setCapability);</span>
+<span class="fc" id="L91">		Map&lt;String, String&gt; parsedPreferences = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L92">		parseFromString(capabilities, desiredCapabilities::setCapability);</span>
+<span class="fc" id="L93">		parseFromString(preferences, parsedPreferences::put);</span>
+<span class="fc" id="L94">		CapabilitiesAndPreferencesInjector entry = Optional.ofNullable(EnumUtils.getEnum(CapabilitiesAndPreferencesInjector.class, browser))</span>
+<span class="fc" id="L95">			.orElse(EnumUtils.getEnum(CapabilitiesAndPreferencesInjector.class, StringUtils.deleteWhitespace(desiredCapabilities.getBrowserName())));</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">		if (entry != null) {</span>
+<span class="fc" id="L97">			entry.injector.accept(desiredCapabilities, parsedPreferences);</span>
 		}
-<span class="fc" id="L96">		return desiredCapabilities;</span>
+<span class="fc" id="L99">		return desiredCapabilities;</span>
 	}
 
 	private &lt;K, V&gt; void parseFromString(String encodedConfig, BiConsumer&lt;String, String&gt; applier) {
-<span class="fc bfc" id="L100" title="All 2 branches covered.">		if (StringUtils.isBlank(encodedConfig)) {</span>
-<span class="fc" id="L101">			return;</span>
+<span class="fc bfc" id="L103" title="All 2 branches covered.">		if (StringUtils.isBlank(encodedConfig)) {</span>
+<span class="fc" id="L104">			return;</span>
 		}
-<span class="fc" id="L103">		Matcher matcher = WebDriverCapabilitiesHelper.ENCODED_CONFIG_PATTERN.matcher(encodedConfig);</span>
-<span class="fc bfc" id="L104" title="All 2 branches covered.">		while (matcher.find()) {</span>
-<span class="fc" id="L105">			String value = matcher.group(2);</span>
-<span class="pc bpc" id="L106" title="1 of 2 branches missed.">			if (StringUtils.isNotBlank(value)) {</span>
-<span class="fc" id="L107">				applier.accept(matcher.group(NumberUtils.INTEGER_ONE), value);</span>
+<span class="fc" id="L106">		Matcher matcher = WebDriverCapabilitiesHelper.ENCODED_CONFIG_PATTERN.matcher(encodedConfig);</span>
+<span class="fc bfc" id="L107" title="All 2 branches covered.">		while (matcher.find()) {</span>
+<span class="fc" id="L108">			String value = matcher.group(2);</span>
+<span class="pc bpc" id="L109" title="1 of 2 branches missed.">			if (StringUtils.isNotBlank(value)) {</span>
+<span class="fc" id="L110">				applier.accept(matcher.group(NumberUtils.INTEGER_ONE), value);</span>
 			}
-<span class="fc" id="L109">		}</span>
-<span class="fc" id="L110">	}</span>
+<span class="fc" id="L112">		}</span>
+<span class="fc" id="L113">	}</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

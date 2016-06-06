@@ -47,30 +47,28 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 		/**
 		 * Index selector, will look for the index of the desired frame
 		 */
-<span class="fc" id="L50">		index((driver, value) -&gt; {</span>
-<span class="fc" id="L51">			driver.switchTo().frame(NumberUtils.toInt(value));</span>
-<span class="fc" id="L52">		});</span>
+<span class="fc" id="L50">		index((driver, value) -&gt; driver.switchTo().frame(NumberUtils.toInt(value)));</span>
 
 		/**
 		 * Function that selects a value in a {@link Select} element
 		 */
 		private BiConsumer&lt;WebDriver, String&gt; selector;
 
-<span class="fc" id="L59">		private FrameSelectorType(BiConsumer&lt;WebDriver, String&gt; selector) {</span>
-<span class="fc" id="L60">			this.selector = selector;</span>
-<span class="fc" id="L61">		}</span>
+<span class="fc" id="L57">		private FrameSelectorType(BiConsumer&lt;WebDriver, String&gt; selector) {</span>
+<span class="fc" id="L58">			this.selector = selector;</span>
+<span class="fc" id="L59">		}</span>
 	}
 
 	public boolean select(WebDriverHelper driverHelper, String locator) {
-<span class="fc" id="L65">		return driverHelper.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L66">			Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(parsedLocator.getOriginalSelector(), FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
-<span class="fc" id="L67">			FrameSelectorType frameSelector = EnumUtils.getEnum(FrameSelectorType.class, keyValue.getKey());</span>
-<span class="fc bfc" id="L68" title="All 2 branches covered.">			if (frameSelector == null) {</span>
-<span class="fc" id="L69">				driver.switchTo().frame(driver.findElement(parsedLocator.getBy()));</span>
-<span class="fc" id="L70">				return true;</span>
+<span class="fc" id="L63">		return driverHelper.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L64">			Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(parsedLocator.getOriginalSelector(), FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
+<span class="fc" id="L65">			FrameSelectorType frameSelector = EnumUtils.getEnum(FrameSelectorType.class, keyValue.getKey());</span>
+<span class="fc bfc" id="L66" title="All 2 branches covered.">			if (frameSelector == null) {</span>
+<span class="fc" id="L67">				driver.switchTo().frame(driver.findElement(parsedLocator.getBy()));</span>
+<span class="fc" id="L68">				return true;</span>
 			}
-<span class="fc" id="L72">			frameSelector.selector.accept(driver, keyValue.getValue());</span>
-<span class="fc" id="L73">			return true;</span>
+<span class="fc" id="L70">			frameSelector.selector.accept(driver, keyValue.getValue());</span>
+<span class="fc" id="L71">			return true;</span>
 		});
 	}
 }

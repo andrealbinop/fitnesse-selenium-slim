@@ -881,8 +881,8 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 <span class="fc bfc" id="L881" title="All 2 branches covered.">				if (!this.dialogHelper.present(driver, parsedLocator)) {</span>
 <span class="fc" id="L882">					driver.findElement(parsedLocator.getBy());</span>
 				}
-<span class="fc bfc" id="L884" title="All 2 branches covered.">				if (!ensuring) {</span>
-<span class="fc" id="L885">					throw new InvalidElementStateException(&quot;Element shouldn't be present&quot;);</span>
+<span class="pc bpc" id="L884" title="1 of 2 branches missed.">				if (!ensuring) {</span>
+<span class="nc" id="L885">					throw new InvalidElementStateException(&quot;Element shouldn't be present&quot;);</span>
 				}
 <span class="fc" id="L887">			} catch (WebDriverException e) {</span>
 <span class="fc bfc" id="L888" title="All 2 branches covered.">				if (ensuring) {</span>
@@ -948,7 +948,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return if the informed file exists on the filesystem
 	 */
 	public boolean fileExists(String file) {
-<span class="nc" id="L951">		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -&gt; this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists()));</span>
+<span class="nc" id="L951">		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -&gt; this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists());</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
