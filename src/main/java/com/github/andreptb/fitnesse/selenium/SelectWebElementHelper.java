@@ -70,9 +70,8 @@ public class SelectWebElementHelper {
 	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
 		Pair<String, String> optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);
 		Pair<OptionSelectorType, String> parsedOptionLocator = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey());
-		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -> {
+		return driverHelper.doWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -> {
 			parsedOptionLocator.getKey().selector.accept(new Select(driver.findElement(parsedLocator.getBy())), parsedOptionLocator.getValue());
-			return true;
 		});
 	}
 

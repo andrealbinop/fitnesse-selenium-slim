@@ -9,11 +9,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.math.NumberUtils;
@@ -21,11 +25,14 @@ import org.apache.commons.lang3.mutable.MutableObject;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.ScreenshotException;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -40,6 +47,7 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
  */
 public class WebDriverHelper {
 
+	private Logger logger = Logger.getLogger(WebDriverHelper.class.getName());
 	private SeleniumLocatorParser parser = new SeleniumLocatorParser();
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
 	private WebDriverCapabilitiesHelper capabilitiesHelper = new WebDriverCapabilitiesHelper();
@@ -59,6 +67,13 @@ public class WebDriverHelper {
 	 * @see #setStopTestOnFirstFailure(boolean)
 	 */
 	private boolean stopTestOnFirstFailure;
+
+	/**
+	 * @see #setTakeScreenshotOnFailure(boolean)
+	 */
+	private boolean takeScreenshotOnFailure = true;
+	
+	private boolean dryRun = true;
 	/**
 	 * HTTP scheme prefix, to detect remote DRIVER
 	 */
@@ -124,6 +139,22 @@ public class WebDriverHelper {
 		}
 		return false;
 	}
+	
+	public boolean doWhenAvailable(String from, BiConsumer<WebDriver, WebElementSelector> callback) {
+		getWhenAvailable(from, (driver, selector) -> {
+			callback.accept(driver, selector);
+			return null;
+		});
+		return true;
+	}
+	
+	private String respondForDryRun(WebElementSelector locator) {
+		String expectedValue = locator.getExpectedValue();
+		if(StringUtils.isBlank(expectedValue) || StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
+			return StringUtils.EMPTY;
+		}
+		return expectedValue;
+	}
 
 	/**
 	 * Core function designed to provide callbacks with selenium context necessary to evaluate commands. Applies
@@ -144,24 +175,28 @@ public class WebDriverHelper {
 	 * @return the value returned from the callback
 	 * @throws StopTestWithWebDriverException if {@link #isBrowserAvailable()} returns false or if {@link #getStopTestOnFirstFailure()} is true and any failure occurs
 	 */
-	public <T> T getWhenAvailable(String from, BiFunction<WebDriver, WebElementSelector, T> callback) {
+	public String getWhenAvailable(String from, BiFunction<WebDriver, WebElementSelector, String> callback) {
 		this.lastActionDurationInSeconds = NumberUtils.LONG_ZERO;
+		WebElementSelector locator = this.parser.parse(this.fitnesseMarkup.clean(from));
+		if(dryRun) {
+			return respondForDryRun(locator);
+		}
 		if (!isBrowserAvailable()) {
 			throw new StopTestWithWebDriverException("No browser instance available, please check if 'start browser' command completed successfuly");
 		}
-		MutableObject<T> result = new MutableObject<>();
+		MutableObject<String> result = new MutableObject<>();
+		WebDriver driver = null;
 		try {
-			WebDriver driver = this.driverCache.get(this.currentDriverId);
+			driver = this.driverCache.get(this.currentDriverId);
 			Instant startInstant = Instant.now();
 			WebDriverWait wait = new WebDriverWait(driver, this.timeoutInSeconds);
 			wait.ignoring(InvalidElementStateException.class);
 			wait.ignoring(UnhandledAlertException.class);
 			wait.ignoring(UnexpectedTagNameException.class);
-			WebElementSelector locator = this.parser.parse(this.fitnesseMarkup.clean(from));
 			try {
 				wait.until((ExpectedCondition<String>) waitingDriver -> {
 					evaluate(waitingDriver, locator, callback, false, result);
-					return Objects.toString(result.getValue());
+					return result.getValue();
 				});
 			} catch (TimeoutException e) {
 				if (this.stopTestOnFirstFailure) {
@@ -172,16 +207,43 @@ public class WebDriverHelper {
 				this.lastActionDurationInSeconds = Duration.between(startInstant, Instant.now()).getSeconds();
 			}
 		} catch (RuntimeException e) {
-			if (this.stopTestOnFirstFailure) {
-				throw new StopTestWithWebDriverException(e);
-			}
-			throw e;
+			throw handleSeleniumException(e, driver);
 		}
 		return result.getValue();
 	}
 
-	private <T> void evaluate(WebDriver driver, WebElementSelector locator, BiFunction<WebDriver, WebElementSelector, T> callback, boolean disableValueCheck, MutableObject<T> resultHolder) {
-		T result = callback.apply(driver, locator);
+	private RuntimeException handleSeleniumException(RuntimeException originalException, WebDriver driver) {
+		String screenshotData = retrieveScreenshotPathFromException(originalException, driver);
+		Throwable cause = Optional.ofNullable(ExceptionUtils.getRootCause(originalException)).orElse(originalException);
+		String exceptionMessage = this.fitnesseMarkup.exceptionMessage(StringUtils.substringBefore(cause.getMessage(), StringUtils.LF), screenshotData);
+		try {
+			Throwable convertedException = this.stopTestOnFirstFailure ? new StopTestWithWebDriverException(exceptionMessage, cause) : cause.getClass().getConstructor(String.class).newInstance(exceptionMessage);
+			convertedException.setStackTrace(cause.getStackTrace());
+			return (RuntimeException) convertedException;
+		} catch (Exception e) {
+			logger.log(Level.FINE, "Failed to handle selenium failure response", e);
+		}
+		return originalException;
+	}
+
+	private String retrieveScreenshotPathFromException(Throwable originalException, WebDriver driver) {
+		if(!this.takeScreenshotOnFailure) {
+			return StringUtils.EMPTY;
+		}
+		try {
+			if (originalException instanceof ScreenshotException) {
+				return ((ScreenshotException) originalException).getBase64EncodedScreenshot();
+			} else if (driver instanceof TakesScreenshot) {
+				return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
+			}
+		} catch (Exception se) {
+			logger.log(Level.FINE, "Failed to retrieve screenshot after failure", se);
+		}
+		return StringUtils.EMPTY;
+	}
+	
+	private void evaluate(WebDriver driver, WebElementSelector locator, BiFunction<WebDriver, WebElementSelector, String> callback, boolean disableValueCheck, MutableObject<String> resultHolder) {
+		String result = callback.apply(driver, locator);
 		resultHolder.setValue(result);
 		String expectedValue = locator.getExpectedValue();
 		if (disableValueCheck || StringUtils.isBlank(expectedValue) || this.fitnesseMarkup.compare(expectedValue, result)) {
@@ -235,14 +297,39 @@ public class WebDriverHelper {
 		return this.lastActionDurationInSeconds;
 	}
 
+	public boolean getTakeScreenshotOnFailure() {
+		return takeScreenshotOnFailure;
+	}
+
+	/**
+	 * @param takeScreenshotOnFailure If true, will embed exceptions with screenshot data (if available). Default is <code>true</code>
+	 */
+	public void setTakeScreenshotOnFailure(boolean takeScreenshotOnFailure) {
+		this.takeScreenshotOnFailure = takeScreenshotOnFailure;
+	}
+	
+	
+
+	
+	public boolean getDryRun() {
+		return dryRun;
+	}
+
+	
+	public void setDryRun(boolean dryRun) {
+		this.dryRun = dryRun;
+	}
+
+
+
 	/**
 	 * {@link Exception} class so test can be stopped. See <a href="http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.SlimProtocol">FitNesse reference guide
 	 * (Aborting a test) section</a>.
 	 */
 	public static class StopTestWithWebDriverException extends RuntimeException {
 
-		private StopTestWithWebDriverException(Throwable cause) {
-			super(cause);
+		public StopTestWithWebDriverException(String message, Throwable cause) {
+			super(message);
 		}
 
 		public StopTestWithWebDriverException(String message) {

@@ -2,7 +2,6 @@
 package com.github.andreptb.fitnesse.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -15,8 +14,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import fitnesse.ContextConfigurator;
-import fitnesse.FitNesseContext;
 import fitnesse.testsystems.TestPage;
 
 /**
@@ -25,33 +22,9 @@ import fitnesse.testsystems.TestPage;
 public class FitnesseMarkup {
 
 	/**
-	 * Constant of FitnesseRoot files dir (relative path)
-	 */
-	private static final String FITNESSE_TESTRESULTS_DIR = "files/" + FitNesseContext.testResultsDirectoryName;
-	/**
-	 * Constant of screenshots dir
-	 */
-	private static final String SCREENSHOT_DIR = "screenshots";
-	/**
 	 * Markup which presents image preview and download link
 	 */
-	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"{0}{1}/{2}\" target='_blank'><img src=\"{0}{1}/{2}\" height=\"200\"></img</a>";
-	/**
-	 * Variable name that holds fitnesse root dir
-	 */
-	private static final String FITNESSE_ROOTPATH_VARIABLE = "FITNESSE_ROOTPATH";
-	/**
-	 * Variable name that holds FitNesse context root
-	 */
-	private static final String FITNESSE_CONTEXTROOT_VARIABLE = "ContextRoot";
-	/**
-	 * Running page path variable
-	 */
-	private static final String PAGE_PATH_VARIABLE = "RUNNING_PAGE_PATH";
-	/**
-	 * Running page path name variable
-	 */
-	private static final String PAGE_NAME_VARIABLE = "RUNNING_PAGE_NAME";
+	private static final String SCREENSHOT_LINK_MARKUP = "<a href=\"javascript:void(0)\" onclick=\"window.open(this.childNodes[0].getAttribute(''src''));\"><img src=\"data:image/png;base64,{0}\" height=\"200\"></img</a>";
 	/**
 	 * @see #compare(Object, Object)
 	 */
@@ -97,6 +70,13 @@ public class FitnesseMarkup {
 	 * <b>off</b> value constant, see {@link #booleanToOnOrOff(Object)}
 	 */
 	private static final String OFF_VALUE = "off";
+
+	/**
+	 * Constant representing an exception message contained within a failure
+	 */
+	private static final String EXCEPTION_MESSAGE_MARKUP = "screenshot:<<{0}>>, message:<<{1}>>";
+
+	private static final Pattern SCREENSHOT_WITHIN_EXCEPTION_PATTERN = Pattern.compile("screenshot:<<([^>]+)>>");
 
 	/**
 	 * Compares two values emulating FitNesse comparisons:
@@ -163,33 +143,17 @@ public class FitnesseMarkup {
 	 * @param img File containing the image
 	 * @param testPage containing path information to save the screenshot and generate the link
 	 * @return Image link
-	 * @throws IOException if file can't be moved to {@link #FITNESSE_TESTRESULTS_DIR}
 	 */
-	public String imgLink(Object img, TestPage testPage) throws IOException {
-		String dest = fileAsTestResult(img, FitnesseMarkup.SCREENSHOT_DIR, testPage);
-		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, testPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT_VARIABLE), FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, dest);
+	public String imgLink(Object img) {
+		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, img);
 	}
 
-	/**
-	 * Moves a file produced from the fixture to the test result dir so test result reports can be organized.
-	 *
-	 * @param file File produced from the fixture
-	 * @param dirInsideTestResult The subdirectory to save the file inside the test result dir
-	 * @param testPage containing path information to move the file
-	 * @return file new path
-	 * @throws IOException if file can't be moved to {@link #FITNESSE_TESTRESULTS_DIR}
-	 */
-	public String fileAsTestResult(Object file, String dirInsideTestResult, TestPage testPage) throws IOException {
-		File src = FileUtils.getFile(clean(file));
-		if (!src.exists()) {
-			return null;
+	public String imgLinkFromExceptionMessage(String exceptionMessage) {
+		Matcher matcher = SCREENSHOT_WITHIN_EXCEPTION_PATTERN.matcher(exceptionMessage);
+		if (matcher.find()) {
+			return imgLink(matcher.group(NumberUtils.INTEGER_ONE));
 		}
-		String rootPath = FilenameUtils.concat(testPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH_VARIABLE), testPage.getVariable(ContextConfigurator.DEFAULT_ROOT));
-		String runningPage = testPage.getVariable(FitnesseMarkup.PAGE_PATH_VARIABLE) + "." + testPage.getVariable(FitnesseMarkup.PAGE_NAME_VARIABLE);
-		String destFilename = FilenameUtils.concat(runningPage, FilenameUtils.concat(dirInsideTestResult, src.getName()));
-		File dest = FileUtils.getFile(rootPath, FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, destFilename);
-		FileUtils.moveFile(src, dest);
-		return FilenameUtils.normalize(destFilename, true);
+		return null;
 	}
 
 	/**
@@ -273,9 +237,18 @@ public class FitnesseMarkup {
 	public Pair<Integer, Integer> parseWidthAndHeight(String widthAndHeight) {
 		String cleanedWidthAndHeight = clean(widthAndHeight);
 		Matcher matcher = FitnesseMarkup.WIDTH_HEIGHT_PATTERN.matcher(cleanedWidthAndHeight);
-		if(!matcher.matches()) {
+		if (!matcher.matches()) {
 			throw new IllegalArgumentException("Invalid width and height format, should be something like [width pixels]x[height pixels]. Obtained: " + widthAndHeight);
 		}
 		return Pair.of(NumberUtils.toInt(matcher.group(1)), NumberUtils.toInt(matcher.group(2)));
+	}
+
+	public String exceptionMessage(Object originalMessage, String screenshotData, Object... args) {
+		String originalMessageString = clean(originalMessage);
+		try {
+			return MessageFormat.format(EXCEPTION_MESSAGE_MARKUP, screenshotData, MessageFormat.format(originalMessageString, args));
+		} catch (IllegalArgumentException e) {
+			return MessageFormat.format(EXCEPTION_MESSAGE_MARKUP, screenshotData, originalMessageString);
+		}
 	}
 }

@@ -6,11 +6,11 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.mutable.MutableBoolean;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.InvalidElementStateException;
@@ -79,7 +79,7 @@ public class SeleniumFixture {
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
-
+	
 	/**
 	 * <p>
 	 * <code>
@@ -208,10 +208,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean open(String url) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -> {
-			driver.get(parsedLocator.getOriginalSelector());
-			return true;
-		});
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(url, (driver, parsedLocator) -> driver.get(parsedLocator.getOriginalSelector()));
 	}
 
 	/**
@@ -225,10 +222,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean refresh() {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
-			driver.navigate().refresh();
-			return true;
-		});
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> driver.navigate().refresh());
 	}
 
 	/**
@@ -242,10 +236,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean goBack() {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
-			driver.navigate().back();
-			return true;
-		});
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> driver.navigate().back());
 	}
 
 	/**
@@ -289,14 +280,13 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean openWindow(String url) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(url, (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(url, (driver, parsedLocator) -> {
 			String parsedUrl = parsedLocator.getOriginalSelector();
 			if (CollectionUtils.isEmpty(driver.getWindowHandles())) {
 				open(parsedUrl);
 			} else if (driver instanceof JavascriptExecutor) {
 				((JavascriptExecutor) driver).executeScript("window.open(arguments[0])", this.fitnesseMarkup.clean(parsedUrl));
 			}
-			return true;
 		});
 	}
 
@@ -313,13 +303,13 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean selectWindow(String locator) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> {
 			String parsedWindowLocator = parsedLocator.getOriginalSelector();
 			String currentWindow = driver.getWindowHandle();
 			for (String windowId : driver.getWindowHandles()) {
 				WebDriver window = driver.switchTo().window(windowId);
 				if (this.fitnesseMarkup.compare(parsedWindowLocator, windowId) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getTitle()) || this.fitnesseMarkup.compare(parsedWindowLocator, window.getCurrentUrl())) {
-					return true;
+					return;
 				}
 			}
 			// if title didn't match anything go back to current window
@@ -407,10 +397,9 @@ public class SeleniumFixture {
 	 * @throws IllegalArgumentException if widthAndHeight is malformed
 	 */
 	public boolean setWindowSize(String widthAndHeight) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
 			Pair<Integer, Integer> parsedWidthAndHeight = this.fitnesseMarkup.parseWidthAndHeight(widthAndHeight);
 			driver.manage().window().setSize(new Dimension(parsedWidthAndHeight.getLeft(), parsedWidthAndHeight.getRight()));
-			return true;
 		});
 	}
 
@@ -485,14 +474,13 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean closeBrowserTab() {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
 			driver.close();
 			Iterator<String> currentWindows = driver.getWindowHandles().iterator();
 			if (currentWindows.hasNext()) {
 				// if there's still windows opened focus anyone that's still opened
 				driver.switchTo().window(currentWindows.next());
 			}
-			return true;
 		});
 	}
 
@@ -585,7 +573,7 @@ public class SeleniumFixture {
 
 	private boolean sendKeysIn(String value, String locator, boolean clearBefore) {
 		Pair<String, String> valueAndLocator = this.fitnesseMarkup.swapValueToCheck(value, locator);
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(valueAndLocator.getValue(), (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(valueAndLocator.getValue(), (driver, parsedLocator) -> {
 			WebElement element = driver.findElement(parsedLocator.getBy());
 			String cleanedValue = cleanValueToSend(driver, element, valueAndLocator.getKey());
 			if (clearBefore) {
@@ -594,7 +582,6 @@ public class SeleniumFixture {
 			if (StringUtils.isNotBlank(cleanedValue)) {
 				element.sendKeys(cleanedValue);
 			}
-			return true;
 		});
 	}
 
@@ -644,16 +631,15 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean click(String locator) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(locator, (driver, parsedLocator) -> {
 			if (this.dialogHelper.click(driver, parsedLocator)) {
-				return true;
+				return;
 			}
 			WebElement element = driver.findElement(parsedLocator.getBy());
 			if (!element.isEnabled()) {
 				throw new InvalidElementStateException("Element found but is disabled: " + element);
 			}
 			element.click();
-			return true;
 		});
 	}
 
@@ -836,7 +822,7 @@ public class SeleniumFixture {
 	public String screenshot() throws IOException {
 		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> {
 			if (driver instanceof TakesScreenshot) {
-				return ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE).getAbsolutePath();
+				return this.fitnesseMarkup.imgLink(((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64));
 			}
 			return null;
 		});
@@ -863,20 +849,9 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean present(String locator) {
-		MutableBoolean result = new MutableBoolean();
-		try {
-			testPresent(locator, result);
-		} catch (WebDriverException e) {
-			return !result.getValue();
-		}
-		return result.getValue();
-	}
-
-	private void testPresent(String locator, MutableBoolean resultHolder) {
-		SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
 			String expectedValue = parsedLocator.getExpectedValue();
 			boolean ensuring = StringUtils.isBlank(expectedValue) || Boolean.valueOf(expectedValue);
-			resultHolder.setValue(ensuring);
 			try {
 				if (!this.dialogHelper.present(driver, parsedLocator)) {
 					driver.findElement(parsedLocator.getBy());
@@ -889,9 +864,9 @@ public class SeleniumFixture {
 					throw e;
 				}
 			}
-			// return expected value itself to disable value comparation. Flow uses exception to test result
+			// return expected value itself to disable value comparison. Flow uses exception to test result
 			return expectedValue;
-		});
+		}));
 	}
 
 	/**
@@ -917,6 +892,11 @@ public class SeleniumFixture {
 		});
 	}
 
+	
+	private String acceptConfigReturnPrevious(String newConfig, boolean oldValue, Consumer<Boolean> setter) {
+		setter.accept(this.fitnesseMarkup.onOrOffToBoolean(newConfig));
+		return this.fitnesseMarkup.booleanToOnOrOff(oldValue);		
+	}
 	/**
 	 * <p>
 	 * <code>
@@ -928,11 +908,23 @@ public class SeleniumFixture {
 	 * @return previous configuration value. If enabled will return <b>on</b>, <b>off</b> otherwise.
 	 */
 	public String stopTestOnFirstFailure(String shouldStop) {
-		boolean previousConfig = SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure();
-		SeleniumFixture.WEB_DRIVER.setStopTestOnFirstFailure(this.fitnesseMarkup.onOrOffToBoolean(shouldStop));
-		return this.fitnesseMarkup.booleanToOnOrOff(previousConfig);
+		return acceptConfigReturnPrevious(shouldStop, SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure(), SeleniumFixture.WEB_DRIVER::setStopTestOnFirstFailure);
 	}
-
+	
+	
+	/**
+	 * <p>
+	 * <code>
+	 * | set take screenshot on failure | true |
+	 * </code>
+	 * </p>
+	 * @param shouldTake If <b>true</b> or <b>on</b>, a screenshot will be appended (if possible) to a failed selenium operation.
+	 * @return previous configuration value. If enabled will return <b>on</b>, <b>off</b> otherwise.
+	 */
+	public String setTakeScreenshotOnFailure(String shouldTake) {
+		return acceptConfigReturnPrevious(shouldTake, SeleniumFixture.WEB_DRIVER.getTakeScreenshotOnFailure(), SeleniumFixture.WEB_DRIVER::setTakeScreenshotOnFailure);
+	}
+	
 	/**
 	 * <p>
 	 * <code>
@@ -948,6 +940,6 @@ public class SeleniumFixture {
 	 * @return if the informed file exists on the filesystem
 	 */
 	public boolean fileExists(String file) {
-		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -> this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists());
+		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(file, (driver, parsedLocator) -> Boolean.toString(this.fitnesseMarkup.cleanFile(parsedLocator.getOriginalSelector()).exists())));
 	}
 }
