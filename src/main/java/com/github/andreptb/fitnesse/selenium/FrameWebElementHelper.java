@@ -2,7 +2,6 @@
 package com.github.andreptb.fitnesse.selenium;
 
 import java.util.function.BiConsumer;
-
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;

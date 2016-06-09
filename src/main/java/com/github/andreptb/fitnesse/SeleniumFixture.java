@@ -59,7 +59,7 @@ public class SeleniumFixture {
 	 * HTML input value attribute constant
 	 */
 	private static final String INPUT_VALUE_ATTRIBUTE = "value";
-	
+
 	/**
 	 * Window URL with blank page, see {@link #setDryRun(String)}
 	 */
@@ -86,7 +86,7 @@ public class SeleniumFixture {
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
-	
+
 	/**
 	 * <p>
 	 * <code>
@@ -273,14 +273,14 @@ public class SeleniumFixture {
 	public String currentUrl(String expectedUrl) {
 		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedUrl, (driver, locator) -> driver.getCurrentUrl());
 	}
-	
+
 	private void openWindow(WebDriver driver, String url) {
 		String cleansedUrl = this.fitnesseMarkup.clean(url);
 		if (CollectionUtils.isEmpty(driver.getWindowHandles())) {
 			driver.get(cleansedUrl);
 		} else if (driver instanceof JavascriptExecutor) {
 			((JavascriptExecutor) driver).executeScript("window.open(arguments[0])", cleansedUrl);
-		}		
+		}
 	}
 
 	/**
@@ -296,7 +296,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean openWindow(String url) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(url, (driver, parsedLocator) -> openWindow(driver, url));
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(url, (driver, parsedLocator) -> openWindow(driver, parsedLocator.getOriginalSelector()));
 	}
 
 	/**
@@ -859,22 +859,14 @@ public class SeleniumFixture {
 	 */
 	public boolean present(String locator) {
 		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
-			String expectedValue = parsedLocator.getExpectedValue();
-			boolean ensuring = StringUtils.isBlank(expectedValue) || Boolean.valueOf(expectedValue);
+			boolean ensuring = Boolean.valueOf(parsedLocator.getExpectedValue());
+			boolean elementFound = false;
 			try {
-				if (!this.dialogHelper.present(driver, parsedLocator)) {
-					driver.findElement(parsedLocator.getBy());
-				}
-				if (!ensuring) {
-					throw new InvalidElementStateException("Element shouldn't be present");
-				}
+				elementFound = this.dialogHelper.present(driver, parsedLocator) || driver.findElement(parsedLocator.getBy()) != null;
 			} catch (WebDriverException e) {
-				if (ensuring) {
-					throw e;
-				}
+				// elemento nao foi encontrado
 			}
-			// return expected value itself to disable value comparison. Flow uses exception to test result
-			return expectedValue;
+			return Boolean.toString(ensuring == elementFound ? ensuring : !ensuring);
 		}));
 	}
 
@@ -901,10 +893,10 @@ public class SeleniumFixture {
 		});
 	}
 
-	
+
 	private String acceptConfigReturnPrevious(String newConfig, boolean oldValue, Consumer<Boolean> setter) {
 		setter.accept(this.fitnesseMarkup.onOrOffToBoolean(newConfig));
-		return this.fitnesseMarkup.booleanToOnOrOff(oldValue);		
+		return this.fitnesseMarkup.booleanToOnOrOff(oldValue);
 	}
 	/**
 	 * <p>
@@ -919,8 +911,8 @@ public class SeleniumFixture {
 	public String stopTestOnFirstFailure(String shouldStop) {
 		return acceptConfigReturnPrevious(shouldStop, SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure(), SeleniumFixture.WEB_DRIVER::setStopTestOnFirstFailure);
 	}
-	
-	
+
+
 	/**
 	 * <p>
 	 * <code>
@@ -933,29 +925,29 @@ public class SeleniumFixture {
 	public String setTakeScreenshotOnFailure(String shouldTake) {
 		return acceptConfigReturnPrevious(shouldTake, SeleniumFixture.WEB_DRIVER.getTakeScreenshotOnFailure(), SeleniumFixture.WEB_DRIVER::setTakeScreenshotOnFailure);
 	}
-	
+
 	public String setDryRun(String enableDryRun) {
 		boolean dryRun = this.fitnesseMarkup.onOrOffToBoolean(enableDryRun);
-		boolean isDryRunAlreadyEnabled = StringUtils.isNotBlank(WEB_DRIVER.getDryRunWindow());
+		boolean isDryRunAlreadyEnabled = StringUtils.isNotBlank(SeleniumFixture.WEB_DRIVER.getDryRunWindow());
 		if(!dryRun) {
-			WEB_DRIVER.setDryRunWindow(null);
+			SeleniumFixture.WEB_DRIVER.setDryRunWindow(null);
 			return this.fitnesseMarkup.booleanToOnOrOff(isDryRunAlreadyEnabled);
 		}
 		if(isDryRunAlreadyEnabled) {
 			return FitnesseMarkup.ON_VALUE;
 		}
-		WEB_DRIVER.doWhenAvailable(null, (driver, parsedLocator) -> {
+		SeleniumFixture.WEB_DRIVER.doWhenAvailable(null, (driver, parsedLocator) -> {
 			Collection<String> previousHandles = driver.getWindowHandles();
-			openWindow(driver, BLANK_PAGE);
+			openWindow(driver, SeleniumFixture.BLANK_PAGE);
 			Optional<String> dryRunWindowId = driver.getWindowHandles().stream().filter(w -> !previousHandles.contains(w)).findFirst();
 			if(!dryRunWindowId.isPresent()) {
 				throw new StopTestWithWebDriverException("Unable to create blank window to run test in dry run mode");
 			}
-			WEB_DRIVER.setDryRunWindow(dryRunWindowId.get());
+			SeleniumFixture.WEB_DRIVER.setDryRunWindow(dryRunWindowId.get());
 		});
 		return FitnesseMarkup.OFF_VALUE;
 	}
-	
+
 	/**
 	 * <p>
 	 * <code>

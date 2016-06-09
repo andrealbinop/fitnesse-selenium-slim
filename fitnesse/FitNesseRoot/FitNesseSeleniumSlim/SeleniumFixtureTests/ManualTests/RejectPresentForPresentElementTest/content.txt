@@ -1,0 +1,8 @@
+Rejecting presence when element is in the page should fail. This is a regression test for issue https://github.com/andreptb/fitnesse-selenium-slim/issues/38.
+
+| selenium |
+| stop test on first failure | false |
+| start browser | ${BROWSER} | with | ${CAPABILITIES} |
+| ensure | open | http://github.com/andreptb |
+| reject | present | css=.vcard-fullname |
+| quit browser |

@@ -47,12 +47,12 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
  * will associate a working instance of {@link WebDriver} and will be used until {@link #quit()} is used or another {@link #connect(String, String, String)}
  */
 public class WebDriverHelper {
-	
+
 	/**
 	 * HTTP scheme prefix, to detect remote DRIVER
 	 */
 	private static final String HTTP_PREFIX = "http";
-	
+
 	private static final String UNDEFINED_VALUE = "<<undefined_value>>";
 
 	private Logger logger = Logger.getLogger(WebDriverHelper.class.getName());
@@ -147,7 +147,7 @@ public class WebDriverHelper {
 	public boolean doWhenAvailable(String from, BiConsumer<WebDriver, WebElementSelector> callback) {
 		getWhenAvailable(from, (driver, selector) -> {
 			callback.accept(driver, selector);
-			return null;
+			return StringUtils.stripToNull(selector.getExpectedValue());
 		});
 		return true;
 	}
@@ -167,7 +167,7 @@ public class WebDriverHelper {
 		}
 		String expectedValue = locator.getExpectedValue();
 		if(StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
-			return UNDEFINED_VALUE;
+			return WebDriverHelper.UNDEFINED_VALUE;
 		}
 		return expectedValue;
 	}
@@ -228,15 +228,17 @@ public class WebDriverHelper {
 	}
 
 	private RuntimeException handleSeleniumException(RuntimeException originalException, WebDriver driver) {
+
 		String screenshotData = retrieveScreenshotPathFromException(originalException, driver);
 		Throwable cause = Optional.ofNullable(ExceptionUtils.getRootCause(originalException)).orElse(originalException);
 		String exceptionMessage = this.fitnesseMarkup.exceptionMessage(StringUtils.substringBefore(cause.getMessage(), StringUtils.LF), screenshotData);
+		this.logger.log(Level.INFO, exceptionMessage, cause);
 		try {
 			Throwable convertedException = this.stopTestOnFirstFailure ? new StopTestWithWebDriverException(exceptionMessage, cause) : cause.getClass().getConstructor(String.class).newInstance(exceptionMessage);
 			convertedException.setStackTrace(cause.getStackTrace());
 			return (RuntimeException) convertedException;
 		} catch (Exception e) {
-			logger.log(Level.FINE, "Failed to handle selenium failure response", e);
+			this.logger.log(Level.FINE, "Failed to handle selenium failure response", e);
 		}
 		return originalException;
 	}
@@ -252,7 +254,7 @@ public class WebDriverHelper {
 				return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);
 			}
 		} catch (Exception se) {
-			logger.log(Level.FINE, "Failed to retrieve screenshot after failure", se);
+			this.logger.log(Level.FINE, "Failed to retrieve screenshot after failure", se);
 		}
 		return StringUtils.EMPTY;
 	}
@@ -313,7 +315,7 @@ public class WebDriverHelper {
 	}
 
 	public boolean getTakeScreenshotOnFailure() {
-		return takeScreenshotOnFailure;
+		return this.takeScreenshotOnFailure;
 	}
 
 	/**
@@ -324,7 +326,7 @@ public class WebDriverHelper {
 	}
 
 	public String getDryRunWindow() {
-		return dryRunWindow;
+		return this.dryRunWindow;
 	}
 
 	public void setDryRunWindow(String dryRunWindow) {
