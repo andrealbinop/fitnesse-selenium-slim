@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.NoSuchElementException;
@@ -46,6 +47,13 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
  * will associate a working instance of {@link WebDriver} and will be used until {@link #quit()} is used or another {@link #connect(String, String, String)}
  */
 public class WebDriverHelper {
+	
+	/**
+	 * HTTP scheme prefix, to detect remote DRIVER
+	 */
+	private static final String HTTP_PREFIX = "http";
+	
+	private static final String UNDEFINED_VALUE = "<<undefined_value>>";
 
 	private Logger logger = Logger.getLogger(WebDriverHelper.class.getName());
 	private SeleniumLocatorParser parser = new SeleniumLocatorParser();
@@ -72,12 +80,8 @@ public class WebDriverHelper {
 	 * @see #setTakeScreenshotOnFailure(boolean)
 	 */
 	private boolean takeScreenshotOnFailure = true;
-	
-	private boolean dryRun = true;
-	/**
-	 * HTTP scheme prefix, to detect remote DRIVER
-	 */
-	private static final String HTTP_PREFIX = "http";
+
+	private String dryRunWindow;
 
 	/**
 	 * Creates a {@link WebDriver} instance with desired browser and capabilities. Capabilities should follow a key/value format
@@ -139,7 +143,7 @@ public class WebDriverHelper {
 		}
 		return false;
 	}
-	
+
 	public boolean doWhenAvailable(String from, BiConsumer<WebDriver, WebElementSelector> callback) {
 		getWhenAvailable(from, (driver, selector) -> {
 			callback.accept(driver, selector);
@@ -147,11 +151,23 @@ public class WebDriverHelper {
 		});
 		return true;
 	}
-	
-	private String respondForDryRun(WebElementSelector locator) {
+
+	private String respondForDryRun(WebDriver driver, WebElementSelector locator) {
+		String currentWindow = driver.getWindowHandle();
+		By selector = locator.getBy();
+		if (selector != null) {
+			if (!StringUtils.equals(currentWindow, this.dryRunWindow)) {
+				driver.switchTo().window(this.dryRunWindow);
+			}
+			try {
+				driver.findElement(locator.getBy());
+			} catch (NoSuchElementException e) {
+				// element not found means that selenium is running properly
+			}
+		}
 		String expectedValue = locator.getExpectedValue();
-		if(StringUtils.isBlank(expectedValue) || StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
-			return StringUtils.EMPTY;
+		if(StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
+			return UNDEFINED_VALUE;
 		}
 		return expectedValue;
 	}
@@ -178,16 +194,15 @@ public class WebDriverHelper {
 	public String getWhenAvailable(String from, BiFunction<WebDriver, WebElementSelector, String> callback) {
 		this.lastActionDurationInSeconds = NumberUtils.LONG_ZERO;
 		WebElementSelector locator = this.parser.parse(this.fitnesseMarkup.clean(from));
-		if(dryRun) {
-			return respondForDryRun(locator);
-		}
+		WebDriver driver = this.driverCache.get(this.currentDriverId);
 		if (!isBrowserAvailable()) {
 			throw new StopTestWithWebDriverException("No browser instance available, please check if 'start browser' command completed successfuly");
 		}
 		MutableObject<String> result = new MutableObject<>();
-		WebDriver driver = null;
 		try {
-			driver = this.driverCache.get(this.currentDriverId);
+			if (StringUtils.isNotBlank(this.dryRunWindow)) {
+				return respondForDryRun(driver, locator);
+			}
 			Instant startInstant = Instant.now();
 			WebDriverWait wait = new WebDriverWait(driver, this.timeoutInSeconds);
 			wait.ignoring(InvalidElementStateException.class);
@@ -227,7 +242,7 @@ public class WebDriverHelper {
 	}
 
 	private String retrieveScreenshotPathFromException(Throwable originalException, WebDriver driver) {
-		if(!this.takeScreenshotOnFailure) {
+		if (!this.takeScreenshotOnFailure) {
 			return StringUtils.EMPTY;
 		}
 		try {
@@ -241,9 +256,9 @@ public class WebDriverHelper {
 		}
 		return StringUtils.EMPTY;
 	}
-	
+
 	private void evaluate(WebDriver driver, WebElementSelector locator, BiFunction<WebDriver, WebElementSelector, String> callback, boolean disableValueCheck, MutableObject<String> resultHolder) {
-		String result = callback.apply(driver, locator);
+		String result = StringUtils.stripToEmpty(callback.apply(driver, locator));
 		resultHolder.setValue(result);
 		String expectedValue = locator.getExpectedValue();
 		if (disableValueCheck || StringUtils.isBlank(expectedValue) || this.fitnesseMarkup.compare(expectedValue, result)) {
@@ -307,20 +322,14 @@ public class WebDriverHelper {
 	public void setTakeScreenshotOnFailure(boolean takeScreenshotOnFailure) {
 		this.takeScreenshotOnFailure = takeScreenshotOnFailure;
 	}
-	
-	
 
-	
-	public boolean getDryRun() {
-		return dryRun;
+	public String getDryRunWindow() {
+		return dryRunWindow;
 	}
 
-	
-	public void setDryRun(boolean dryRun) {
-		this.dryRun = dryRun;
+	public void setDryRunWindow(String dryRunWindow) {
+		this.dryRunWindow = dryRunWindow;
 	}
-
-
 
 	/**
 	 * {@link Exception} class so test can be stopped. See <a href="http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.SlimProtocol">FitNesse reference guide

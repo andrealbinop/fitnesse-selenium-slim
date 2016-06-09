@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -145,7 +146,7 @@ public class SeleniumScriptTable extends ScriptTable {
 					SeleniumScriptTable.LOGGER.fine("Method for instruction not found on SeleniumFixture, injection aborted: " + instruction);
 					return;
 				}
-				FieldUtils.writeField(instruction, SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, argsToInject);
+				FieldUtils.writeField(instruction, SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, argsToInject, true);
 			} catch (IllegalArgumentException | ReflectiveOperationException e) {
 				SeleniumScriptTable.LOGGER.log(Level.FINE, "Failed to inject check value using reflection", e);
 			}			
@@ -155,9 +156,12 @@ public class SeleniumScriptTable extends ScriptTable {
 	@Override
 	protected List<SlimAssertion> actionAndAssign(String symbolName, int row) {
 		return super.actionAndAssign(symbolName, row).stream().map(assertion -> {
-			Instruction instruction = SlimAssertion.getInstructions(Arrays.asList(assertion)).iterator().next();
-			ScreenshotEmbedderSlimExpectation expectation = new ScreenshotEmbedderSlimExpectation(assertion.getExpectation());
-			return super.makeAssertion(instruction, expectation);
+			Optional<Instruction> instruction = SlimAssertion.getInstructions(Arrays.asList(assertion)).stream().findFirst();
+			if(instruction.isPresent()) {
+				ScreenshotEmbedderSlimExpectation expectation = new ScreenshotEmbedderSlimExpectation(assertion.getExpectation());
+				return super.makeAssertion(instruction.get(), expectation);
+			}
+			return assertion;
 		}).collect(Collectors.toList());
 	}
 

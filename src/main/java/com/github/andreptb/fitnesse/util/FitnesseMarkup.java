@@ -65,11 +65,11 @@ public class FitnesseMarkup {
 	/**
 	 * <b>on</b> value constant, see {@link #booleanToOnOrOff(Object)}
 	 */
-	private static final String ON_VALUE = "on";
+	public static final String ON_VALUE = "on";
 	/**
 	 * <b>off</b> value constant, see {@link #booleanToOnOrOff(Object)}
 	 */
-	private static final String OFF_VALUE = "off";
+	public static final String OFF_VALUE = "off";
 
 	/**
 	 * Constant representing an exception message contained within a failure

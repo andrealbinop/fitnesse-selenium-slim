@@ -2,6 +2,7 @@
 package com.github.andreptb.fitnesse;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -29,6 +30,7 @@ import com.github.andreptb.fitnesse.selenium.BrowserDialogHelper;
 import com.github.andreptb.fitnesse.selenium.FrameWebElementHelper;
 import com.github.andreptb.fitnesse.selenium.SelectWebElementHelper;
 import com.github.andreptb.fitnesse.selenium.WebDriverHelper;
+import com.github.andreptb.fitnesse.selenium.WebDriverHelper.StopTestWithWebDriverException;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 
 /**
@@ -57,6 +59,11 @@ public class SeleniumFixture {
 	 * HTML input value attribute constant
 	 */
 	private static final String INPUT_VALUE_ATTRIBUTE = "value";
+	
+	/**
+	 * Window URL with blank page, see {@link #setDryRun(String)}
+	 */
+	private static final String BLANK_PAGE = "about:blank";
 
 	/**
 	 * Instance that wraps {@link WebDriver} providing utility methods to manipulate elements and such. Attribute is static to keep state between table invocations
@@ -266,6 +273,15 @@ public class SeleniumFixture {
 	public String currentUrl(String expectedUrl) {
 		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(expectedUrl, (driver, locator) -> driver.getCurrentUrl());
 	}
+	
+	private void openWindow(WebDriver driver, String url) {
+		String cleansedUrl = this.fitnesseMarkup.clean(url);
+		if (CollectionUtils.isEmpty(driver.getWindowHandles())) {
+			driver.get(cleansedUrl);
+		} else if (driver instanceof JavascriptExecutor) {
+			((JavascriptExecutor) driver).executeScript("window.open(arguments[0])", cleansedUrl);
+		}		
+	}
 
 	/**
 	 * <p>
@@ -280,14 +296,7 @@ public class SeleniumFixture {
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean openWindow(String url) {
-		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(url, (driver, parsedLocator) -> {
-			String parsedUrl = parsedLocator.getOriginalSelector();
-			if (CollectionUtils.isEmpty(driver.getWindowHandles())) {
-				open(parsedUrl);
-			} else if (driver instanceof JavascriptExecutor) {
-				((JavascriptExecutor) driver).executeScript("window.open(arguments[0])", this.fitnesseMarkup.clean(parsedUrl));
-			}
-		});
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(url, (driver, parsedLocator) -> openWindow(driver, url));
 	}
 
 	/**
@@ -923,6 +932,28 @@ public class SeleniumFixture {
 	 */
 	public String setTakeScreenshotOnFailure(String shouldTake) {
 		return acceptConfigReturnPrevious(shouldTake, SeleniumFixture.WEB_DRIVER.getTakeScreenshotOnFailure(), SeleniumFixture.WEB_DRIVER::setTakeScreenshotOnFailure);
+	}
+	
+	public String setDryRun(String enableDryRun) {
+		boolean dryRun = this.fitnesseMarkup.onOrOffToBoolean(enableDryRun);
+		boolean isDryRunAlreadyEnabled = StringUtils.isNotBlank(WEB_DRIVER.getDryRunWindow());
+		if(!dryRun) {
+			WEB_DRIVER.setDryRunWindow(null);
+			return this.fitnesseMarkup.booleanToOnOrOff(isDryRunAlreadyEnabled);
+		}
+		if(isDryRunAlreadyEnabled) {
+			return FitnesseMarkup.ON_VALUE;
+		}
+		WEB_DRIVER.doWhenAvailable(null, (driver, parsedLocator) -> {
+			Collection<String> previousHandles = driver.getWindowHandles();
+			openWindow(driver, BLANK_PAGE);
+			Optional<String> dryRunWindowId = driver.getWindowHandles().stream().filter(w -> !previousHandles.contains(w)).findFirst();
+			if(!dryRunWindowId.isPresent()) {
+				throw new StopTestWithWebDriverException("Unable to create blank window to run test in dry run mode");
+			}
+			WEB_DRIVER.setDryRunWindow(dryRunWindowId.get());
+		});
+		return FitnesseMarkup.OFF_VALUE;
 	}
 	
 	/**
