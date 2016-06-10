@@ -2,7 +2,6 @@
 package com.github.andreptb.fitnesse.selenium;
 
 import java.util.function.BiConsumer;
-
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -60,15 +59,14 @@ public class FrameWebElementHelper {
 	}
 
 	public boolean select(WebDriverHelper driverHelper, String locator) {
-		return driverHelper.getWhenAvailable(locator, (driver, parsedLocator) -> {
+		return driverHelper.doWhenAvailable(locator, (driver, parsedLocator) -> {
 			Pair<String, String> keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(parsedLocator.getOriginalSelector(), FitnesseMarkup.KEY_VALUE_SEPARATOR);
 			FrameSelectorType frameSelector = EnumUtils.getEnum(FrameSelectorType.class, keyValue.getKey());
 			if (frameSelector == null) {
 				driver.switchTo().frame(driver.findElement(parsedLocator.getBy()));
-				return true;
+				return;
 			}
 			frameSelector.selector.accept(driver, keyValue.getValue());
-			return true;
 		});
 	}
 }

@@ -1,0 +1,52 @@
+!define MAX_TIME {1}
+
+Test for dry run mode containing. Expected behavior is:
+
+- Pass even if elements don't exist in the page.
+- Fails for invalid FitNesse or selenium syntax.
+- Assertions can't take more than 1 second.
+
+| selenium |
+| start browser | ${BROWSER} | with | ${CAPABILITIES} |
+| set dry run | true |
+| ensure | open | http://www.roboform.com/filling-test-custom-fields |
+| check | last command duration | <${MAX_TIME} |
+| check | current window | invalidWindowId |
+| check | last command duration | <${MAX_TIME} |
+| check | title | invalidTitle |
+| check | last command duration | <${MAX_TIME} |
+| check | current url | !-http://invalidUrl-! |
+| check | last command duration | <${MAX_TIME} |
+| ensure | type | some text | in | name=invalidField |
+| check | last command duration | <${MAX_TIME} |
+| ensure | send keys | some text | in | name=invalidField |
+| check | last command duration | <${MAX_TIME} |
+| type | some text | in | name=field1 |
+| check | last command duration | <${MAX_TIME} |
+| check not | value | name=field1 | some text |
+| check | last command duration | <${MAX_TIME} |
+| check | text | css=h1.mcs | invalid text |
+| check | last command duration | <${MAX_TIME} |
+| check | text | id=invalidField | whatever text |
+| check | last command duration | <${MAX_TIME} |
+| reject | present | name=field1 |
+| check | last command duration | <${MAX_TIME} |
+| ensure | present | name=invalidField |
+| check | last command duration | <${MAX_TIME} |
+| ensure | select | index=1 | in | id=invalidField |
+| check | last command duration | <${MAX_TIME} |
+| check | selected | index | in | id=invalidField | 1 |
+| check | last command duration | <${MAX_TIME} |
+| check | selected | index | in | name=ttl_select | 10 |
+| check | last command duration | <${MAX_TIME} |
+| run script | document.querySelector("input[type='submit']").disabled = 'disabled'; |
+| check | last command duration | <${MAX_TIME} |
+| ensure | click | css=input[type='submit'] |
+| check | last command duration | <${MAX_TIME} |
+| show | screenshot |
+| check | last command duration | <${MAX_TIME} |
+| note | assertion below should fail |
+| unknown command |
+| check | last command duration | <${MAX_TIME} |
+| set dry run | false |
+| quit browser |

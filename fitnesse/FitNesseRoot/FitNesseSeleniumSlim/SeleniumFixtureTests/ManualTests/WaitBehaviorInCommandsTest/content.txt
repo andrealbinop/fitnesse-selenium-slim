@@ -9,7 +9,8 @@ The expected result of this test is the following:
 - optionally test stop test on first failure
 
 | selenium |
-| stop test on first failure | false |
+| $stopTestOnFirstFailure= | stop test on first failure | false |
+| $takeScreenshotOnFailure= | set take screenshot on failure | false |
 | start browser | ${BROWSER} | with | ${CAPABILITIES} |
 | ensure | open | http://www.roboform.com/filling-test-custom-fields |
 | set wait timeout | ${WAIT_TIMEOUT} |
@@ -43,4 +44,6 @@ The expected result of this test is the following:
 | run script | document.querySelector("input[type='submit']").disabled = 'disabled'; |
 | ensure | click | css=input[type='submit'] |
 | check | last command duration | ${WAIT_TIMEOUT} |
+| stop test on first failure | $stopTestOnFirstFailure |
+| set take screenshot on failure | $takeScreenshotOnFailure |
 | quit browser |
