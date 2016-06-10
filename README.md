@@ -28,7 +28,7 @@ Since the plugin tests itself with FitNesse, take a look at [this](fitnesse/FitN
 <dependency>
   <groupId>com.github.andreptb</groupId>
   <artifactId>fitnesse-selenium-slim</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2</version>
 </dependency>
 ```
 
@@ -64,7 +64,10 @@ Some situations will cause the test to be aborted even if **[stop test on first 
 
 #### Screenshots
 
-This plugin provides a screenshot feature, showing the screenshot preview (and link) similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin). To trigger the screenshot you just need to invoke the screenshot with show action (taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SameBrowserSessionTests.EnsureTextTest](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SameBrowserSessionTests/TextTest/content.txt)):
+This plugin provides a screenshot feature, showing the screenshot preview (and link) similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin). Screenshots can be triggered when:
+
+* An assertion fails, mostly when an element can't be found in the page or it's contents is somehow unexpected.
+* Manually, by using along with  the show action (example below, taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SameBrowserSessionTests.EnsureTextTest](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SameBrowserSessionTests/TextTest/content.txt)):
 
 ```
 | selenium |
@@ -74,7 +77,7 @@ This plugin provides a screenshot feature, showing the screenshot preview (and l
 **Known limitations:**
 
 * If a [dialog is present the screenshot action will fail, throwing UnhandledAlertException](https://code.google.com/p/selenium/issues/detail?id=4412).
-* If an action preceding the screenshot fails and **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** is enabled, screenshot action will also be aborted.  
+* If an action preceding the screenshot fails and **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** is enabled, subsequent screenshot actions will also be aborted.  
 
 #### Wait behavior
 
@@ -89,7 +92,6 @@ Every actions that involves searching for elements within the page will respect 
 **Important:**
 * If **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** is disabled, **present** action will return false if timeout is reached and no element was found with the given selector.
 * Wait behavior using [FitNesse Slim action](http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.ScriptTable) such as **ensure**, **reject**, **check** and **check not** will only work properly if **selenium** table is used.
-
 
 #### Browser downloads
 
