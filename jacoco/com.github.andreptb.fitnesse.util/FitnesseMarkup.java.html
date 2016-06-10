@@ -2,7 +2,6 @@
 package com.github.andreptb.fitnesse.util;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -15,47 +14,19 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import fitnesse.ContextConfigurator;
-import fitnesse.FitNesseContext;
-import fitnesse.testsystems.TestPage;
-
 /**
  * General utilities to process FitNesse markup syntax so can be used by Selenium Fixture
  */
-<span class="fc" id="L25">public class FitnesseMarkup {</span>
+<span class="fc" id="L20">public class FitnesseMarkup {</span>
 
-	/**
-	 * Constant of FitnesseRoot files dir (relative path)
-	 */
-	private static final String FITNESSE_TESTRESULTS_DIR = &quot;files/&quot; + FitNesseContext.testResultsDirectoryName;
-	/**
-	 * Constant of screenshots dir
-	 */
-	private static final String SCREENSHOT_DIR = &quot;screenshots&quot;;
 	/**
 	 * Markup which presents image preview and download link
 	 */
-	private static final String SCREENSHOT_LINK_MARKUP = &quot;&lt;a href=\&quot;{0}{1}/{2}\&quot; target='_blank'&gt;&lt;img src=\&quot;{0}{1}/{2}\&quot; height=\&quot;200\&quot;&gt;&lt;/img&lt;/a&gt;&quot;;
-	/**
-	 * Variable name that holds fitnesse root dir
-	 */
-	private static final String FITNESSE_ROOTPATH_VARIABLE = &quot;FITNESSE_ROOTPATH&quot;;
-	/**
-	 * Variable name that holds FitNesse context root
-	 */
-	private static final String FITNESSE_CONTEXTROOT_VARIABLE = &quot;ContextRoot&quot;;
-	/**
-	 * Running page path variable
-	 */
-	private static final String PAGE_PATH_VARIABLE = &quot;RUNNING_PAGE_PATH&quot;;
-	/**
-	 * Running page path name variable
-	 */
-	private static final String PAGE_NAME_VARIABLE = &quot;RUNNING_PAGE_NAME&quot;;
+	private static final String SCREENSHOT_LINK_MARKUP = &quot;&lt;a href=\&quot;javascript:void(0)\&quot; onclick=\&quot;window.open(this.childNodes[0].getAttribute(''src''));\&quot;&gt;&lt;img src=\&quot;data:image/png;base64,{0}\&quot; height=\&quot;200\&quot;&gt;&lt;/img&lt;/a&gt;&quot;;
 	/**
 	 * @see #compare(Object, Object)
 	 */
-<span class="fc" id="L58">	private static final Pattern FITNESSE_REGEX_MARKUP_PATTERN = Pattern.compile(&quot;^=~/(.+)/&quot;);</span>
+<span class="fc" id="L29">	private static final Pattern FITNESSE_REGEX_MARKUP_PATTERN = Pattern.compile(&quot;^=~/(.+)/&quot;);</span>
 
 	/**
 	 * Constant used to register selenium special keys as system properties
@@ -87,16 +58,23 @@ import fitnesse.testsystems.TestPage;
 	 */
 	private static final String WIDTH_HEIGHT_SEPARATOR = &quot;x&quot;;
 
-<span class="fc" id="L90">	private static final Pattern WIDTH_HEIGHT_PATTERN = Pattern.compile(&quot;(\\d{1,4})x(\\d{1,4})&quot;);</span>
+<span class="fc" id="L61">	private static final Pattern WIDTH_HEIGHT_PATTERN = Pattern.compile(&quot;(\\d{1,4})x(\\d{1,4})&quot;);</span>
 
 	/**
 	 * &lt;b&gt;on&lt;/b&gt; value constant, see {@link #booleanToOnOrOff(Object)}
 	 */
-	private static final String ON_VALUE = &quot;on&quot;;
+	public static final String ON_VALUE = &quot;on&quot;;
 	/**
 	 * &lt;b&gt;off&lt;/b&gt; value constant, see {@link #booleanToOnOrOff(Object)}
 	 */
-	private static final String OFF_VALUE = &quot;off&quot;;
+	public static final String OFF_VALUE = &quot;off&quot;;
+
+	/**
+	 * Constant representing an exception message contained within a failure
+	 */
+	private static final String EXCEPTION_MESSAGE_MARKUP = &quot;screenshot:&lt;&lt;{0}&gt;&gt;, message:&lt;&lt;{1}&gt;&gt;&quot;;
+
+<span class="fc" id="L77">	private static final Pattern SCREENSHOT_WITHIN_EXCEPTION_PATTERN = Pattern.compile(&quot;screenshot:&lt;&lt;([^&gt;]+)&gt;&gt;&quot;);</span>
 
 	/**
 	 * Compares two values emulating FitNesse comparisons:
@@ -110,18 +88,18 @@ import fitnesse.testsystems.TestPage;
 	 * @return comparisonResult
 	 */
 	public boolean compare(Object expected, Object obtained) {
-<span class="fc" id="L113">		String cleanedExpected = clean(expected);</span>
-<span class="fc" id="L114">		String cleanedObtained = clean(obtained);</span>
-<span class="fc" id="L115">		boolean not = StringUtils.startsWith(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
-<span class="fc" id="L116">		cleanedExpected = StringUtils.stripStart(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
-<span class="fc" id="L117">		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP_PATTERN.matcher(cleanedExpected);</span>
-<span class="fc" id="L118">		boolean result = false;</span>
-<span class="fc bfc" id="L119" title="All 2 branches covered.">		if (matcher.matches()) {</span>
-<span class="fc" id="L120">			result = cleanedObtained.matches(matcher.group(NumberUtils.INTEGER_ONE));</span>
+<span class="fc" id="L91">		String cleanedExpected = clean(expected);</span>
+<span class="fc" id="L92">		String cleanedObtained = clean(obtained);</span>
+<span class="fc" id="L93">		boolean not = StringUtils.startsWith(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
+<span class="fc" id="L94">		cleanedExpected = StringUtils.stripStart(cleanedExpected, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR);</span>
+<span class="fc" id="L95">		Matcher matcher = FitnesseMarkup.FITNESSE_REGEX_MARKUP_PATTERN.matcher(cleanedExpected);</span>
+<span class="fc" id="L96">		boolean result = false;</span>
+<span class="fc bfc" id="L97" title="All 2 branches covered.">		if (matcher.matches()) {</span>
+<span class="fc" id="L98">			result = Pattern.compile(matcher.group(NumberUtils.INTEGER_ONE), Pattern.DOTALL).matcher(cleanedObtained).matches();</span>
 		} else {
-<span class="fc" id="L122">			result = StringUtils.equals(cleanedExpected, cleanedObtained);</span>
+<span class="fc" id="L100">			result = StringUtils.equals(cleanedExpected, cleanedObtained);</span>
 		}
-<span class="pc bpc" id="L124" title="1 of 4 branches missed.">		return not ? !result : result;</span>
+<span class="pc bpc" id="L102" title="1 of 4 branches missed.">		return not ? !result : result;</span>
 	}
 
 	/**
@@ -139,57 +117,47 @@ import fitnesse.testsystems.TestPage;
 	 */
 	public String clean(Object symbol) {
 		// strips whitespace and accidental &quot;null&quot; string representation of null value
-<span class="fc" id="L142">		String strippedSymbol = StringUtils.remove(StringUtils.strip(ObjectUtils.toString(symbol)), &quot;null&quot;);</span>
-<span class="fc bfc" id="L143" title="All 2 branches covered.">		if (StringUtils.isBlank(strippedSymbol)) {</span>
-<span class="fc" id="L144">			return strippedSymbol;</span>
+<span class="fc" id="L120">		String strippedSymbol = StringUtils.remove(StringUtils.strip(ObjectUtils.toString(symbol)), &quot;null&quot;);</span>
+<span class="fc bfc" id="L121" title="All 2 branches covered.">		if (StringUtils.isBlank(strippedSymbol)) {</span>
+<span class="fc" id="L122">			return strippedSymbol;</span>
 		}
 		// transforms keyboard special keys markup
-<span class="fc" id="L147">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span keycode=\&quot;([^\&quot;]+)\&quot;[^/]+/span&gt;&quot;, &quot;$1&quot;);</span>
+<span class="fc" id="L125">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span keycode=\&quot;([^\&quot;]+)\&quot;[^/]+/span&gt;&quot;, &quot;$1&quot;);</span>
 		// removes undefined variable references
-<span class="fc" id="L149">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L127">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
 		// removes create wikipage markup
-<span class="fc" id="L151">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;a[^&gt;]+&gt;\\[\\?\\]&lt;/a&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L129">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;a[^&gt;]+&gt;\\[\\?\\]&lt;/a&gt;&quot;, StringUtils.EMPTY);</span>
 		// removes undefined variable references
-<span class="fc" id="L153">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L131">		strippedSymbol = strippedSymbol.replaceAll(&quot;&lt;span[^&gt;]+&gt;undefined variable:[^&lt;]+&lt;/span&gt;&quot;, StringUtils.EMPTY);</span>
 		// removes html tags
-<span class="fc" id="L155">		return strippedSymbol.replaceAll(&quot;&lt;/?.[^&gt;]+&gt;&quot;, StringUtils.EMPTY);</span>
+<span class="fc" id="L133">		return strippedSymbol.replaceAll(&quot;&lt;/?.[^&gt;]+&gt;&quot;, StringUtils.EMPTY);</span>
 	}
 
 	/**
 	 * Creates img markup to be viewed in test page.
-	 * Usually used by fixtures that wants to return a image link for the test result.s
+	 * Usually used by fixtures that wants to return a image link for the test result.
 	 *
-	 * @see #fileAsTestResult(Object, String, TestPage)
-	 * @param img File containing the image
-	 * @param testPage containing path information to save the screenshot and generate the link
+	 * @param img
+	 *            File containing the image
 	 * @return Image link
-	 * @throws IOException if file can't be moved to {@link #FITNESSE_TESTRESULTS_DIR}
 	 */
-	public String imgLink(Object img, TestPage testPage) throws IOException {
-<span class="fc" id="L169">		String dest = fileAsTestResult(img, FitnesseMarkup.SCREENSHOT_DIR, testPage);</span>
-<span class="fc" id="L170">		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, testPage.getVariable(FitnesseMarkup.FITNESSE_CONTEXTROOT_VARIABLE), FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, dest);</span>
+	public String imgLink(Object img) {
+<span class="fc" id="L145">		return MessageFormat.format(FitnesseMarkup.SCREENSHOT_LINK_MARKUP, img);</span>
 	}
 
 	/**
-	 * Moves a file produced from the fixture to the test result dir so test result reports can be organized.
+	 * Creates img markup to be viewed in test page. Extracts the image content from an exception message generated by {@link #exceptionMessage(Object, String, Object...)}
 	 *
-	 * @param file File produced from the fixture
-	 * @param dirInsideTestResult The subdirectory to save the file inside the test result dir
-	 * @param testPage containing path information to move the file
-	 * @return file new path
-	 * @throws IOException if file can't be moved to {@link #FITNESSE_TESTRESULTS_DIR}
+	 * @param exceptionMessage
+	 *            to be parsed
+	 * @return image link
 	 */
-	public String fileAsTestResult(Object file, String dirInsideTestResult, TestPage testPage) throws IOException {
-<span class="fc" id="L183">		File src = FileUtils.getFile(clean(file));</span>
-<span class="pc bpc" id="L184" title="1 of 2 branches missed.">		if (!src.exists()) {</span>
-<span class="nc" id="L185">			return null;</span>
+	public String imgLinkFromExceptionMessage(String exceptionMessage) {
+<span class="nc" id="L156">		Matcher matcher = FitnesseMarkup.SCREENSHOT_WITHIN_EXCEPTION_PATTERN.matcher(exceptionMessage);</span>
+<span class="nc bnc" id="L157" title="All 2 branches missed.">		if (matcher.find()) {</span>
+<span class="nc" id="L158">			return imgLink(matcher.group(NumberUtils.INTEGER_ONE));</span>
 		}
-<span class="fc" id="L187">		String rootPath = FilenameUtils.concat(testPage.getVariable(FitnesseMarkup.FITNESSE_ROOTPATH_VARIABLE), testPage.getVariable(ContextConfigurator.DEFAULT_ROOT));</span>
-<span class="fc" id="L188">		String runningPage = testPage.getVariable(FitnesseMarkup.PAGE_PATH_VARIABLE) + &quot;.&quot; + testPage.getVariable(FitnesseMarkup.PAGE_NAME_VARIABLE);</span>
-<span class="fc" id="L189">		String destFilename = FilenameUtils.concat(runningPage, FilenameUtils.concat(dirInsideTestResult, src.getName()));</span>
-<span class="fc" id="L190">		File dest = FileUtils.getFile(rootPath, FitnesseMarkup.FITNESSE_TESTRESULTS_DIR, destFilename);</span>
-<span class="fc" id="L191">		FileUtils.moveFile(src, dest);</span>
-<span class="fc" id="L192">		return FilenameUtils.normalize(destFilename, true);</span>
+<span class="nc" id="L160">		return null;</span>
 	}
 
 	/**
@@ -202,13 +170,13 @@ import fitnesse.testsystems.TestPage;
 	 * @param keyValue Special keyboard key value
 	 */
 	public void registerKeyboardSpecialKey(String keyName, String keyValue) {
-<span class="fc" id="L205">		String generatedKeyName = MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP, StringUtils.upperCase(keyName));</span>
-<span class="fc" id="L206">		System.setProperty(generatedKeyName, MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP, generatedKeyName, keyValue));</span>
-<span class="fc" id="L207">	}</span>
+<span class="fc" id="L173">		String generatedKeyName = MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_VARIABLE_MARKUP, StringUtils.upperCase(keyName));</span>
+<span class="fc" id="L174">		System.setProperty(generatedKeyName, MessageFormat.format(FitnesseMarkup.KEYBOARD_SPECIAL_KEY_RENDERING_MARKUP, generatedKeyName, keyValue));</span>
+<span class="fc" id="L175">	}</span>
 
 	public Pair&lt;String, String&gt; swapValueToCheck(String stringWithValue, String stringToGetValue) {
-<span class="fc" id="L210">		String expectedValue = StringUtils.substringAfterLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);</span>
-<span class="fc" id="L211">		return Pair.of(StringUtils.substringBeforeLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR), stringToGetValue + FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + expectedValue);</span>
+<span class="fc" id="L178">		String expectedValue = StringUtils.substringAfterLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR);</span>
+<span class="fc" id="L179">		return Pair.of(StringUtils.substringBeforeLast(stringWithValue, FitnesseMarkup.SELECTOR_VALUE_SEPARATOR), stringToGetValue + FitnesseMarkup.SELECTOR_VALUE_SEPARATOR + expectedValue);</span>
 	}
 
 	/**
@@ -216,8 +184,8 @@ import fitnesse.testsystems.TestPage;
 	 * @return normalized a file path, cleaning each path part and joining with current operating system separator
 	 */
 	public File cleanFile(Object... value) {
-<span class="fc" id="L219">		String[] cleanedValues = Arrays.stream(value).map(valueToClean -&gt; FilenameUtils.normalize(clean(valueToClean))).toArray(size -&gt; new String[value.length]);</span>
-<span class="fc" id="L220">		return FileUtils.getFile(cleanedValues);</span>
+<span class="fc" id="L187">		String[] cleanedValues = Arrays.stream(value).map(valueToClean -&gt; FilenameUtils.normalize(clean(valueToClean))).toArray(size -&gt; new String[value.length]);</span>
+<span class="fc" id="L188">		return FileUtils.getFile(cleanedValues);</span>
 	}
 
 	/**
@@ -228,12 +196,12 @@ import fitnesse.testsystems.TestPage;
 	 * @return instance of {@link Pair} containing key and value
 	 */
 	public Pair&lt;String, String&gt; cleanAndParseKeyValue(Object value, String separator) {
-<span class="fc" id="L231">		String cleanedValue = clean(value);</span>
-<span class="fc bfc" id="L232" title="All 2 branches covered.">		if (!StringUtils.contains(cleanedValue, separator)) {</span>
-<span class="fc" id="L233">			return Pair.of(cleanedValue, StringUtils.EMPTY);</span>
+<span class="fc" id="L199">		String cleanedValue = clean(value);</span>
+<span class="fc bfc" id="L200" title="All 2 branches covered.">		if (!StringUtils.contains(cleanedValue, separator)) {</span>
+<span class="fc" id="L201">			return Pair.of(cleanedValue, StringUtils.EMPTY);</span>
 		}
-<span class="fc" id="L235">		String key = StringUtils.substringBefore(cleanedValue, separator);</span>
-<span class="fc" id="L236">		return Pair.of(key, StringUtils.removeStart(cleanedValue, key + separator));</span>
+<span class="fc" id="L203">		String key = StringUtils.substringBefore(cleanedValue, separator);</span>
+<span class="fc" id="L204">		return Pair.of(key, StringUtils.removeStart(cleanedValue, key + separator));</span>
 	}
 
 	/**
@@ -243,7 +211,7 @@ import fitnesse.testsystems.TestPage;
 	 * @return converted value, {@link #ON_VALUE} if value is &lt;b&gt;true&lt;/b&gt; or {@link #ON_VALUE} itself
 	 */
 	public String booleanToOnOrOff(Object value) {
-<span class="fc bfc" id="L246" title="All 2 branches covered.">		return onOrOffToBoolean(value) ? FitnesseMarkup.ON_VALUE : FitnesseMarkup.OFF_VALUE;</span>
+<span class="fc bfc" id="L214" title="All 2 branches covered.">		return onOrOffToBoolean(value) ? FitnesseMarkup.ON_VALUE : FitnesseMarkup.OFF_VALUE;</span>
 	}
 
 	/**
@@ -253,8 +221,8 @@ import fitnesse.testsystems.TestPage;
 	 * @return converted value, &lt;b&gt;true&lt;/b&gt; if value is {@link #ON_VALUE}, &lt;b&gt;false&lt;/b&gt; otherwise
 	 */
 	public boolean onOrOffToBoolean(Object value) {
-<span class="fc" id="L256">		String cleanedValue = clean(value);</span>
-<span class="pc bpc" id="L257" title="1 of 4 branches missed.">		return Boolean.valueOf(cleanedValue) || StringUtils.equalsIgnoreCase(cleanedValue, FitnesseMarkup.ON_VALUE);</span>
+<span class="fc" id="L224">		String cleanedValue = clean(value);</span>
+<span class="fc bfc" id="L225" title="All 4 branches covered.">		return Boolean.valueOf(cleanedValue) || StringUtils.equalsIgnoreCase(cleanedValue, FitnesseMarkup.ON_VALUE);</span>
 	}
 
 	/**
@@ -263,7 +231,7 @@ import fitnesse.testsystems.TestPage;
 	 * @return formatted width and height. If width=1024 and height=768, will output 1024x768
 	 */
 	public String formatWidthAndHeight(Object width, Object height) {
-<span class="fc" id="L266">		return width + FitnesseMarkup.WIDTH_HEIGHT_SEPARATOR + height;</span>
+<span class="fc" id="L234">		return width + FitnesseMarkup.WIDTH_HEIGHT_SEPARATOR + height;</span>
 	}
 
 	/**
@@ -271,12 +239,32 @@ import fitnesse.testsystems.TestPage;
 	 * @return instance of {@link Pair} containing width in {@link Pair#getLeft()} and height in {@link Pair#getRight()}
 	 */
 	public Pair&lt;Integer, Integer&gt; parseWidthAndHeight(String widthAndHeight) {
-<span class="fc" id="L274">		String cleanedWidthAndHeight = clean(widthAndHeight);</span>
-<span class="fc" id="L275">		Matcher matcher = FitnesseMarkup.WIDTH_HEIGHT_PATTERN.matcher(cleanedWidthAndHeight);</span>
-<span class="pc bpc" id="L276" title="1 of 2 branches missed.">		if (!matcher.matches()) {</span>
-<span class="nc" id="L277">			throw new IllegalArgumentException(&quot;Invalid width and height format, should be something like [width pixels]x[height pixels]. Obtained: &quot; + widthAndHeight);</span>
+<span class="fc" id="L242">		String cleanedWidthAndHeight = clean(widthAndHeight);</span>
+<span class="fc" id="L243">		Matcher matcher = FitnesseMarkup.WIDTH_HEIGHT_PATTERN.matcher(cleanedWidthAndHeight);</span>
+<span class="pc bpc" id="L244" title="1 of 2 branches missed.">		if (!matcher.matches()) {</span>
+<span class="nc" id="L245">			throw new IllegalArgumentException(&quot;Invalid width and height format, should be something like [width pixels]x[height pixels]. Obtained: &quot; + widthAndHeight);</span>
 		}
-<span class="fc" id="L279">		return Pair.of(NumberUtils.toInt(matcher.group(1)), NumberUtils.toInt(matcher.group(2)));</span>
+<span class="fc" id="L247">		return Pair.of(NumberUtils.toInt(matcher.group(1)), NumberUtils.toInt(matcher.group(2)));</span>
+	}
+
+	/**
+	 * Produces a custom SLIM response containing the original exception message along with a screenshot, probably taken when the exception occured.
+	 *
+	 * @param originalMessage
+	 *            message taken from the exception
+	 * @param screenshotData
+	 *            screenshot data in base64 format
+	 * @param args
+	 *            extra arguments to be interpolated in {@link MessageFormat#format(Object)}
+	 * @return formatted message
+	 */
+	public String exceptionMessage(Object originalMessage, String screenshotData, Object... args) {
+<span class="nc" id="L262">		String originalMessageString = clean(originalMessage);</span>
+		try {
+<span class="nc" id="L264">			return MessageFormat.format(FitnesseMarkup.EXCEPTION_MESSAGE_MARKUP, screenshotData, MessageFormat.format(originalMessageString, args));</span>
+<span class="nc" id="L265">		} catch (IllegalArgumentException e) {</span>
+<span class="nc" id="L266">			return MessageFormat.format(FitnesseMarkup.EXCEPTION_MESSAGE_MARKUP, screenshotData, originalMessageString);</span>
+		}
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

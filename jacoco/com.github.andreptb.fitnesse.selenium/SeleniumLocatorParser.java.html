@@ -72,49 +72,50 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 <span class="fc" id="L72">			selector = locator;</span>
 <span class="fc" id="L73">			selectorType = LocatorType.xpath;</span>
 		}
+
 		try {
-<span class="fc" id="L76">			return selectorType.byClass.getConstructor(String.class).newInstance(selector);</span>
-<span class="nc" id="L77">		} catch (ReflectiveOperationException e) {</span>
-<span class="nc" id="L78">			throw new IllegalStateException(&quot;Unexpected failure instantiating selector: &quot; + prefix, e);</span>
+<span class="fc" id="L77">			return selectorType.byClass.getConstructor(String.class).newInstance(selector);</span>
+<span class="nc" id="L78">		} catch (ReflectiveOperationException e) {</span>
+<span class="nc" id="L79">			throw new IllegalStateException(&quot;Unexpected failure instantiating selector: &quot; + prefix, e);</span>
 		}
 	}
 
 	/**
 	 * {@link By} implementation that returns the currently focused element
 	 */
-<span class="fc" id="L85">	public static class ByFocus extends By {</span>
+<span class="fc" id="L86">	public static class ByFocus extends By {</span>
 
 		@Override
 		public List&lt;WebElement&gt; findElements(SearchContext context) {
-<span class="pc bpc" id="L89" title="1 of 2 branches missed.">			if (context instanceof WebDriver) {</span>
-<span class="fc" id="L90">				return Arrays.asList(((WebDriver) context).switchTo().activeElement());</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">			if (context instanceof WebDriver) {</span>
+<span class="fc" id="L91">				return Arrays.asList(((WebDriver) context).switchTo().activeElement());</span>
 			}
-<span class="nc" id="L92">			return null;</span>
+<span class="nc" id="L93">			return null;</span>
 		}
 	}
 
-<span class="fc" id="L96">	public static class WebElementSelector {</span>
+<span class="fc" id="L97">	public static class WebElementSelector {</span>
 
 		private String originalSelector;
 		private By by;
 		private String expectedValue;
 
-<span class="fc" id="L102">		public WebElementSelector(String originalSelector, By by, String expectedValue) {</span>
-<span class="fc" id="L103">			this.originalSelector = originalSelector;</span>
-<span class="fc" id="L104">			this.by = by;</span>
-<span class="fc" id="L105">			this.expectedValue = expectedValue;</span>
-<span class="fc" id="L106">		}</span>
+<span class="fc" id="L103">		public WebElementSelector(String originalSelector, By by, String expectedValue) {</span>
+<span class="fc" id="L104">			this.originalSelector = originalSelector;</span>
+<span class="fc" id="L105">			this.by = by;</span>
+<span class="fc" id="L106">			this.expectedValue = expectedValue;</span>
+<span class="fc" id="L107">		}</span>
 
 		public String getOriginalSelector() {
-<span class="fc" id="L109">			return this.originalSelector;</span>
+<span class="fc" id="L110">			return this.originalSelector;</span>
 		}
 
 		public By getBy() {
-<span class="fc" id="L113">			return this.by;</span>
+<span class="fc" id="L114">			return this.by;</span>
 		}
 
 		public String getExpectedValue() {
-<span class="fc" id="L117">			return this.expectedValue;</span>
+<span class="fc" id="L118">			return this.expectedValue;</span>
 		}
 
 	}

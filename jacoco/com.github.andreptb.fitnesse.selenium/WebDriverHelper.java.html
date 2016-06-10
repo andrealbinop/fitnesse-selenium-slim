@@ -9,23 +9,31 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
+import org.openqa.selenium.By;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.InvalidElementStateException;
 import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.remote.ScreenshotException;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.UnexpectedTagNameException;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -38,17 +46,25 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
  * Utility class that wraps {@link WebDriver} instances. Each {@link #connect(String, String, String)} call
  * will associate a working instance of {@link WebDriver} and will be used until {@link #quit()} is used or another {@link #connect(String, String, String)}
  */
-<span class="fc" id="L41">public class WebDriverHelper {</span>
+<span class="fc" id="L49">public class WebDriverHelper {</span>
 
-<span class="fc" id="L43">	private SeleniumLocatorParser parser = new SeleniumLocatorParser();</span>
-<span class="fc" id="L44">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
-<span class="fc" id="L45">	private WebDriverCapabilitiesHelper capabilitiesHelper = new WebDriverCapabilitiesHelper();</span>
-<span class="fc" id="L46">	private Map&lt;Integer, WebDriver&gt; driverCache = new LinkedHashMap&lt;&gt;();</span>
+	/**
+	 * HTTP scheme prefix, to detect remote DRIVER
+	 */
+	private static final String HTTP_PREFIX = &quot;http&quot;;
+
+	private static final String UNDEFINED_VALUE = &quot;&lt;&lt;undefined_value&gt;&gt;&quot;;
+
+<span class="fc" id="L58">	private Logger logger = Logger.getLogger(WebDriverHelper.class.getName());</span>
+<span class="fc" id="L59">	private SeleniumLocatorParser parser = new SeleniumLocatorParser();</span>
+<span class="fc" id="L60">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+<span class="fc" id="L61">	private WebDriverCapabilitiesHelper capabilitiesHelper = new WebDriverCapabilitiesHelper();</span>
+<span class="fc" id="L62">	private Map&lt;Integer, WebDriver&gt; driverCache = new LinkedHashMap&lt;&gt;();</span>
 	private Integer currentDriverId;
 	/**
 	 * @see #setTimeoutInSeconds(int)
 	 */
-<span class="fc" id="L51">	private int timeoutInSeconds = 20;</span>
+<span class="fc" id="L67">	private int timeoutInSeconds = 20;</span>
 
 	/**
 	 * @see #getLastActionDurationInSeconds()
@@ -59,10 +75,13 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @see #setStopTestOnFirstFailure(boolean)
 	 */
 	private boolean stopTestOnFirstFailure;
+
 	/**
-	 * HTTP scheme prefix, to detect remote DRIVER
+	 * @see #setTakeScreenshotOnFailure(boolean)
 	 */
-	private static final String HTTP_PREFIX = &quot;http&quot;;
+<span class="fc" id="L82">	private boolean takeScreenshotOnFailure = true;</span>
+
+	private String dryRunWindow;
 
 	/**
 	 * Creates a {@link WebDriver} instance with desired browser and capabilities. Capabilities should follow a key/value format
@@ -75,54 +94,82 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @throws IOException if IO error occurs if invalid URL is used when connecting to remote drivers
 	 */
 	public void connect(String browser, String capabilities, String preferences) throws ReflectiveOperationException, IOException {
-<span class="fc" id="L78">		int driverId = new HashCodeBuilder().append(browser).append(capabilities).append(preferences).toHashCode();</span>
-<span class="fc" id="L79">		WebDriver driver = this.driverCache.get(driverId);</span>
-<span class="pc bpc" id="L80" title="1 of 2 branches missed.">		if (isBrowserAvailable(driver)) {</span>
-<span class="nc" id="L81">			return;</span>
+<span class="fc" id="L97">		int driverId = new HashCodeBuilder().append(browser).append(capabilities).append(preferences).toHashCode();</span>
+<span class="fc" id="L98">		WebDriver driver = this.driverCache.get(driverId);</span>
+<span class="pc bpc" id="L99" title="1 of 2 branches missed.">		if (isBrowserAvailable(driver)) {</span>
+<span class="nc" id="L100">			return;</span>
 		}
-<span class="fc" id="L83">		quit(driverId);</span>
-<span class="fc" id="L84">		this.driverCache.put(driverId, createDriverConnection(browser, capabilities, preferences));</span>
-<span class="fc" id="L85">		this.currentDriverId = driverId;</span>
-<span class="fc" id="L86">	}</span>
+<span class="fc" id="L102">		quit(driverId);</span>
+<span class="fc" id="L103">		this.driverCache.put(driverId, createDriverConnection(browser, capabilities, preferences));</span>
+<span class="fc" id="L104">		this.currentDriverId = driverId;</span>
+<span class="fc" id="L105">	}</span>
 
 	private WebDriver createDriverConnection(String browser, String capabilities, String preferences) throws MalformedURLException, ReflectiveOperationException {
-<span class="fc" id="L89">		WebDriver driver = null;</span>
-<span class="fc" id="L90">		String cleanedBrowser = StringUtils.deleteWhitespace(this.parser.parse(browser).getOriginalSelector());</span>
-<span class="fc" id="L91">		Capabilities parsedCapabilities = this.capabilitiesHelper.parse(cleanedBrowser, this.fitnesseMarkup.clean(capabilities), this.fitnesseMarkup.clean(preferences));</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">		if (StringUtils.startsWithIgnoreCase(cleanedBrowser, WebDriverHelper.HTTP_PREFIX)) {</span>
-<span class="fc" id="L93">			driver = new RemoteWebDriver(new URL(cleanedBrowser), parsedCapabilities);</span>
+<span class="fc" id="L108">		WebDriver driver = null;</span>
+<span class="fc" id="L109">		String cleanedBrowser = StringUtils.deleteWhitespace(this.parser.parse(browser).getOriginalSelector());</span>
+<span class="fc" id="L110">		Capabilities parsedCapabilities = this.capabilitiesHelper.parse(cleanedBrowser, this.fitnesseMarkup.clean(capabilities), this.fitnesseMarkup.clean(preferences));</span>
+<span class="pc bpc" id="L111" title="1 of 2 branches missed.">		if (StringUtils.startsWithIgnoreCase(cleanedBrowser, WebDriverHelper.HTTP_PREFIX)) {</span>
+<span class="fc" id="L112">			driver = new RemoteWebDriver(new URL(cleanedBrowser), parsedCapabilities);</span>
 		} else {
-<span class="nc" id="L95">			Reflections reflections = new Reflections(WebDriver.class.getPackage().getName());</span>
-<span class="nc bnc" id="L96" title="All 2 branches missed.">			for (Class&lt;? extends WebDriver&gt; availableDriver : reflections.getSubTypesOf(WebDriver.class)) {</span>
-<span class="nc bnc" id="L97" title="All 2 branches missed.">				if (StringUtils.startsWithIgnoreCase(availableDriver.getSimpleName(), cleanedBrowser)) {</span>
-<span class="nc" id="L98">					driver = availableDriver.getConstructor(Capabilities.class).newInstance(parsedCapabilities);</span>
-<span class="nc" id="L99">					break;</span>
+<span class="nc" id="L114">			Reflections reflections = new Reflections(WebDriver.class.getPackage().getName());</span>
+<span class="nc bnc" id="L115" title="All 2 branches missed.">			for (Class&lt;? extends WebDriver&gt; availableDriver : reflections.getSubTypesOf(WebDriver.class)) {</span>
+<span class="nc bnc" id="L116" title="All 2 branches missed.">				if (StringUtils.startsWithIgnoreCase(availableDriver.getSimpleName(), cleanedBrowser)) {</span>
+<span class="nc" id="L117">					driver = availableDriver.getConstructor(Capabilities.class).newInstance(parsedCapabilities);</span>
+<span class="nc" id="L118">					break;</span>
 				}
-<span class="nc" id="L101">			}</span>
+<span class="nc" id="L120">			}</span>
 		}
-<span class="pc bpc" id="L103" title="1 of 2 branches missed.">		if (driver == null) {</span>
-<span class="nc" id="L104">			throw new StopTestWithWebDriverException(MessageFormat.format(&quot;No suitable implementation found for [{0}] with capabilites: [{1}]&quot;, browser, capabilities));</span>
+<span class="pc bpc" id="L122" title="1 of 2 branches missed.">		if (driver == null) {</span>
+<span class="nc" id="L123">			throw new StopTestWithWebDriverException(MessageFormat.format(&quot;No suitable implementation found for [{0}] with capabilites: [{1}]&quot;, browser, capabilities));</span>
 		}
-<span class="fc" id="L106">		return driver;</span>
+<span class="fc" id="L125">		return driver;</span>
 	}
 
 	/**
 	 * Quietly quits the current browser instance
 	 */
 	public void quit() {
-<span class="pc bpc" id="L113" title="2 of 4 branches missed.">		if (quit(this.currentDriverId) &amp;&amp; MapUtils.isNotEmpty(this.driverCache)) {</span>
-<span class="nc" id="L114">			this.currentDriverId = this.driverCache.keySet().stream().findFirst().get();</span>
+<span class="pc bpc" id="L132" title="2 of 4 branches missed.">		if (quit(this.currentDriverId) &amp;&amp; MapUtils.isNotEmpty(this.driverCache)) {</span>
+<span class="nc" id="L133">			this.currentDriverId = this.driverCache.keySet().stream().findFirst().get();</span>
 		}
-<span class="fc" id="L116">	}</span>
+<span class="fc" id="L135">	}</span>
 
 	private boolean quit(Integer driverId) {
 		try {
-<span class="fc" id="L120">			this.driverCache.remove(driverId).quit();</span>
-<span class="fc" id="L121">			return true;</span>
-<span class="fc" id="L122">		} catch (Exception e) {</span>
+<span class="fc" id="L139">			this.driverCache.remove(driverId).quit();</span>
+<span class="fc" id="L140">			return true;</span>
+<span class="fc" id="L141">		} catch (Exception e) {</span>
 			// quits quietly
 		}
-<span class="fc" id="L125">		return false;</span>
+<span class="fc" id="L144">		return false;</span>
+	}
+
+	public boolean doWhenAvailable(String from, BiConsumer&lt;WebDriver, WebElementSelector&gt; callback) {
+<span class="fc" id="L148">		getWhenAvailable(from, (driver, selector) -&gt; {</span>
+<span class="fc" id="L149">			callback.accept(driver, selector);</span>
+<span class="fc" id="L150">			return StringUtils.stripToNull(selector.getExpectedValue());</span>
+		});
+<span class="fc" id="L152">		return true;</span>
+	}
+
+	private String respondForDryRun(WebDriver driver, WebElementSelector locator) {
+<span class="nc" id="L156">		String currentWindow = driver.getWindowHandle();</span>
+<span class="nc" id="L157">		By selector = locator.getBy();</span>
+<span class="nc bnc" id="L158" title="All 2 branches missed.">		if (selector != null) {</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">			if (!StringUtils.equals(currentWindow, this.dryRunWindow)) {</span>
+<span class="nc" id="L160">				driver.switchTo().window(this.dryRunWindow);</span>
+			}
+			try {
+<span class="nc" id="L163">				driver.findElement(locator.getBy());</span>
+<span class="nc" id="L164">			} catch (NoSuchElementException e) {</span>
+				// element not found means that selenium is running properly
+<span class="nc" id="L166">			}</span>
+		}
+<span class="nc" id="L168">		String expectedValue = locator.getExpectedValue();</span>
+<span class="nc bnc" id="L169" title="All 2 branches missed.">		if (StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {</span>
+<span class="nc" id="L170">			return WebDriverHelper.UNDEFINED_VALUE;</span>
+		}
+<span class="nc" id="L172">		return expectedValue;</span>
 	}
 
 	/**
@@ -138,116 +185,166 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * returned&lt;/li&gt;
 	 * &lt;/ul&gt;
 	 *
-	 * @param &lt;T&gt; return type from callback
 	 * @param from selenium selector received by the fixture@param from
 	 * @param callback The callback to be invoked with {@link WebElementSelector} and {@link WebDriver}
 	 * @return the value returned from the callback
 	 * @throws StopTestWithWebDriverException if {@link #isBrowserAvailable()} returns false or if {@link #getStopTestOnFirstFailure()} is true and any failure occurs
 	 */
-	public &lt;T&gt; T getWhenAvailable(String from, BiFunction&lt;WebDriver, WebElementSelector, T&gt; callback) {
-<span class="fc" id="L148">		this.lastActionDurationInSeconds = NumberUtils.LONG_ZERO;</span>
-<span class="pc bpc" id="L149" title="1 of 2 branches missed.">		if (!isBrowserAvailable()) {</span>
-<span class="nc" id="L150">			throw new StopTestWithWebDriverException(&quot;No browser instance available, please check if 'start browser' command completed successfuly&quot;);</span>
+	public String getWhenAvailable(String from, BiFunction&lt;WebDriver, WebElementSelector, String&gt; callback) {
+<span class="fc" id="L194">		this.lastActionDurationInSeconds = NumberUtils.LONG_ZERO;</span>
+<span class="fc" id="L195">		WebElementSelector locator = this.parser.parse(this.fitnesseMarkup.clean(from));</span>
+<span class="fc" id="L196">		WebDriver driver = this.driverCache.get(this.currentDriverId);</span>
+<span class="pc bpc" id="L197" title="1 of 2 branches missed.">		if (!isBrowserAvailable()) {</span>
+<span class="nc" id="L198">			throw new StopTestWithWebDriverException(&quot;No browser instance available, please check if 'start browser' command completed successfuly&quot;);</span>
 		}
-<span class="fc" id="L152">		MutableObject&lt;T&gt; result = new MutableObject&lt;&gt;();</span>
+<span class="fc" id="L200">		MutableObject&lt;String&gt; result = new MutableObject&lt;&gt;();</span>
 		try {
-<span class="fc" id="L154">			WebDriver driver = this.driverCache.get(this.currentDriverId);</span>
-<span class="fc" id="L155">			Instant startInstant = Instant.now();</span>
-<span class="fc" id="L156">			WebDriverWait wait = new WebDriverWait(driver, this.timeoutInSeconds);</span>
-<span class="fc" id="L157">			wait.ignoring(InvalidElementStateException.class);</span>
-<span class="fc" id="L158">			wait.ignoring(UnhandledAlertException.class);</span>
-<span class="fc" id="L159">			wait.ignoring(UnexpectedTagNameException.class);</span>
-<span class="fc" id="L160">			WebElementSelector locator = this.parser.parse(this.fitnesseMarkup.clean(from));</span>
-			try {
-<span class="fc" id="L162">				wait.until((ExpectedCondition&lt;String&gt;) waitingDriver -&gt; {</span>
-<span class="fc" id="L163">					evaluate(waitingDriver, locator, callback, false, result);</span>
-<span class="fc" id="L164">					return Objects.toString(result.getValue());</span>
-				});
-<span class="fc" id="L166">			} catch (TimeoutException e) {</span>
-<span class="pc bpc" id="L167" title="1 of 2 branches missed.">				if (this.stopTestOnFirstFailure) {</span>
-<span class="nc" id="L168">					throw e;</span>
-				}
-<span class="fc" id="L170">				evaluate(driver, locator, callback, true, result);</span>
-			} finally {
-<span class="pc" id="L172">				this.lastActionDurationInSeconds = Duration.between(startInstant, Instant.now()).getSeconds();</span>
-<span class="fc" id="L173">			}</span>
-<span class="nc" id="L174">		} catch (RuntimeException e) {</span>
-<span class="nc bnc" id="L175" title="All 2 branches missed.">			if (this.stopTestOnFirstFailure) {</span>
-<span class="nc" id="L176">				throw new StopTestWithWebDriverException(e);</span>
+<span class="pc bpc" id="L202" title="1 of 2 branches missed.">			if (StringUtils.isNotBlank(this.dryRunWindow)) {</span>
+<span class="nc" id="L203">				return respondForDryRun(driver, locator);</span>
 			}
-<span class="nc" id="L178">			throw e;</span>
-<span class="fc" id="L179">		}</span>
-<span class="fc" id="L180">		return result.getValue();</span>
+<span class="fc" id="L205">			Instant startInstant = Instant.now();</span>
+<span class="fc" id="L206">			WebDriverWait wait = new WebDriverWait(driver, this.timeoutInSeconds);</span>
+<span class="fc" id="L207">			wait.ignoring(InvalidElementStateException.class);</span>
+<span class="fc" id="L208">			wait.ignoring(UnhandledAlertException.class);</span>
+<span class="fc" id="L209">			wait.ignoring(UnexpectedTagNameException.class);</span>
+			try {
+<span class="fc" id="L211">				wait.until((ExpectedCondition&lt;String&gt;) waitingDriver -&gt; {</span>
+<span class="fc" id="L212">					evaluate(waitingDriver, locator, callback, false, result);</span>
+<span class="fc" id="L213">					return result.getValue();</span>
+				});
+<span class="nc" id="L215">			} catch (TimeoutException e) {</span>
+<span class="nc bnc" id="L216" title="All 2 branches missed.">				if (this.stopTestOnFirstFailure) {</span>
+<span class="nc" id="L217">					throw e;</span>
+				}
+<span class="nc" id="L219">				evaluate(driver, locator, callback, true, result);</span>
+			} finally {
+<span class="pc" id="L221">				this.lastActionDurationInSeconds = Duration.between(startInstant, Instant.now()).getSeconds();</span>
+<span class="pc" id="L222">			}</span>
+<span class="nc" id="L223">		} catch (RuntimeException e) {</span>
+<span class="nc" id="L224">			throw handleSeleniumException(e, driver);</span>
+<span class="fc" id="L225">		}</span>
+<span class="fc" id="L226">		return result.getValue();</span>
 	}
 
-	private &lt;T&gt; void evaluate(WebDriver driver, WebElementSelector locator, BiFunction&lt;WebDriver, WebElementSelector, T&gt; callback, boolean disableValueCheck, MutableObject&lt;T&gt; resultHolder) {
-<span class="fc" id="L184">		T result = callback.apply(driver, locator);</span>
-<span class="fc" id="L185">		resultHolder.setValue(result);</span>
-<span class="fc" id="L186">		String expectedValue = locator.getExpectedValue();</span>
-<span class="fc bfc" id="L187" title="All 6 branches covered.">		if (disableValueCheck || StringUtils.isBlank(expectedValue) || this.fitnesseMarkup.compare(expectedValue, result)) {</span>
-<span class="fc" id="L188">			return;</span>
+	private RuntimeException handleSeleniumException(RuntimeException originalException, WebDriver driver) {
+
+<span class="nc" id="L231">		String screenshotData = retrieveScreenshotPathFromException(originalException, driver);</span>
+<span class="nc" id="L232">		Throwable cause = Optional.ofNullable(ExceptionUtils.getRootCause(originalException)).orElse(originalException);</span>
+<span class="nc" id="L233">		String exceptionMessage = this.fitnesseMarkup.exceptionMessage(StringUtils.substringBefore(cause.getMessage(), StringUtils.LF), screenshotData);</span>
+<span class="nc" id="L234">		this.logger.log(Level.INFO, exceptionMessage, cause);</span>
+		try {
+<span class="nc bnc" id="L236" title="All 2 branches missed.">			Throwable convertedException = this.stopTestOnFirstFailure ? new StopTestWithWebDriverException(exceptionMessage, cause) : cause.getClass().getConstructor(String.class).newInstance(exceptionMessage);</span>
+<span class="nc" id="L237">			convertedException.setStackTrace(cause.getStackTrace());</span>
+<span class="nc" id="L238">			return (RuntimeException) convertedException;</span>
+<span class="nc" id="L239">		} catch (Exception e) {</span>
+<span class="nc" id="L240">			this.logger.log(Level.FINE, &quot;Failed to handle selenium failure response&quot;, e);</span>
 		}
-<span class="fc" id="L190">		throw new NoSuchElementException(MessageFormat.format(&quot;Element with unexpected value [Expected: {0}, Obtained: {1}]&quot;, expectedValue, result));</span>
+<span class="nc" id="L242">		return originalException;</span>
+	}
+
+	private String retrieveScreenshotPathFromException(Throwable originalException, WebDriver driver) {
+<span class="nc bnc" id="L246" title="All 2 branches missed.">		if (!this.takeScreenshotOnFailure) {</span>
+<span class="nc" id="L247">			return StringUtils.EMPTY;</span>
+		}
+		try {
+<span class="nc bnc" id="L250" title="All 2 branches missed.">			if (originalException instanceof ScreenshotException) {</span>
+<span class="nc" id="L251">				return ((ScreenshotException) originalException).getBase64EncodedScreenshot();</span>
+<span class="nc bnc" id="L252" title="All 2 branches missed.">			} else if (driver instanceof TakesScreenshot) {</span>
+<span class="nc" id="L253">				return ((TakesScreenshot) driver).getScreenshotAs(OutputType.BASE64);</span>
+			}
+<span class="nc" id="L255">		} catch (Exception se) {</span>
+<span class="nc" id="L256">			this.logger.log(Level.FINE, &quot;Failed to retrieve screenshot after failure&quot;, se);</span>
+<span class="nc" id="L257">		}</span>
+<span class="nc" id="L258">		return StringUtils.EMPTY;</span>
+	}
+
+	private void evaluate(WebDriver driver, WebElementSelector locator, BiFunction&lt;WebDriver, WebElementSelector, String&gt; callback, boolean disableValueCheck, MutableObject&lt;String&gt; resultHolder) {
+<span class="fc" id="L262">		String result = StringUtils.stripToEmpty(callback.apply(driver, locator));</span>
+<span class="fc" id="L263">		resultHolder.setValue(result);</span>
+<span class="fc" id="L264">		String expectedValue = locator.getExpectedValue();</span>
+<span class="pc bpc" id="L265" title="2 of 6 branches missed.">		if (disableValueCheck || StringUtils.isBlank(expectedValue) || this.fitnesseMarkup.compare(expectedValue, result)) {</span>
+<span class="fc" id="L266">			return;</span>
+		}
+<span class="nc" id="L268">		throw new NoSuchElementException(MessageFormat.format(&quot;Element with unexpected value [Expected: {0}, Obtained: {1}]&quot;, expectedValue, result));</span>
 	}
 
 	/**
 	 * @return if browser is available and can be used
 	 */
 	public boolean isBrowserAvailable() {
-<span class="fc" id="L197">		return isBrowserAvailable(this.driverCache.get(this.currentDriverId));</span>
+<span class="fc" id="L275">		return isBrowserAvailable(this.driverCache.get(this.currentDriverId));</span>
 	}
 
 	private boolean isBrowserAvailable(WebDriver driver) {
 		// http://stackoverflow.com/questions/27616470/webdriver-how-to-check-if-browser-still-exists-or-still-open
-<span class="fc" id="L202">		String driverString = ObjectUtils.toString(driver);</span>
-<span class="pc bpc" id="L203" title="1 of 4 branches missed.">		return StringUtils.isNotBlank(driverString) &amp;&amp; !StringUtils.containsIgnoreCase(driverString, &quot;null&quot;);</span>
+<span class="fc" id="L280">		String driverString = ObjectUtils.toString(driver);</span>
+<span class="pc bpc" id="L281" title="1 of 4 branches missed.">		return StringUtils.isNotBlank(driverString) &amp;&amp; !StringUtils.containsIgnoreCase(driverString, &quot;null&quot;);</span>
 	}
 
 	/**
 	 * @param timeoutInSeconds Timeout to wait for elements to be present. Default is 20 seconds
 	 */
 	public void setTimeoutInSeconds(int timeoutInSeconds) {
-<span class="fc" id="L210">		this.timeoutInSeconds = timeoutInSeconds;</span>
-<span class="fc" id="L211">	}</span>
+<span class="fc" id="L288">		this.timeoutInSeconds = timeoutInSeconds;</span>
+<span class="fc" id="L289">	}</span>
 
 	/**
 	 * @return Timeout to wait for elements to be present. Default is 20 seconds
 	 */
 	public int getTimeoutInSeconds() {
-<span class="fc" id="L217">		return this.timeoutInSeconds;</span>
+<span class="fc" id="L295">		return this.timeoutInSeconds;</span>
 	}
 
 	/**
 	 * @param stopTestOnFirstFailure If true, if any error occurs while running selenium actions, test will be stopped.
 	 */
 	public void setStopTestOnFirstFailure(boolean stopTestOnFirstFailure) {
-<span class="fc" id="L224">		this.stopTestOnFirstFailure = stopTestOnFirstFailure;</span>
-<span class="fc" id="L225">	}</span>
+<span class="fc" id="L302">		this.stopTestOnFirstFailure = stopTestOnFirstFailure;</span>
+<span class="fc" id="L303">	}</span>
 
 	public boolean getStopTestOnFirstFailure() {
-<span class="fc" id="L228">		return this.stopTestOnFirstFailure;</span>
+<span class="fc" id="L306">		return this.stopTestOnFirstFailure;</span>
 	}
 
 	/**
 	 * @return Seconds the last action took to complete
 	 */
 	public long getLastActionDurationInSeconds() {
-<span class="nc" id="L235">		return this.lastActionDurationInSeconds;</span>
+<span class="nc" id="L313">		return this.lastActionDurationInSeconds;</span>
 	}
+
+	public boolean getTakeScreenshotOnFailure() {
+<span class="nc" id="L317">		return this.takeScreenshotOnFailure;</span>
+	}
+
+	/**
+	 * @param takeScreenshotOnFailure If true, will embed exceptions with screenshot data (if available). Default is &lt;code&gt;true&lt;/code&gt;
+	 */
+	public void setTakeScreenshotOnFailure(boolean takeScreenshotOnFailure) {
+<span class="nc" id="L324">		this.takeScreenshotOnFailure = takeScreenshotOnFailure;</span>
+<span class="nc" id="L325">	}</span>
+
+	public String getDryRunWindow() {
+<span class="fc" id="L328">		return this.dryRunWindow;</span>
+	}
+
+	public void setDryRunWindow(String dryRunWindow) {
+<span class="fc" id="L332">		this.dryRunWindow = dryRunWindow;</span>
+<span class="fc" id="L333">	}</span>
 
 	/**
 	 * {@link Exception} class so test can be stopped. See &lt;a href=&quot;http://www.fitnesse.org/FitNesse.FullReferenceGuide.UserGuide.WritingAcceptanceTests.SliM.SlimProtocol&quot;&gt;FitNesse reference guide
 	 * (Aborting a test) section&lt;/a&gt;.
 	 */
-<span class="fc" id="L242">	public static class StopTestWithWebDriverException extends RuntimeException {</span>
+<span class="fc" id="L339">	public static class StopTestWithWebDriverException extends RuntimeException {</span>
 
-		private StopTestWithWebDriverException(Throwable cause) {
-<span class="nc" id="L245">			super(cause);</span>
-<span class="nc" id="L246">		}</span>
+		public StopTestWithWebDriverException(String message, Throwable cause) {
+<span class="nc" id="L342">			super(message);</span>
+<span class="nc" id="L343">		}</span>
 
 		public StopTestWithWebDriverException(String message) {
-<span class="nc" id="L249">			super(message);</span>
-<span class="nc" id="L250">		}</span>
+<span class="nc" id="L346">			super(message);</span>
+<span class="nc" id="L347">		}</span>
 
 	}
 

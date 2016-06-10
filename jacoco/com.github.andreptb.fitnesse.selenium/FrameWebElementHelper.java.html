@@ -2,7 +2,6 @@
 package com.github.andreptb.fitnesse.selenium;
 
 import java.util.function.BiConsumer;
-
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -14,62 +13,61 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 /**
  * Utility class designed to wrap infrastructure code necessary to operate with selenium frame API.
  */
-<span class="fc" id="L17">public class FrameWebElementHelper {</span>
+<span class="fc" id="L16">public class FrameWebElementHelper {</span>
 
 	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
-<span class="fc" id="L22">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+<span class="fc" id="L21">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
 
 	/**
 	 * Enum mapping possible frame relative positions
 	 */
-<span class="fc" id="L27">	private enum FrameRelativeSelectorType {</span>
-<span class="fc" id="L28">		top,</span>
-<span class="fc" id="L29">		parent;</span>
+<span class="fc" id="L26">	private enum FrameRelativeSelectorType {</span>
+<span class="fc" id="L27">		top,</span>
+<span class="fc" id="L28">		parent;</span>
 	}
 
 	/**
 	 * Enum mapping frame selectors
 	 */
-<span class="pc" id="L35">	private enum FrameSelectorType {</span>
+<span class="pc" id="L34">	private enum FrameSelectorType {</span>
 		/**
 		 * Relative selector, will look for siblings or parent frame
 		 */
-<span class="fc" id="L39">		relative((driver, value) -&gt; {</span>
-<span class="fc" id="L40">			FrameRelativeSelectorType relativeSelector = FrameRelativeSelectorType.valueOf(value);</span>
-<span class="fc bfc" id="L41" title="All 2 branches covered.">			if (relativeSelector == FrameRelativeSelectorType.top) {</span>
-<span class="fc" id="L42">				driver.switchTo().defaultContent();</span>
-<span class="pc bpc" id="L43" title="1 of 2 branches missed.">			} else if (relativeSelector == FrameRelativeSelectorType.parent) {</span>
-<span class="fc" id="L44">				driver.switchTo().parentFrame();</span>
+<span class="fc" id="L38">		relative((driver, value) -&gt; {</span>
+<span class="fc" id="L39">			FrameRelativeSelectorType relativeSelector = FrameRelativeSelectorType.valueOf(value);</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">			if (relativeSelector == FrameRelativeSelectorType.top) {</span>
+<span class="fc" id="L41">				driver.switchTo().defaultContent();</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">			} else if (relativeSelector == FrameRelativeSelectorType.parent) {</span>
+<span class="fc" id="L43">				driver.switchTo().parentFrame();</span>
 			}
-<span class="fc" id="L46">		}),</span>
+<span class="fc" id="L45">		}),</span>
 		/**
 		 * Index selector, will look for the index of the desired frame
 		 */
-<span class="fc" id="L50">		index((driver, value) -&gt; driver.switchTo().frame(NumberUtils.toInt(value)));</span>
+<span class="fc" id="L49">		index((driver, value) -&gt; driver.switchTo().frame(NumberUtils.toInt(value)));</span>
 
 		/**
 		 * Function that selects a value in a {@link Select} element
 		 */
 		private BiConsumer&lt;WebDriver, String&gt; selector;
 
-<span class="fc" id="L57">		private FrameSelectorType(BiConsumer&lt;WebDriver, String&gt; selector) {</span>
-<span class="fc" id="L58">			this.selector = selector;</span>
-<span class="fc" id="L59">		}</span>
+<span class="fc" id="L56">		private FrameSelectorType(BiConsumer&lt;WebDriver, String&gt; selector) {</span>
+<span class="fc" id="L57">			this.selector = selector;</span>
+<span class="fc" id="L58">		}</span>
 	}
 
 	public boolean select(WebDriverHelper driverHelper, String locator) {
-<span class="fc" id="L63">		return driverHelper.getWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L64">			Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(parsedLocator.getOriginalSelector(), FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
-<span class="fc" id="L65">			FrameSelectorType frameSelector = EnumUtils.getEnum(FrameSelectorType.class, keyValue.getKey());</span>
-<span class="fc bfc" id="L66" title="All 2 branches covered.">			if (frameSelector == null) {</span>
-<span class="fc" id="L67">				driver.switchTo().frame(driver.findElement(parsedLocator.getBy()));</span>
-<span class="fc" id="L68">				return true;</span>
+<span class="fc" id="L62">		return driverHelper.doWhenAvailable(locator, (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L63">			Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(parsedLocator.getOriginalSelector(), FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
+<span class="fc" id="L64">			FrameSelectorType frameSelector = EnumUtils.getEnum(FrameSelectorType.class, keyValue.getKey());</span>
+<span class="fc bfc" id="L65" title="All 2 branches covered.">			if (frameSelector == null) {</span>
+<span class="fc" id="L66">				driver.switchTo().frame(driver.findElement(parsedLocator.getBy()));</span>
+<span class="fc" id="L67">				return;</span>
 			}
-<span class="fc" id="L70">			frameSelector.selector.accept(driver, keyValue.getValue());</span>
-<span class="fc" id="L71">			return true;</span>
-		});
+<span class="fc" id="L69">			frameSelector.selector.accept(driver, keyValue.getValue());</span>
+<span class="fc" id="L70">		});</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>

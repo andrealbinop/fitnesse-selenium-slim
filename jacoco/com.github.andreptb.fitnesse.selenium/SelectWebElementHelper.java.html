@@ -70,10 +70,9 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
 <span class="fc" id="L71">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
 <span class="fc" id="L72">		Pair&lt;OptionSelectorType, String&gt; parsedOptionLocator = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey());</span>
-<span class="fc" id="L73">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L73">		return driverHelper.doWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; {</span>
 <span class="fc" id="L74">			parsedOptionLocator.getKey().selector.accept(new Select(driver.findElement(parsedLocator.getBy())), parsedOptionLocator.getValue());</span>
-<span class="fc" id="L75">			return true;</span>
-		});
+<span class="fc" id="L75">		});</span>
 	}
 
 	/**
@@ -85,17 +84,17 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the information from the current selected element
 	 */
 	public String selected(WebDriverHelper driverHelper, String optionLocator, String locator) {
-<span class="fc" id="L88">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
-<span class="fc" id="L89">		OptionSelectorType optionRetriever = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey()).getKey();</span>
-<span class="fc" id="L90">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; this.fitnesseMarkup.clean(optionRetriever.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));</span>
+<span class="fc" id="L87">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
+<span class="fc" id="L88">		OptionSelectorType optionRetriever = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey()).getKey();</span>
+<span class="fc" id="L89">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; this.fitnesseMarkup.clean(optionRetriever.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));</span>
 	}
 
 	private Pair&lt;OptionSelectorType, String&gt; parseOptionLocator(String optionLocator) {
-<span class="fc" id="L94">		Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(optionLocator, FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
+<span class="fc" id="L93">		Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(optionLocator, FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
 		// if no type is informed value will be parsed as prefix
-<span class="fc" id="L96">		String prefix = keyValue.getKey();</span>
-<span class="fc" id="L97">		String value = StringUtils.defaultIfBlank(keyValue.getValue(), prefix);</span>
-<span class="fc" id="L98">		return Pair.of(Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, prefix)).orElse(OptionSelectorType.label), value);</span>
+<span class="fc" id="L95">		String prefix = keyValue.getKey();</span>
+<span class="fc" id="L96">		String value = StringUtils.defaultIfBlank(keyValue.getValue(), prefix);</span>
+<span class="fc" id="L97">		return Pair.of(Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, prefix)).orElse(OptionSelectorType.label), value);</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
