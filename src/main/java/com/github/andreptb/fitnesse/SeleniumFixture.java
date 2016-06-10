@@ -928,9 +928,14 @@ public class SeleniumFixture {
 
 	public String setDryRun(String enableDryRun) {
 		boolean dryRun = this.fitnesseMarkup.onOrOffToBoolean(enableDryRun);
-		boolean isDryRunAlreadyEnabled = StringUtils.isNotBlank(SeleniumFixture.WEB_DRIVER.getDryRunWindow());
+		String dryRunWindow = SeleniumFixture.WEB_DRIVER.getDryRunWindow();
+		boolean isDryRunAlreadyEnabled = StringUtils.isNotBlank(dryRunWindow);
 		if(!dryRun) {
 			SeleniumFixture.WEB_DRIVER.setDryRunWindow(null);
+			if (isDryRunAlreadyEnabled) {
+				selectWindow(dryRunWindow);
+				closeBrowserTab();
+			}
 			return this.fitnesseMarkup.booleanToOnOrOff(isDryRunAlreadyEnabled);
 		}
 		if(isDryRunAlreadyEnabled) {

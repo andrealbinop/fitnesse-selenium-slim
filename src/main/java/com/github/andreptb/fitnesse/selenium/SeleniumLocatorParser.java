@@ -72,6 +72,7 @@ public class SeleniumLocatorParser {
 			selector = locator;
 			selectorType = LocatorType.xpath;
 		}
+
 		try {
 			return selectorType.byClass.getConstructor(String.class).newInstance(selector);
 		} catch (ReflectiveOperationException e) {

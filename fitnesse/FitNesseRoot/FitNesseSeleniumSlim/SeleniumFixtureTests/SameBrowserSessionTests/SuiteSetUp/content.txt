@@ -1,7 +1,9 @@
 !define WAIT_TIMEOUT {5}
+!define STOP_TEST_FIRST_FAILURE {true}
 
 | selenium |
 | start browser | ${BROWSER} | with | name='fitnesse-selenium-slim-tests' browserName='firefox' |
 | note | changes timeout configuration for 5 seconds (default is 20) |
+| stop test on first failure | ${STOP_TEST_FIRST_FAILURE} |
 | set wait timeout | ${WAIT_TIMEOUT} |
 | set dry run | ${DRY_RUN} |

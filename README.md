@@ -12,6 +12,7 @@ fitnesse-selenium-slim [![Build Status](https://travis-ci.org/andreptb/fitnesse-
   * [Screenshots](#screenshots)
   * [Wait behavior](#wait-behavior)
   * [Browser downloads](#browser-downloads)
+  * [Dry run](#dry-run)
 
 
 
@@ -67,10 +68,11 @@ Some situations will cause the test to be aborted even if **[stop test on first 
 This plugin provides a screenshot feature, showing the screenshot preview (and link) similar to [hsac-fitnesse-plugin](https://github.com/fhoeben/hsac-fitnesse-plugin). Screenshots can be triggered when:
 
 * An assertion fails, mostly when an element can't be found in the page or it's contents is somehow unexpected.
-* Manually, by using along with  the show action (example below, taken from [FitNesseSeleniumSlim.SeleniumFixtureTests.SameBrowserSessionTests.EnsureTextTest](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/SameBrowserSessionTests/TextTest/content.txt)):
+* Manually, by using along with **screenshot** action along with **show** prefix, as demonstrated below:
 
 ```
 | selenium |
+|
 | show | screenshot |
 ```
 
@@ -78,6 +80,7 @@ This plugin provides a screenshot feature, showing the screenshot preview (and l
 
 * If a [dialog is present the screenshot action will fail, throwing UnhandledAlertException](https://code.google.com/p/selenium/issues/detail?id=4412).
 * If an action preceding the screenshot fails and **[stop test on first failure](http://andreptb.github.io/fitnesse-selenium-slim/apidocs/com/github/andreptb/fitnesse/SeleniumFixture.html#stopTestOnFirstFailure-java.lang.String-)** is enabled, subsequent screenshot actions will also be aborted.  
+* Browsers must support [data scheme](https://en.wikipedia.org/wiki/Data_URI_scheme) to properly visualize screenshots via FitNesse UI.
 
 #### Wait behavior
 
@@ -99,3 +102,18 @@ This plugin applies default configurations for **Firefox** and **Chrome** to dow
 If you wish to change the default download directory, you can use specific browser preferences, as described **[here (Firefox) ](http://stackoverflow.com/questions/25240468/change-firefox-default-download-settings-within-selenium)** and **[here (Chrome)](http://stackoverflow.com/questions/23530399/chrome-web-driver-download-files)**. Take a look at [this test](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/ManualTests/DownloadFileTest/content.txt) for a sample on how changing the default download directory can be achieved with **Firefox** and **Chrome**.
 
 However, as mentioned [here](http://stackoverflow.com/questions/12002324/waiting-for-file-to-download-on-selenium-grid) and [here](https://blog.codecentric.de/en/2010/07/file-downloads-with-selenium-mission-impossible/), accessing downloaded files proves to be a rather difficult task, especially when working with remote test providers such as [Selenium Grid](http://www.seleniumhq.org/projects/grid/) and [SauceLabs](https://saucelabs.com/). In these situations, another technique must be used. For example, if you're running selenium grid with **[Docker](https://www.docker.com/)**, you could create **[volumes](https://docs.docker.com/userguide/dockervolumes/)** to provide filesystem access between the container with the Selenium Node running the test and the container running FitNesse itself.
+
+#### Dry run
+
+Development with selenium can be slow, specially when tests contains many assertions. With FitNesse in the mix, currently there's no easy way to assert if code syntax and driver configuration is valid without having to effectively run the test.
+
+This plugins offers a **dry run** mode, aiming to address just that. When enabled, selenium actions with an element selector runs in a blank page and will fail only if:
+  * The driver connection is incorrect or the browser is not available to receive selenium commands.
+  * There are FitNesse or Selenium syntax errors.
+
+As this practice [implies](https://en.wikipedia.org/wiki/Dry_run_(testing)), this feature intention is to help with the following tasks:
+  * Mitigate FitNesse and Selenium syntax problems.
+  * Determine test effective order execution and included resources.
+  * Respond as fast as possible.
+
+Please note that the action **start browser** must be executed **before** dry run mode is enabled. Take a look at [this test](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/ManualTests/DryRunTest/content.txt) for an usage example.

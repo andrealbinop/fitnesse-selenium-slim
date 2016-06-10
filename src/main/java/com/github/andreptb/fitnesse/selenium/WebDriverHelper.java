@@ -185,7 +185,6 @@ public class WebDriverHelper {
 	 * returned</li>
 	 * </ul>
 	 *
-	 * @param <T> return type from callback
 	 * @param from selenium selector received by the fixture@param from
 	 * @param callback The callback to be invoked with {@link WebElementSelector} and {@link WebDriver}
 	 * @return the value returned from the callback

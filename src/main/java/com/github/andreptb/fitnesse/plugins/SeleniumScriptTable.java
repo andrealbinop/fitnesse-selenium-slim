@@ -149,10 +149,10 @@ public class SeleniumScriptTable extends ScriptTable {
 				FieldUtils.writeField(instruction, SeleniumScriptTable.CALL_INSTRUCTION_ARGS_FIELD, argsToInject, true);
 			} catch (IllegalArgumentException | ReflectiveOperationException e) {
 				SeleniumScriptTable.LOGGER.log(Level.FINE, "Failed to inject check value using reflection", e);
-			}			
+			}
 		});
 	}
-	
+
 	@Override
 	protected List<SlimAssertion> actionAndAssign(String symbolName, int row) {
 		return super.actionAndAssign(symbolName, row).stream().map(assertion -> {
@@ -185,11 +185,11 @@ public class SeleniumScriptTable extends ScriptTable {
 
 		@Override
 		public SlimExceptionResult evaluateException(SlimExceptionResult exceptionResult) {
-			SlimExceptionResult result = original.evaluateException(exceptionResult);
-			if(original instanceof RowExpectation) {
-				String screenshot = fitnesseMarkup.imgLinkFromExceptionMessage(exceptionResult.getException());
+			SlimExceptionResult result = this.original.evaluateException(exceptionResult);
+			if(this.original instanceof RowExpectation) {
+				String screenshot = SeleniumScriptTable.this.fitnesseMarkup.imgLinkFromExceptionMessage(exceptionResult.getException());
 				if(StringUtils.isNotBlank(screenshot)) {
-					SeleniumScriptTable.this.getTable().addColumnToRow(((RowExpectation) original).getRow(), screenshot);
+					SeleniumScriptTable.this.getTable().addColumnToRow(((RowExpectation) this.original).getRow(), screenshot);
 				}
 			}
 			return result;
