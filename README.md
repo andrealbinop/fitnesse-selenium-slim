@@ -105,15 +105,15 @@ However, as mentioned [here](http://stackoverflow.com/questions/12002324/waiting
 
 #### Dry run
 
-Development with selenium can be slow, specially when tests contains many assertions. With FitNesse in the mix, currently there's no easy way to assert if code syntax and driver configuration is valid without having to effectively run the test.
+Development with selenium can be slow, specially when tests contain many assertions. With FitNesse in the mix, currently there's no easy way to assert if code syntax and driver configuration is valid without having to effectively run the test.
 
-This plugins offers a **dry run** mode, aiming to address just that. When enabled, selenium actions with an element selector runs in a blank page and will fail only if:
+This plugin offers a **dry run** mode, aiming to address just that. When enabled, the plugin runs your tests in a blank page and will fail only if:
   * The driver connection is incorrect or the browser is not available to receive selenium commands.
   * There are FitNesse or Selenium syntax errors.
 
-As this practice [implies](https://en.wikipedia.org/wiki/Dry_run_(testing)), this feature intention is to help with the following tasks:
-  * Mitigate FitNesse and Selenium syntax problems.
-  * Determine test effective order execution and included resources.
-  * Respond as fast as possible.
+As this practice [implies](https://en.wikipedia.org/wiki/Dry_run_(testing)), this feature intends to help with the following tasks:
+  * Mitigate FitNesse and Selenium syntax problems in your test pages.
+  * Verify the test effective order of execution and their resources (e.g. which setup page comes befor....
+  * Provide a quick sanity check as fast as possible.
 
 Please note that the action **start browser** must be executed **before** dry run mode is enabled. Take a look at [this test](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/ManualTests/DryRunTest/content.txt) for an usage example.
