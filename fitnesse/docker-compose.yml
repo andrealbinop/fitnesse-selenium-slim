@@ -1,0 +1,10 @@
+seleniumhub:
+  container_name: seleniumhub
+  image: selenium/hub
+  ports:
+    - "4444:4444"
+firefox:
+  container_name: seleniumfirefox
+  image: selenium/node-firefox
+  links:
+    - seleniumhub:hub

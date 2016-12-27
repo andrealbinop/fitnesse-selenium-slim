@@ -1,4 +1,4 @@
 | selenium |
-| ensure | open | https://saucelabs.com |
-| check | title | Sauce Labs: Selenium Testing, Mobile Testing, JS Unit Testing |
-| check | current url | !-https://saucelabs.com/-! |
+| ensure| open | https://github.com/andreptb/fitnesse-selenium-slim |
+| check | title | !-GitHub - andreptb/fitnesse-selenium-slim: FitNesse Selenium fixture in slim format-! |
+| check | current url | !-https://github.com/andreptb/fitnesse-selenium-slim-! |

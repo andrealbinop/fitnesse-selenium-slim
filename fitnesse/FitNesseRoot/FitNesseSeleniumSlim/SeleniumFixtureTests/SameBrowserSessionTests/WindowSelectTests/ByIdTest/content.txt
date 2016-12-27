@@ -1,10 +1,12 @@
 | selenium |
 | ensure | open | http://google.com |
 | ensure | open window | https://github.com/andreptb |
+| show | current url |
 | note | should still be in Google Window |
 | check | title | Google |
 | note | get's google window ID |
 | $googleWindowId= | current window |
+| show | current url |
 | ensure | select window | https://github.com/andreptb |
 | check | text | css=.vcard-username | andreptb |
 | ensure | close browser tab |

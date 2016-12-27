@@ -1,9 +1,8 @@
 
 package com.github.andreptb.fitnesse;
 
-import org.junit.runner.RunWith;
-
 import fitnesse.junit.FitNesseRunner;
+import org.junit.runner.RunWith;
 
 /**
  * Slim Fixture testing. Configured to run FitNesseSeleniumSlim.SeleniumFixtureTests suite.
