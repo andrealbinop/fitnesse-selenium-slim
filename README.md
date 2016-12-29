@@ -29,7 +29,7 @@ Since the plugin tests itself with FitNesse, take a look at [this](fitnesse/FitN
 <dependency>
   <groupId>com.github.andreptb</groupId>
   <artifactId>fitnesse-selenium-slim</artifactId>
-  <version>1.0.2</version>
+  <version>1.0.3</version>
 </dependency>
 ```
 
@@ -113,7 +113,7 @@ This plugin offers a **dry run** mode, aiming to address just that. When enabled
 
 As this practice [implies](https://en.wikipedia.org/wiki/Dry_run_(testing)), this feature intends to help with the following tasks:
   * Mitigate FitNesse and Selenium syntax problems in your test pages.
-  * Verify the test effective order of execution and their resources (e.g. which setup page comes befor....
+  * Verify the test effective order of execution and their resources (e.g. which setup page comes before the test itself)
   * Provide a quick sanity check as fast as possible.
 
 Please note that the action **start browser** must be executed **before** dry run mode is enabled. Take a look at [this test](fitnesse/FitNesseRoot/FitNesseSeleniumSlim/SeleniumFixtureTests/ManualTests/DryRunTest/content.txt) for an usage example.

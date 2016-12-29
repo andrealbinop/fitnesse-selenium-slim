@@ -1,7 +1,7 @@
 !define TEST_SYSTEM {slim}
 
 !***> classpath config
-!pomFile pom.xml@test
+!path ${FITNESSE_CLASSPATH}
 ***!
 
 !contents -R2 -g -p -f -h

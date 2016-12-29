@@ -1,17 +1,16 @@
 
 package com.github.andreptb.fitnesse.selenium;
 
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.support.ui.Select;
 
-import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Utility class designed to wrap infrastructure code necessary to operate with selenium {@link Select} API.
@@ -53,7 +52,7 @@ public class SelectWebElementHelper {
 		 */
 		private Function<Select, Object> retriever;
 
-		private OptionSelectorType(BiConsumer<Select, String> selector, Function<Select, Object> retriever) {
+		OptionSelectorType(BiConsumer<Select, String> selector, Function<Select, Object> retriever) {
 			this.selector = selector;
 			this.retriever = retriever;
 		}

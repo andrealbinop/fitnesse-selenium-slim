@@ -8,7 +8,7 @@
 		<version>0.5.0</version>
 	</parent>
 	<artifactId>fitnesse-selenium-slim</artifactId>
-	<version>1.0.2</version>
+    <version>1.0.3</version>
 	<name>fitnesse-selenium-slim</name>
 	<description>FitNesse Selenium fixture in slim format. Allows running selenium commands similar to firefox IDE plugin.</description>
 	<url>https://github.com/andreptb/fitnesse-selenium-slim</url>
@@ -35,8 +35,8 @@
 	</scm>
 
 	<properties>
-		<fitnesse.version>20160515</fitnesse.version>
-		<selenium.version>2.53.0</selenium.version>
+        <fitnesse.version>20161106</fitnesse.version>
+        <selenium.version>3.0.1</selenium.version>
 	</properties>
 
 	<dependencies>
@@ -65,6 +65,11 @@
 			<artifactId>reflections</artifactId>
 			<version>0.9.10</version>
 		</dependency>
+        <dependency>
+            <groupId>one.util</groupId>
+            <artifactId>streamex</artifactId>
+            <version>0.6.2</version>
+        </dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
 			<artifactId>httpclient</artifactId>
@@ -86,8 +91,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>18.0</version>
-			<optional>true</optional>
+            <version>18.0</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-cli</groupId>
