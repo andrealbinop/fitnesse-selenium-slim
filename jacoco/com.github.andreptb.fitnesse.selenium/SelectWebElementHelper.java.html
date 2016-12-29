@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../.resources/report.css" type="text/css"/><link rel="shortcut icon" href="../.resources/report.gif" type="image/gif"/><title>SelectWebElementHelper.java</title><link rel="stylesheet" href="../.resources/prettify.css" type="text/css"/><script type="text/javascript" src="../.resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../.sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">fitnesse-selenium-slim</a> &gt; <a href="index.source.html" class="el_package">com.github.andreptb.fitnesse.selenium</a> &gt; <span class="el_source">SelectWebElementHelper.java</span></div><h1>SelectWebElementHelper.java</h1><pre class="source lang-java linenums">
 package com.github.andreptb.fitnesse.selenium;
 
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-
+import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.support.ui.Select;
 
-import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 /**
  * Utility class designed to wrap infrastructure code necessary to operate with selenium {@link Select} API.
  */
-<span class="fc" id="L19">public class SelectWebElementHelper {</span>
+<span class="fc" id="L18">public class SelectWebElementHelper {</span>
 
 	/**
 	 * HTML input value attribute constant
@@ -25,24 +24,24 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	/**
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
-<span class="fc" id="L28">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
+<span class="fc" id="L27">	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();</span>
 
 	/**
 	 * enum mapping option locator identifier.
 	 */
-<span class="pc" id="L33">	private enum OptionSelectorType {</span>
+<span class="pc" id="L32">	private enum OptionSelectorType {</span>
 		/**
 		 * Label selector, will look for the text of the option element
 		 */
-<span class="fc" id="L37">		label((select, value) -&gt; select.selectByVisibleText(value), select -&gt; select.getFirstSelectedOption().getText()),</span>
+<span class="fc" id="L36">		label((select, value) -&gt; select.selectByVisibleText(value), select -&gt; select.getFirstSelectedOption().getText()),</span>
 		/**
 		 * Value selector, will look for the value attribute of the option element
 		 */
-<span class="pc" id="L41">		value((select, value) -&gt; select.selectByValue(value), select -&gt; select.getFirstSelectedOption().getAttribute(SelectWebElementHelper.INPUT_VALUE_ATTRIBUTE)),</span>
+<span class="pc" id="L40">		value((select, value) -&gt; select.selectByValue(value), select -&gt; select.getFirstSelectedOption().getAttribute(SelectWebElementHelper.INPUT_VALUE_ATTRIBUTE)),</span>
 		/**
 		 * Value selector, will look for the index of the desired option element
 		 */
-<span class="fc" id="L45">		index((select, value) -&gt; select.selectByIndex(NumberUtils.toInt(value)), select -&gt; select.getOptions().indexOf(select.getFirstSelectedOption()));</span>
+<span class="fc" id="L44">		index((select, value) -&gt; select.selectByIndex(NumberUtils.toInt(value)), select -&gt; select.getOptions().indexOf(select.getFirstSelectedOption()));</span>
 
 		/**
 		 * Function that selects a value in a {@link Select} element
@@ -53,10 +52,10 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 		 */
 		private Function&lt;Select, Object&gt; retriever;
 
-<span class="fc" id="L56">		private OptionSelectorType(BiConsumer&lt;Select, String&gt; selector, Function&lt;Select, Object&gt; retriever) {</span>
-<span class="fc" id="L57">			this.selector = selector;</span>
-<span class="fc" id="L58">			this.retriever = retriever;</span>
-<span class="fc" id="L59">		}</span>
+<span class="fc" id="L55">		OptionSelectorType(BiConsumer&lt;Select, String&gt; selector, Function&lt;Select, Object&gt; retriever) {</span>
+<span class="fc" id="L56">			this.selector = selector;</span>
+<span class="fc" id="L57">			this.retriever = retriever;</span>
+<span class="fc" id="L58">		}</span>
 	}
 
 	/**
@@ -68,11 +67,11 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return result Boolean result indication of assertion/operation
 	 */
 	public boolean select(WebDriverHelper driverHelper, String optionLocator, String locator) {
-<span class="fc" id="L71">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
-<span class="fc" id="L72">		Pair&lt;OptionSelectorType, String&gt; parsedOptionLocator = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey());</span>
-<span class="fc" id="L73">		return driverHelper.doWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; {</span>
-<span class="fc" id="L74">			parsedOptionLocator.getKey().selector.accept(new Select(driver.findElement(parsedLocator.getBy())), parsedOptionLocator.getValue());</span>
-<span class="fc" id="L75">		});</span>
+<span class="fc" id="L70">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
+<span class="fc" id="L71">		Pair&lt;OptionSelectorType, String&gt; parsedOptionLocator = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey());</span>
+<span class="fc" id="L72">		return driverHelper.doWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; {</span>
+<span class="fc" id="L73">			parsedOptionLocator.getKey().selector.accept(new Select(driver.findElement(parsedLocator.getBy())), parsedOptionLocator.getValue());</span>
+<span class="fc" id="L74">		});</span>
 	}
 
 	/**
@@ -84,17 +83,17 @@ import com.github.andreptb.fitnesse.util.FitnesseMarkup;
 	 * @return the information from the current selected element
 	 */
 	public String selected(WebDriverHelper driverHelper, String optionLocator, String locator) {
-<span class="fc" id="L87">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
-<span class="fc" id="L88">		OptionSelectorType optionRetriever = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey()).getKey();</span>
-<span class="fc" id="L89">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; this.fitnesseMarkup.clean(optionRetriever.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));</span>
+<span class="fc" id="L86">		Pair&lt;String, String&gt; optionTypeAndLocatorWithExpectedValue = this.fitnesseMarkup.swapValueToCheck(optionLocator, locator);</span>
+<span class="fc" id="L87">		OptionSelectorType optionRetriever = parseOptionLocator(optionTypeAndLocatorWithExpectedValue.getKey()).getKey();</span>
+<span class="fc" id="L88">		return driverHelper.getWhenAvailable(optionTypeAndLocatorWithExpectedValue.getValue(), (driver, parsedLocator) -&gt; this.fitnesseMarkup.clean(optionRetriever.retriever.apply(new Select(driver.findElement(parsedLocator.getBy())))));</span>
 	}
 
 	private Pair&lt;OptionSelectorType, String&gt; parseOptionLocator(String optionLocator) {
-<span class="fc" id="L93">		Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(optionLocator, FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
+<span class="fc" id="L92">		Pair&lt;String, String&gt; keyValue = this.fitnesseMarkup.cleanAndParseKeyValue(optionLocator, FitnesseMarkup.KEY_VALUE_SEPARATOR);</span>
 		// if no type is informed value will be parsed as prefix
-<span class="fc" id="L95">		String prefix = keyValue.getKey();</span>
-<span class="fc" id="L96">		String value = StringUtils.defaultIfBlank(keyValue.getValue(), prefix);</span>
-<span class="fc" id="L97">		return Pair.of(Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, prefix)).orElse(OptionSelectorType.label), value);</span>
+<span class="fc" id="L94">		String prefix = keyValue.getKey();</span>
+<span class="fc" id="L95">		String value = StringUtils.defaultIfBlank(keyValue.getValue(), prefix);</span>
+<span class="fc" id="L96">		return Pair.of(Optional.ofNullable(EnumUtils.getEnum(OptionSelectorType.class, prefix)).orElse(OptionSelectorType.label), value);</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.eclemma.org/jacoco">JaCoCo</a> 0.7.5.201505241946</span></div></body></html>
