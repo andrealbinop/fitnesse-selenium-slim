@@ -208,7 +208,7 @@ public class WebDriverHelper {
 			wait.ignoring(UnhandledAlertException.class);
 			wait.ignoring(UnexpectedTagNameException.class);
 			try {
-				wait.until((ExpectedCondition<String>) waitingDriver -> {
+				wait.until(waitingDriver -> {
 					evaluate(waitingDriver, locator, callback, false, result);
 					return result.getValue();
 				});
