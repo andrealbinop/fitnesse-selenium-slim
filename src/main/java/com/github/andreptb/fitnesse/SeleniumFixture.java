@@ -882,11 +882,11 @@ public class SeleniumFixture {
 		});
 	}
 
-
 	private String acceptConfigReturnPrevious(String newConfig, boolean oldValue, Consumer<Boolean> setter) {
 		setter.accept(this.fitnesseMarkup.onOrOffToBoolean(newConfig));
 		return this.fitnesseMarkup.booleanToOnOrOff(oldValue);
 	}
+
 	/**
 	 * <p>
 	 * <code>
@@ -900,7 +900,6 @@ public class SeleniumFixture {
 	public String stopTestOnFirstFailure(String shouldStop) {
 		return acceptConfigReturnPrevious(shouldStop, SeleniumFixture.WEB_DRIVER.getStopTestOnFirstFailure(), SeleniumFixture.WEB_DRIVER::setStopTestOnFirstFailure);
 	}
-
 
 	/**
 	 * <p>
@@ -919,7 +918,7 @@ public class SeleniumFixture {
 		boolean dryRun = this.fitnesseMarkup.onOrOffToBoolean(enableDryRun);
 		String dryRunWindow = SeleniumFixture.WEB_DRIVER.getDryRunWindow();
 		boolean isDryRunAlreadyEnabled = StringUtils.isNotBlank(dryRunWindow);
-		if(!dryRun) {
+		if (!dryRun) {
 			SeleniumFixture.WEB_DRIVER.setDryRunWindow(null);
 			if (isDryRunAlreadyEnabled) {
 				selectWindow(dryRunWindow);
@@ -927,14 +926,14 @@ public class SeleniumFixture {
 			}
 			return this.fitnesseMarkup.booleanToOnOrOff(isDryRunAlreadyEnabled);
 		}
-		if(isDryRunAlreadyEnabled) {
+		if (isDryRunAlreadyEnabled) {
 			return FitnesseMarkup.ON_VALUE;
 		}
 		SeleniumFixture.WEB_DRIVER.doWhenAvailable(null, (driver, parsedLocator) -> {
 			Collection<String> previousHandles = driver.getWindowHandles();
 			openWindow(driver, SeleniumFixture.BLANK_PAGE);
 			Optional<String> dryRunWindowId = driver.getWindowHandles().stream().filter(w -> !previousHandles.contains(w)).findFirst();
-			if(!dryRunWindowId.isPresent()) {
+			if (!dryRunWindowId.isPresent()) {
 				throw new StopTestWithWebDriverException("Unable to create blank window to run test in dry run mode");
 			}
 			SeleniumFixture.WEB_DRIVER.setDryRunWindow(dryRunWindowId.get());

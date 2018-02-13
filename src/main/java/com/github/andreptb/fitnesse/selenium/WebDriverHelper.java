@@ -166,7 +166,7 @@ public class WebDriverHelper {
 			}
 		}
 		String expectedValue = locator.getExpectedValue();
-		if(StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
+		if (StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
 			return WebDriverHelper.UNDEFINED_VALUE;
 		}
 		return expectedValue;
