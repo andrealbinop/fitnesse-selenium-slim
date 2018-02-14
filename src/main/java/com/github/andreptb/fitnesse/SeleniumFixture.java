@@ -1,38 +1,27 @@
 
 package com.github.andreptb.fitnesse;
 
-import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.tuple.Pair;
-import org.openqa.selenium.Dimension;
-import org.openqa.selenium.InvalidElementStateException;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriver.Window;
-import org.openqa.selenium.WebDriverException;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.interactions.Actions;
-import org.openqa.selenium.remote.LocalFileDetector;
-import org.openqa.selenium.remote.RemoteWebElement;
-
 import com.github.andreptb.fitnesse.selenium.BrowserDialogHelper;
 import com.github.andreptb.fitnesse.selenium.FrameWebElementHelper;
 import com.github.andreptb.fitnesse.selenium.SelectWebElementHelper;
 import com.github.andreptb.fitnesse.selenium.WebDriverHelper;
 import com.github.andreptb.fitnesse.selenium.WebDriverHelper.StopTestWithWebDriverException;
 import com.github.andreptb.fitnesse.util.FitnesseMarkup;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.openqa.selenium.*;
+import org.openqa.selenium.WebDriver.Window;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.remote.LocalFileDetector;
+import org.openqa.selenium.remote.RemoteWebElement;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.NoSuchElementException;
+import java.util.function.Consumer;
 
 /**
  * Slim fixture to execute Selenium commands, see README.md for more information.
