@@ -2,6 +2,7 @@
 package com.github.andreptb.fitnesse;
 
 import com.github.andreptb.fitnesse.selenium.BrowserDialogHelper;
+import com.github.andreptb.fitnesse.selenium.ByWebElement;
 import com.github.andreptb.fitnesse.selenium.FrameWebElementHelper;
 import com.github.andreptb.fitnesse.selenium.SelectWebElementHelper;
 import com.github.andreptb.fitnesse.selenium.WebDriverHelper;
@@ -15,6 +16,7 @@ import org.openqa.selenium.*;
 import org.openqa.selenium.WebDriver.Window;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.internal.HasIdentity;
 import org.openqa.selenium.remote.LocalFileDetector;
 import org.openqa.selenium.remote.RemoteWebElement;
 
@@ -76,6 +78,15 @@ public class SeleniumFixture {
 	 * Utility to process FitNesse markup so can be used by Selenium WebDriver
 	 */
 	private FitnesseMarkup fitnesseMarkup = new FitnesseMarkup();
+
+	/**
+	 * Expose the driver helper to allow other fixtures to extend this.
+	 * 
+	 * @return
+	 */
+	public static WebDriverHelper getDriver() {
+		return WEB_DRIVER;
+	}
 
 	/**
 	 * <p>
@@ -234,6 +245,20 @@ public class SeleniumFixture {
 	 */
 	public boolean goBack() {
 		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> driver.navigate().back());
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | go forward |
+	 * </code>
+	 * </p>
+	 * Simulates the user clicking the "forward" button on their browser.
+	 *
+	 * @return result Boolean result indication of assertion/operation
+	 */
+	public boolean goFoward() {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> driver.navigate().forward());
 	}
 
 	/**
@@ -873,13 +898,39 @@ public class SeleniumFixture {
 		return Boolean.valueOf(SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
 			boolean ensuring = Boolean.valueOf(parsedLocator.getExpectedValue());
 			boolean elementFound = false;
+
 			try {
-				elementFound = this.dialogHelper.present(driver, parsedLocator) || driver.findElement(parsedLocator.getBy()) != null;
+				if (parsedLocator.getBy() instanceof ByWebElement) {
+					WebElement elm = driver.findElement(parsedLocator.getBy());
+					if (elm != null) {
+						// check with the remove if it is still there
+						elm.isDisplayed();
+					}
+				} else {
+					elementFound = this.dialogHelper.present(driver, parsedLocator) || driver.findElement(parsedLocator.getBy()) != null;
+				}
 			} catch (WebDriverException e) {
 				// elemento nao foi encontrado
 			}
 			return Boolean.toString(ensuring == elementFound ? ensuring : !ensuring);
 		}));
+	}
+
+	/**
+	 * <p>
+	 * <code>
+	 * | $elementId= | find element | <i>locator</i> |
+	 * </code>
+	 * Finds an element and returns a <i>webelement</i> locator which can be used in other methods.
+	 * 
+	 * @param locator
+	 * @return
+	 */
+	public String findElement(String locator) {
+		return SeleniumFixture.WEB_DRIVER.getWhenAvailable(locator, (driver, parsedLocator) -> {
+			WebElement element = driver.findElement(parsedLocator.getBy());
+			return SeleniumFixture.WEB_DRIVER.addCachedElement(element).toLocator();
+		});
 	}
 
 	/**
@@ -930,6 +981,7 @@ public class SeleniumFixture {
 	 * | set take screenshot on failure | true |
 	 * </code>
 	 * </p>
+	 * 
 	 * @param shouldTake If <b>true</b> or <b>on</b>, a screenshot will be appended (if possible) to a failed selenium operation.
 	 * @return previous configuration value. If enabled will return <b>on</b>, <b>off</b> otherwise.
 	 */
@@ -1102,6 +1154,10 @@ public class SeleniumFixture {
 		});
 	}
 
+	public boolean actionMoveByOffset(int xOffset, int yOffset) {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> new Actions(driver).moveByOffset(xOffset, yOffset).perform());
+	}
+
 	public boolean actionClick() {
 		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> new Actions(driver).click().perform());
 	}
@@ -1170,5 +1226,9 @@ public class SeleniumFixture {
 			}
 			new Actions(driver).release(element.get()).perform();
 		});
+	}
+
+	public boolean actionPause(long pause) {
+		return SeleniumFixture.WEB_DRIVER.doWhenAvailable(StringUtils.EMPTY, (driver, parsedLocator) -> new Actions(driver).pause(pause).perform());
 	}
 }

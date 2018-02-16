@@ -29,7 +29,8 @@ public class SeleniumLocatorParser {
 		name(By.ByName.class),
 		css(By.ByCssSelector.class),
 		xpath(By.ByXPath.class),
-		link(By.ByLinkText.class);
+		link(By.ByLinkText.class),
+		webelement(ByWebElement.class);
 
 		private Class<? extends By> byClass;
 
