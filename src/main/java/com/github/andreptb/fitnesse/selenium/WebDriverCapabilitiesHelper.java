@@ -16,6 +16,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.firefox.FirefoxOptions;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -31,6 +32,8 @@ public class WebDriverCapabilitiesHelper {
 	 */
 	private static final Pattern ENCODED_CONFIG_PATTERN = Pattern.compile("\\s*([^=]+)=['\"]([^'\"]+)['\"]");
 
+	private static final String HEADLESS_CAPABILITY = "headless";
+
 	/**
 	 * Enum to inject preferences and capabilities according to the browser. Will inject default preferences or capabilities if applicable
 	 */
@@ -39,6 +42,9 @@ public class WebDriverCapabilitiesHelper {
 			ChromeOptions chromeOptions = new ChromeOptions();
 			CapabilitiesAndPreferencesInjector.applyIfUndefined("disable-popup-blocking", Boolean.TRUE.toString(), preferences::getOrDefault, preferences::put);
 			chromeOptions.setExperimentalOption("prefs", preferences);
+			if (capabilities.getCapability(HEADLESS_CAPABILITY) != null) {
+				chromeOptions.setHeadless(Boolean.parseBoolean(Objects.toString(capabilities.getCapability(HEADLESS_CAPABILITY))));
+			}
 			capabilities.setCapability(ChromeOptions.CAPABILITY, chromeOptions);
 		}),
 		firefox((capabilities, preferences) -> {
@@ -50,6 +56,12 @@ public class WebDriverCapabilitiesHelper {
 			CapabilitiesAndPreferencesInjector.applyIfUndefined("security.enable_java", true, firefoxProfile::getBooleanPreference, firefoxProfile::setPreference);
 			CapabilitiesAndPreferencesInjector.applyIfUndefined("browser.helperApps.neverAsk.saveToDisk", WebDriverCapabilitiesHelper.FIREFOX_ALLOWED_DOWNLOAD_CONTENT_TYPES, firefoxProfile::getStringPreference, firefoxProfile::setPreference);
 			capabilities.setCapability(FirefoxDriver.PROFILE, firefoxProfile);
+
+			if (capabilities.getCapability(HEADLESS_CAPABILITY) != null) {
+				FirefoxOptions firefoxOptions = new FirefoxOptions();
+				firefoxOptions.setHeadless(Boolean.parseBoolean(Objects.toString(capabilities.getCapability(HEADLESS_CAPABILITY))));
+				capabilities.setCapability(FirefoxOptions.FIREFOX_OPTIONS, firefoxOptions);
+			}
 		}),
 		internetexplorer((capabilities, preferences) -> {
 			capabilities.setCapability(InternetExplorerDriver.INTRODUCE_FLAKINESS_BY_IGNORING_SECURITY_DOMAINS, true);
@@ -89,7 +101,6 @@ public class WebDriverCapabilitiesHelper {
 		DesiredCapabilities desiredCapabilities = new DesiredCapabilities();
 		parseFromString(capabilities, desiredCapabilities::setCapability);
 		Map<String, String> parsedPreferences = new HashMap<>();
-		parseFromString(capabilities, desiredCapabilities::setCapability);
 		parseFromString(preferences, parsedPreferences::put);
 		CapabilitiesAndPreferencesInjector entry = Optional.ofNullable(EnumUtils.getEnum(CapabilitiesAndPreferencesInjector.class, browser))
 			.orElse(EnumUtils.getEnum(CapabilitiesAndPreferencesInjector.class, StringUtils.deleteWhitespace(desiredCapabilities.getBrowserName())));

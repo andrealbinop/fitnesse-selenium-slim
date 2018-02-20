@@ -1,3 +1,4 @@
+
 package com.github.andreptb.fitnesse.selenium;
 
 import java.util.function.BiFunction;

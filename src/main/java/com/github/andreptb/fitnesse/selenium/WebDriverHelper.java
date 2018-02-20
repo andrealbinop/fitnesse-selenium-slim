@@ -16,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.collections.map.LRUMap;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -32,6 +33,7 @@ import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.UnhandledAlertException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.openqa.selenium.internal.HasIdentity;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.remote.ScreenshotException;
 import org.openqa.selenium.support.ui.ExpectedCondition;
@@ -82,6 +84,8 @@ public class WebDriverHelper {
 	private boolean takeScreenshotOnFailure = true;
 
 	private String dryRunWindow;
+
+	private Map<String, WebElement> cachedElements = new LRUMap(64);
 
 	/**
 	 * Creates a {@link WebDriver} instance with desired browser and capabilities. Capabilities should follow a key/value format
@@ -166,7 +170,7 @@ public class WebDriverHelper {
 			}
 		}
 		String expectedValue = locator.getExpectedValue();
-		if(StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
+		if (StringUtils.startsWith(expectedValue, FitnesseMarkup.SELECTOR_VALUE_DENY_INDICATOR)) {
 			return WebDriverHelper.UNDEFINED_VALUE;
 		}
 		return expectedValue;
@@ -330,6 +334,23 @@ public class WebDriverHelper {
 
 	public void setDryRunWindow(String dryRunWindow) {
 		this.dryRunWindow = dryRunWindow;
+	}
+
+	public void clearCacheElements() {
+		cachedElements.clear();
+	}
+
+	public ByWebElement addCachedElement(WebElement element) {
+		if (element instanceof HasIdentity) {
+			ByWebElement result = new ByWebElement(element);
+			cachedElements.put(result.getId(), element);
+			return result;
+		}
+		throw new InvalidElementStateException("Element found but has no identity: " + element);
+	}
+
+	public WebElement getCachedElement(String aId) {
+		return cachedElements.get(aId);
 	}
 
 	/**

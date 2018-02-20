@@ -157,7 +157,7 @@ public class SeleniumScriptTable extends ScriptTable {
 	protected List<SlimAssertion> actionAndAssign(String symbolName, int row) {
 		return super.actionAndAssign(symbolName, row).stream().map(assertion -> {
 			Optional<Instruction> instruction = SlimAssertion.getInstructions(Arrays.asList(assertion)).stream().findFirst();
-			if(instruction.isPresent()) {
+			if (instruction.isPresent()) {
 				ScreenshotEmbedderSlimExpectation expectation = new ScreenshotEmbedderSlimExpectation(assertion.getExpectation());
 				return super.makeAssertion(instruction.get(), expectation);
 			}
@@ -186,9 +186,9 @@ public class SeleniumScriptTable extends ScriptTable {
 		@Override
 		public SlimExceptionResult evaluateException(SlimExceptionResult exceptionResult) {
 			SlimExceptionResult result = this.original.evaluateException(exceptionResult);
-			if(this.original instanceof RowExpectation) {
+			if (this.original instanceof RowExpectation) {
 				String screenshot = SeleniumScriptTable.this.fitnesseMarkup.imgLinkFromExceptionMessage(exceptionResult.getException());
-				if(StringUtils.isNotBlank(screenshot)) {
+				if (StringUtils.isNotBlank(screenshot)) {
 					SeleniumScriptTable.this.getTable().addColumnToRow(((RowExpectation) this.original).getRow(), screenshot);
 				}
 			}
