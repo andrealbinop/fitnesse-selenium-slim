@@ -903,6 +903,8 @@ public class SeleniumFixture {
 				if (parsedLocator.getBy() instanceof ByWebElement) {
 					// Check with the remote if it is still there by trying to execute command which has no side effects
 					driver.findElement(parsedLocator.getBy()).isDisplayed();
+					// If no exception was thrown it is still there
+					elementFound = true;
 				} else {
 					elementFound = this.dialogHelper.present(driver, parsedLocator) || driver.findElement(parsedLocator.getBy()) != null;
 				}
